@@ -49,7 +49,7 @@ public class DispatchedScript {
         int labelEnd = line.indexOf(":::");
         String label = null;
         if (labelEnd != -1) {
-            label = line.substring(labelEnd);
+            label = line.substring(0, labelEnd);
             line = line.substring(labelEnd + 3);
         }
         for (ScriptLineHandler handler : CogwheelRegistries.getLineHandlers()) {

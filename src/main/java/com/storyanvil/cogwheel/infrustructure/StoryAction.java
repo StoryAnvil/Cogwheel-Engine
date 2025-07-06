@@ -11,6 +11,8 @@
 
 package com.storyanvil.cogwheel.infrustructure;
 
+import com.storyanvil.cogwheel.EventBus;
+
 public abstract class StoryAction<T> {
     private String actionLabel = null;
     public abstract void proceed(T myself);
@@ -30,7 +32,8 @@ public abstract class StoryAction<T> {
     }
 
     public void hitLabel() {
-
+        if (actionLabel == null) return;
+        EventBus.hitLabel(actionLabel, this);
     };
 
     public abstract static class Instant<T> extends StoryAction<T> {

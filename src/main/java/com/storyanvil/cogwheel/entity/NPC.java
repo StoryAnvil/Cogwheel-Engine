@@ -171,4 +171,9 @@ public class NPC extends Animal implements
     public <R extends NPC> void addStoryAction(StoryAction<R> action) {
         actionQueue.add(action);
     }
+
+    @Override
+    public Queue<StoryAction<? extends NPC>> getActions() {
+        return actionQueue;
+    }
 }

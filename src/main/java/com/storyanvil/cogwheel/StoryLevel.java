@@ -19,12 +19,18 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Queue;
 
 public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter {
     @Override
     public <R extends StoryLevel> void addStoryAction(StoryAction<R> action) {
         actionQueue.add(action);
+    }
+
+    @Override
+    public Queue<StoryAction<? extends StoryLevel>> getActions() {
+        return actionQueue;
     }
 
     @Override

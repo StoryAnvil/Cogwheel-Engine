@@ -13,8 +13,13 @@ package com.storyanvil.cogwheel;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
+import com.storyanvil.cogwheel.infrustructure.StoryAction;
+import com.storyanvil.cogwheel.infrustructure.abilities.StoryActionQueue;
 import com.storyanvil.cogwheel.util.DoubleValue;
+import com.storyanvil.cogwheel.util.LabelCloseable;
+import com.storyanvil.cogwheel.util.WeakList;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -24,6 +29,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -37,6 +43,19 @@ public class EventBus {
                                 .executes(ctx -> {
                                     ctx.getSource().sendSystemMessage(Component.literal("Script execution will be dispatched"));
                                     CogScriptDispatcher.dispatch(StringArgumentType.getString(ctx, "name"));
+                                    return 0;
+                                })
+                        )
+                )
+                .then(Commands.literal("list")
+                        .then(Commands.argument("e", EntityArgument.entity())
+                                .executes(ctx -> {
+                                    StoryActionQueue<?> actionQueue = (StoryActionQueue<?>) EntityArgument.getEntity(ctx, "e");
+                                    StringBuilder sb = new StringBuilder();
+                                    for (StoryAction<?> action : actionQueue.getActions()) {
+                                        sb.append(action.toString()).append('\n');
+                                    }
+                                    ctx.getSource().sendSystemMessage(Component.literal(sb.toString()));
                                     return 0;
                                 })
                         )
@@ -68,6 +87,25 @@ public class EventBus {
             }
         } catch (IndexOutOfBoundsException e) {
             CogwheelEngine.LOGGER.warn("Queue bound error");
+        }
+    }
+
+    private static HashMap<String, WeakList<LabelCloseable>> labelListeners = new HashMap<>();
+    public static void hitLabel(String label, StoryAction<?> action) {
+        if (labelListeners.containsKey(label)) {
+            WeakList<LabelCloseable> c = labelListeners.get(label);
+            for (int i = 0; i < c.size(); i++) {
+                LabelCloseable closeable = c.get(i);
+                if (closeable != null)
+                    closeable.close(label, action);
+            }
+        }
+    }
+    public static void register(String label, LabelCloseable closeable) {
+        if (labelListeners.containsKey(label)) {
+            labelListeners.get(label).add(closeable);
+        } else {
+            labelListeners.put(label, new WeakList<>(closeable));
         }
     }
 

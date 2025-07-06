@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel.registry;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.entity.NPC;
+import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryActionQueue;
@@ -22,6 +23,7 @@ import com.storyanvil.cogwheel.infrustructure.abilities.StoryNameHolder;
 import com.storyanvil.cogwheel.infrustructure.abilities.StorySkinHolder;
 import com.storyanvil.cogwheel.infrustructure.actions.ChatAction;
 import com.storyanvil.cogwheel.infrustructure.actions.PathfindAction;
+import com.storyanvil.cogwheel.infrustructure.actions.WaitForLabelAction;
 import com.storyanvil.cogwheel.util.ActionFactory;
 import com.storyanvil.cogwheel.util.DoubleValue;
 import com.storyanvil.cogwheel.util.MethodLikeLineHandler;
@@ -258,6 +260,26 @@ public class CogwheelRegistries {
                 BlockPos blockPos = new BlockPos(Integer.parseInt(pos[0]), Integer.parseInt(pos[1]), Integer.parseInt(pos[2]));
                 script.getWeak(variable, StoryActionQueue.class).addStoryAction(new PathfindAction(blockPos).setActionLabel(label));
                 return ScriptLineHandler.continueReading();
+            }
+        });
+        registerInternal(new MethodLikeLineHandler("wait", MODID) {
+            @Override
+            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+                labelUnsupported(label);
+                int sep = args.indexOf(':');
+                String variable = args.substring(0, sep);
+                String name = args.substring(sep + 1);
+                script.getWeak(variable, StoryActionQueue.class).addStoryAction(new WaitForLabelAction(name));
+                return ScriptLineHandler.continueReading();
+            }
+        });
+        registerInternal(new MethodLikeLineHandler("suspendScript", MODID) {
+            @Override
+            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+                EventBus.register(args, (label1, host) -> {
+                    CogwheelExecutor.schedule(script::lineDispatcher);
+                });
+                return ScriptLineHandler.blocking();
             }
         });
     }

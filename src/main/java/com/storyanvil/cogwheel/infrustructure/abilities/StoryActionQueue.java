@@ -13,6 +13,10 @@ package com.storyanvil.cogwheel.infrustructure.abilities;
 
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 
+import java.util.Queue;
+
 public interface StoryActionQueue<T> {
     <R extends T> void addStoryAction(StoryAction<R> action);
+
+    Queue<StoryAction<? extends T>> getActions();
 }
