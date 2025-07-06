@@ -45,25 +45,6 @@ public class CogwheelEngine
         CogwheelEntities.ENTITY_TYPES.register(modEventBus);
         CogwheelPacketHandler.init();
         CogwheelRegistries.registerDefaultObjects();
-
-        StoryAction.registerAction("chat", tag ->
-                new StoryAction.Chat(Component.literal(S(tag, 1))));
-        StoryAction.registerAction("pathfind", tag ->
-                new StoryAction.PathfindTo(new BlockPos(
-                        I(tag, 1), I(tag, 2), I(tag, 3)
-                )));
-        StoryAction.registerAction("teleport", tag ->
-                new StoryAction.TeleportTo(new BlockPos(
-                        I(tag, 1), I(tag, 2), I(tag, 3)
-                )));
-        StoryAction.registerAction("waitFor", tag ->
-                new StoryAction.WaitForLabelNPC(S(tag, 1)));
-        StoryAction.registerAction("waitForCount", tag ->
-                new StoryAction.WaitForLabelNPC(S(tag, 1), I(tag, 2)));
-        StoryAction.registerAction("skin", tag ->
-                new StoryAction.SetData("skin", S(tag, 1)));
-        StoryAction.registerAction("name", tag ->
-                new StoryAction.SetData("name", S(tag, 1)));
     }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

@@ -1,0 +1,1 @@
+scoreboard players set storyanvil_cogwheel shaft 1

@@ -9,30 +9,10 @@
  * You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrustructure;
+package com.storyanvil.cogwheel.infrustructure.abilities;
 
-public abstract class StoryAction<T> {
-    private String actionLabel = null;
-    public abstract void proceed(T myself);
-    public abstract boolean freeToGo(T myself);
-    @Override
-    public String toString() {
-        return this.getClass().getName() + "$ACT#";
-    }
+import com.storyanvil.cogwheel.infrustructure.StoryAction;
 
-    public String getActionLabel() {
-        return actionLabel;
-    }
-
-    public StoryAction<T> setActionLabel(String actionLabel) {
-        this.actionLabel = actionLabel;
-        return this;
-    }
-
-    public abstract static class Instant<T> extends StoryAction<T> {
-        @Override
-        public boolean freeToGo(T myself) {
-            return true;
-        }
-    }
+public interface StoryActionQueue<T> {
+    <R extends T> void addStoryAction(StoryAction<R> action);
 }

@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
@@ -45,13 +46,19 @@ public class DispatchedScript {
     }
 
     private boolean executeLine(String line) {
+        int labelEnd = line.indexOf(":::");
+        String label = null;
+        if (labelEnd != -1) {
+            label = line.substring(labelEnd);
+            line = line.substring(labelEnd + 3);
+        }
         for (ScriptLineHandler handler : CogwheelRegistries.getLineHandlers()) {
             try {
-                DoubleValue<Boolean, Boolean> result = handler.handle(line, this);
+                DoubleValue<Boolean, Boolean> result = handler.handle(line, label, this);
                 if (result.getA()) {
                     return result.getB();
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.warn("{}: LineHandler {} failed with exception", getScriptName(), handler.getResourceLocation(), e);
             }
 
@@ -62,8 +69,9 @@ public class DispatchedScript {
 
     public void lineDispatcher() {
         if (linesToExecute.isEmpty()) return;
-        if (executeLine(linesToExecute.get(0).trim())) {
-            linesToExecute.remove(0);
+        String line = linesToExecute.get(0).trim();
+        linesToExecute.remove(0);
+        if (executeLine(line)) {
             lineDispatcher();
         }
     }
@@ -89,6 +97,14 @@ public class DispatchedScript {
      * @param o Object to store
      */
     public void putWeak(String key, Object o) {
+        if (o == null) return;
         weakStorage.put(key, new WeakReference<>(o));
+    }
+
+    public void dataDump() {
+        log.info("Data dump: {}", scriptName);
+        for (Map.Entry<String, WeakReference<Object>> d: weakStorage.entrySet()) {
+            log.info("{} = {}", d.getKey(), d.getValue().get());
+        }
     }
 }

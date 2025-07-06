@@ -12,12 +12,17 @@
 package com.storyanvil.cogwheel.entity;
 
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
+import com.storyanvil.cogwheel.infrustructure.abilities.StoryActionQueue;
+import com.storyanvil.cogwheel.infrustructure.abilities.StoryChatter;
+import com.storyanvil.cogwheel.infrustructure.abilities.StoryNameHolder;
+import com.storyanvil.cogwheel.infrustructure.abilities.StorySkinHolder;
 import com.storyanvil.cogwheel.util.DataStorage;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.EntityType;
@@ -31,7 +36,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-public class NPC extends Animal {
+public class NPC extends Animal implements
+        StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder {
     public NPC(EntityType<? extends Animal> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         if (!pLevel.isClientSide) {
@@ -42,8 +48,8 @@ public class NPC extends Animal {
 
     public final AnimationState idle = new AnimationState();
     private int idleAnimTimeout = 0;
-    private Queue<StoryAction<NPC>> actionQueue = new ArrayDeque<>();
-    private StoryAction<NPC> current;
+    private Queue<StoryAction<? extends NPC>> actionQueue = new ArrayDeque<>();
+    private StoryAction current;
 
     private static EntityDataAccessor<String> SKIN = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
     private static EntityDataAccessor<String> NAME = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
@@ -84,8 +90,17 @@ public class NPC extends Animal {
     public @Nullable Component getCustomName() {
         return Component.literal(this.entityData.get(NAME));
     }
+
+    @Override
     public String getCogName() {
         return this.entityData.get(NAME);
+    }
+    @Override
+    public void setCogName(String name) {
+        this.entityData.set(NAME, name, true);
+        if (!level().isClientSide) {
+            DataStorage.setString(this, "name", name);
+        }
     }
 
     @Override
@@ -110,10 +125,6 @@ public class NPC extends Animal {
                 .add(Attributes.MAX_HEALTH, 20)
                 .add(Attributes.FOLLOW_RANGE, 24D)
                 .add(Attributes.MOVEMENT_SPEED, 0.10000000149011612);
-    }
-
-    public Queue<StoryAction<NPC>> getActionQueue() {
-        return actionQueue;
     }
 
     @Override
@@ -143,5 +154,23 @@ public class NPC extends Animal {
     }
     public void setSkin(String skin) {
         this.entityData.set(SKIN, skin, true);
+        if (!level().isClientSide) {
+            DataStorage.setString(this, "skin", skin);
+        }
+    }
+
+    @Override
+    public void chat(String text) {
+        if (!this.level().isClientSide) {
+            Component c = Component.literal("[" + getCogName() + "] " + text);
+            for (ServerPlayer player : ((ServerLevel) this.level()).players()) {
+                player.sendSystemMessage(c);
+            }
+        }
+    }
+
+    @Override
+    public <R extends NPC> void addStoryAction(StoryAction<R> action) {
+        actionQueue.add(action);
     }
 }

@@ -47,14 +47,4 @@ public class CogScriptDispatcher {
             log.error("Script dispatch failed while file reading", e);
         }
     }
-
-    /**
-     * Parses StoryActionData to StoryAction
-     */
-    public static StoryAction<?> parseSAD(String data) {
-        String[] dat = data.split(" ");
-        ActionFactory factory = StoryAction.get(dat[0]);
-        if (factory == null) throw new RuntimeException("No StoryAction named " + dat[0]);
-        return factory.construct(dat);
-    }
 }

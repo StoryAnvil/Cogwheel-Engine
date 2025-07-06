@@ -13,7 +13,9 @@ package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface ScriptLineHandler {
     /**
@@ -22,15 +24,27 @@ public interface ScriptLineHandler {
      * @param script script executing line
      * @return DoubleValue provided by one of static ScriptLineHandler methods
      */
-    @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @NotNull DispatchedScript script) throws Exception;
+    @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception;
 
     /**
      * @return resource location for this ScriptLineHandler. Return value of this method must be constant!
      */
     @NotNull ResourceLocation getResourceLocation();
 
+    /**
+     * Use ScriptLineHandler#ignore method instead
+     */
+    @ApiStatus.Internal
     DoubleValue<Boolean, Boolean> ignore = new DoubleValue<>(false, true);
+    /**
+     * Use ScriptLineHandler#continueReading method instead
+     */
+    @ApiStatus.Internal
     DoubleValue<Boolean, Boolean> continueReading = new DoubleValue<>(true, true);
+    /**
+     * Use ScriptLineHandler#blocking method instead
+     */
+    @ApiStatus.Internal
     DoubleValue<Boolean, Boolean> blocking = new DoubleValue<>(true, false);
 
     /**

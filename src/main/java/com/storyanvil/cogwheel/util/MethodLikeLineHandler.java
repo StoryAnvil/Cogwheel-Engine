@@ -15,6 +15,7 @@ import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class MethodLikeLineHandler implements ScriptLineHandler {
     private final String methodName;
@@ -38,16 +39,21 @@ public abstract class MethodLikeLineHandler implements ScriptLineHandler {
 
     @Override
     public @NotNull ResourceLocation getResourceLocation() {
-        return ResourceLocation.fromNamespaceAndPath(namespace, "method/" + methodName);
+        return ResourceLocation.fromNamespaceAndPath(namespace, "method/" + methodName.toLowerCase());
     }
 
     @Override
-    public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @NotNull DispatchedScript script) throws Exception {
+    public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
         if (line.startsWith(sub) && line.endsWith(")")) {
-            return methodHandler(line.substring(sub.length(), line.length() - sub.length() - 1), script);
+            String arg = line.substring(sub.length(), line.length() - 1);
+            return methodHandler(arg, label, script);
         }
         return ScriptLineHandler.ignore();
     }
 
-    public abstract DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @NotNull DispatchedScript script) throws Exception;
+    public abstract DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception;
+
+    public void labelUnsupported(@Nullable String label) {
+        if (label != null) throw new IllegalArgumentException("Label unsupported for method: " + getResourceLocation());
+    }
 }
