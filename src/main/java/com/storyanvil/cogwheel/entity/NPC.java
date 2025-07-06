@@ -12,10 +12,7 @@
 package com.storyanvil.cogwheel.entity;
 
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
-import com.storyanvil.cogwheel.infrustructure.abilities.StoryActionQueue;
-import com.storyanvil.cogwheel.infrustructure.abilities.StoryChatter;
-import com.storyanvil.cogwheel.infrustructure.abilities.StoryNameHolder;
-import com.storyanvil.cogwheel.infrustructure.abilities.StorySkinHolder;
+import com.storyanvil.cogwheel.infrustructure.abilities.*;
 import com.storyanvil.cogwheel.util.DataStorage;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -37,7 +34,8 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class NPC extends Animal implements
-        StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder {
+        StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder,
+        StoryNavigator {
     public NPC(EntityType<? extends Animal> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         if (!pLevel.isClientSide) {

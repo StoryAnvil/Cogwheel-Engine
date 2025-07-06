@@ -31,7 +31,7 @@ import java.util.function.Consumer;
 public class EventBus {
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {
-        event.getDispatcher().register(Commands.literal("@").requires(css -> css.hasPermission(1))
+        event.getDispatcher().register(Commands.literal("@storyanvil").requires(css -> css.hasPermission(1))
                 .then(Commands.literal("dispatch-script")
                         .then(Commands.argument("name", StringArgumentType.greedyString())
                                 .executes(ctx -> {

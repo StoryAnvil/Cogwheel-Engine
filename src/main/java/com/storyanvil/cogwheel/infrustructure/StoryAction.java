@@ -29,9 +29,14 @@ public abstract class StoryAction<T> {
         return this;
     }
 
+    public void hitLabel() {
+
+    };
+
     public abstract static class Instant<T> extends StoryAction<T> {
         @Override
         public boolean freeToGo(T myself) {
+            hitLabel();
             return true;
         }
     }

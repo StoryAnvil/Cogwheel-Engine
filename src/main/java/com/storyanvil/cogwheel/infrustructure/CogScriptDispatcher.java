@@ -12,7 +12,6 @@
 package com.storyanvil.cogwheel.infrustructure;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.util.ActionFactory;
 import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
 

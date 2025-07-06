@@ -21,10 +21,12 @@ import com.storyanvil.cogwheel.infrustructure.abilities.StoryChatter;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryNameHolder;
 import com.storyanvil.cogwheel.infrustructure.abilities.StorySkinHolder;
 import com.storyanvil.cogwheel.infrustructure.actions.ChatAction;
+import com.storyanvil.cogwheel.infrustructure.actions.PathfindAction;
 import com.storyanvil.cogwheel.util.ActionFactory;
 import com.storyanvil.cogwheel.util.DoubleValue;
 import com.storyanvil.cogwheel.util.MethodLikeLineHandler;
 import com.storyanvil.cogwheel.util.ScriptLineHandler;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.AbortableIterationConsumer;
@@ -242,6 +244,19 @@ public class CogwheelRegistries {
             public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
                 labelUnsupported(label);
                 script.dataDump();
+                return ScriptLineHandler.continueReading();
+            }
+        });
+        registerInternal(new MethodLikeLineHandler("pathfind", MODID) {
+            @Override
+            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+                int sep = args.indexOf(':');
+                String variable = args.substring(0, sep);
+                String a = args.substring(sep + 1);
+                String[] pos = a.split(" ");
+                if (pos.length != 3) throw new IllegalArgumentException("Invalid pos");
+                BlockPos blockPos = new BlockPos(Integer.parseInt(pos[0]), Integer.parseInt(pos[1]), Integer.parseInt(pos[2]));
+                script.getWeak(variable, StoryActionQueue.class).addStoryAction(new PathfindAction(blockPos).setActionLabel(label));
                 return ScriptLineHandler.continueReading();
             }
         });
