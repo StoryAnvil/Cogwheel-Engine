@@ -1,0 +1,12 @@
+{
+    "ui.storyanvil_snowflake.task_list": "Tasks",
+    "entity.storyanvil_snowflake.npc": "NPC",
+    "item.storyanvil_snowflake.copper_nugget": "Copper nugget",
+    "item.storyanvil_snowflake.copper_plate": "Copper plate",
+    "item.storyanvil_snowflake.copper_rod": "Copper rod",
+    "item.storyanvil_snowflake.iron_hinge": "Hinge",
+    "item.storyanvil_snowflake.iron_nail": "Nail",
+    "item.storyanvil_snowflake.iron_nails": "Bunch of nails",
+    "item.storyanvil_snowflake.iron_plate": "Iron plate",
+    "item.storyanvil_snowflake.iron_rod": "Iron rod"
+}

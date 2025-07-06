@@ -1,0 +1,12 @@
+{
+    "ui.storyanvil_snowflake.task_list": "Задачи",
+    "entity.storyanvil_snowflake.npc": "NPC",
+    "item.storyanvil_snowflake.copper_nugget": "Кусочек меди",
+    "item.storyanvil_snowflake.copper_plate": "Медный лист",
+    "item.storyanvil_snowflake.copper_rod": "Медный стержень",
+    "item.storyanvil_snowflake.iron_hinge": "Петля",
+    "item.storyanvil_snowflake.iron_nail": "Гвоздь",
+    "item.storyanvil_snowflake.iron_nails": "Куча гвоздей",
+    "item.storyanvil_snowflake.iron_plate": "Железный лист",
+    "item.storyanvil_snowflake.iron_rod": "Железный стержень"
+}
