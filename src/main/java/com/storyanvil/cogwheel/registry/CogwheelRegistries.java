@@ -48,6 +48,7 @@ import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class CogwheelRegistries {
     private static final HashMap<ResourceLocation, ActionFactory> factoryRegistry = new HashMap<>();
+    private static final HashMap<String, MethodLikeLineHandler> methodLikes = new HashMap<>();
     private static final ArrayList<ScriptLineHandler> lineHandlers = new ArrayList<>();
 
     /**
@@ -106,6 +107,34 @@ public class CogwheelRegistries {
             }
         }
     }
+    /**
+     * Registries MethodLikeHandler
+     * @apiNote Namespaces <code>storyanvil</code> and <code>storyanvil_cogwheel</code> reserved for internal purposes and cannot be used
+     * @param factory factory that will be registered
+     */
+    public static void register(@NotNull MethodLikeLineHandler factory) {
+        synchronized (factoryRegistry) {
+            synchronized (methodLikes) {
+                ResourceLocation id = factory.getResourceLocation();
+                if (id.getNamespace().equals("storyanvil") || id.getNamespace().equals(MODID))
+                    throw new IllegalArgumentException("ActionFactory with namespace \"" + id.getNamespace() + "\" cannot be registered as this namespace is reserved for internal purposes");
+                if (factoryRegistry.containsKey(ResourceLocation.fromNamespaceAndPath(MODID, "__finalize__")))
+                    throw new IllegalStateException("Registry frozen! New ActionFactory cannot be registered!");
+                methodLikes.put(factory.getSub(), factory);
+            }
+        }
+    }
+
+    @ApiStatus.Internal
+    protected static void registerInternal(@NotNull MethodLikeLineHandler factory) {
+        synchronized (factoryRegistry) {
+            synchronized (methodLikes) {
+                if (factoryRegistry.containsKey(ResourceLocation.fromNamespaceAndPath(MODID, "__finalize__")))
+                    throw new IllegalStateException("Registry frozen! New ActionFactory cannot be registered!");
+                methodLikes.put(factory.getSub(), factory);
+            }
+        }
+    }
 
     /**
      * @return Registered ActionFactory. Shorthand for <code>CogwheelRegistries#getFactory(ResourceLocation.fromNamespaceAndPath(CogwheelEngine.MODID, name));</code>
@@ -140,6 +169,27 @@ public class CogwheelRegistries {
                 return ResourceLocation.fromNamespaceAndPath(MODID, "comment");
             }
         });
+        registerInternal(new ScriptLineHandler() {
+            @Override
+            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+                int bracket = line.indexOf('(');
+                if (bracket == -1) return ScriptLineHandler.ignore();
+                String sub = line.substring(0, bracket + 1);
+                if (!methodLikes.containsKey(sub)) return ScriptLineHandler.ignore();
+                MethodLikeLineHandler handler = methodLikes.get(sub);
+                return handler.methodHandler(line.substring(sub.length() + 1, line.length() - 1), label, script);
+            }
+
+            @Override
+            public @NotNull ResourceLocation getResourceLocation() {
+                return ResourceLocation.fromNamespaceAndPath(MODID, "method_like");
+            }
+        });
+
+
+        // //////////////////////////////////// //
+        // Method Likes
+        // //////////////////////////////////// //
         registerInternal(new MethodLikeLineHandler("log", MODID) {
             @Override
             public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
@@ -279,6 +329,14 @@ public class CogwheelRegistries {
                 EventBus.register(args, (label1, host) -> {
                     CogwheelExecutor.schedule(script::lineDispatcher);
                 });
+                return ScriptLineHandler.blocking();
+            }
+        });
+        registerInternal(new MethodLikeLineHandler("dispatchScript", MODID) {
+            @Override
+            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+                labelUnsupported(label);
+                CogScriptDispatcher.dispatch(args);
                 return ScriptLineHandler.blocking();
             }
         });

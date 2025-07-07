@@ -17,7 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class MethodLikeLineHandler implements ScriptLineHandler {
+public abstract class MethodLikeLineHandler {
     private final String methodName;
     private final String namespace;
     private final String sub;
@@ -31,29 +31,23 @@ public abstract class MethodLikeLineHandler implements ScriptLineHandler {
         this.methodName = methodName;
         this.namespace = namespace;
         if (namespace.equals(CogwheelEngine.MODID)) {
-            this.sub = methodName + "(";
+            this.sub = "Cogwheel." + methodName + "(";
         } else {
             this.sub = namespace + "." + methodName + "(";
         }
     }
 
-    @Override
     public @NotNull ResourceLocation getResourceLocation() {
         return ResourceLocation.fromNamespaceAndPath(namespace, "method/" + methodName.toLowerCase());
-    }
-
-    @Override
-    public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-        if (line.startsWith(sub) && line.endsWith(")")) {
-            String arg = line.substring(sub.length(), line.length() - 1);
-            return methodHandler(arg, label, script);
-        }
-        return ScriptLineHandler.ignore();
     }
 
     public abstract DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception;
 
     public void labelUnsupported(@Nullable String label) {
         if (label != null) throw new IllegalArgumentException("Label unsupported for method: " + getResourceLocation());
+    }
+
+    public String getSub() {
+        return sub;
     }
 }

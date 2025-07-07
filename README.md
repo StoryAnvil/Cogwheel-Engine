@@ -3,3 +3,5 @@
 Cogwheel Engine is **mod** that allows creating complex story-based modpacks and maps by coding in CogScript.
 
 Check [docs](https://storyanvil.github.io/wiki/wiki.html?p=wiki/projects/cogwheel/home) for more information.
+
+Check [GitHub project](https://github.com/orgs/StoryAnvil/projects/3) to see development state
