@@ -177,7 +177,7 @@ public class CogwheelRegistries {
                 String sub = line.substring(0, bracket + 1);
                 if (!methodLikes.containsKey(sub)) return ScriptLineHandler.ignore();
                 MethodLikeLineHandler handler = methodLikes.get(sub);
-                return handler.methodHandler(line.substring(sub.length() + 1, line.length() - 1), label, script);
+                return handler.methodHandler(line.substring(sub.length(), line.length() - 1), label, script);
             }
 
             @Override
