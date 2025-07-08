@@ -12,12 +12,9 @@
 package com.storyanvil.cogwheel;
 
 import com.storyanvil.cogwheel.entity.NPCRenderer;
-import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.network.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.registry.*;
 import net.minecraft.client.renderer.entity.EntityRenderers;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -26,8 +23,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.storyanvil.cogwheel.util.TagUtils.*;
 
 @Mod(CogwheelEngine.MODID)
 public class CogwheelEngine

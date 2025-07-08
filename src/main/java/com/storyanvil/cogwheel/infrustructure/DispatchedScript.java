@@ -13,6 +13,7 @@ package com.storyanvil.cogwheel.infrustructure;
 
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.DoubleValue;
+import com.storyanvil.cogwheel.util.ObjectMonitor;
 import com.storyanvil.cogwheel.util.ScriptLineHandler;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -24,13 +25,16 @@ import java.util.Map;
 
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
-public class DispatchedScript {
+public class DispatchedScript implements ObjectMonitor.IMonitored {
+    private static final ObjectMonitor<DispatchedScript> MONITOR = new ObjectMonitor<>();
+
     private ArrayList<String> linesToExecute;
     private int executionDepth = 0;
-    private HashMap<String, WeakReference<Object>> weakStorage;
+    private HashMap<String, Object> weakStorage;
     private String scriptName = "unknown-script";
 
     public DispatchedScript(ArrayList<String> linesToExecute) {
+        MONITOR.register(this);
         this.linesToExecute = linesToExecute;
         this.weakStorage = new HashMap<>();
     }
@@ -80,7 +84,7 @@ public class DispatchedScript {
      * @return object stored in weak storage. Null is returned if there isn't object with specified key of WeakReference to this object was cleared
      */
     public <T> @Nullable T getWeak(String key, Class<T> type) {
-        WeakReference<Object> wr = weakStorage.get(key);
+        WeakReference<Object> wr = (WeakReference<Object>) weakStorage.get(key);
         if (wr == null) return null;
         Object o = wr.get();
         if (o == null) {
@@ -101,10 +105,30 @@ public class DispatchedScript {
         weakStorage.put(key, new WeakReference<>(o));
     }
 
+    public void put(String key, Object o) {
+        if (o == null) return;
+        weakStorage.put(key, o);
+    }
+    public Object getRaw(String key) {
+        return weakStorage.get(key);
+    }
+
     public void dataDump() {
         log.info("Data dump: {}", scriptName);
-        for (Map.Entry<String, WeakReference<Object>> d: weakStorage.entrySet()) {
-            log.info("{} = {}", d.getKey(), d.getValue().get());
+        for (Map.Entry<String, Object> d: weakStorage.entrySet()) {
+            log.info("{} = {}", d.getKey(), d.getValue());
+        }
+    }
+
+    @Override
+    public void reportState(StringBuilder sb) {
+        sb.append(scriptName).append(">");
+        for (String line : linesToExecute) {
+            sb.append('"').append(line).append("\" ");
+        }
+        sb.append("| STORAGE>>");
+        for (Map.Entry<String, Object> d : weakStorage.entrySet()) {
+            sb.append('"').append(d.getKey()).append("\"=\"").append(d.getValue()).append("\";");
         }
     }
 }

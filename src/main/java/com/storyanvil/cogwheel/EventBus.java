@@ -11,13 +11,13 @@
 
 package com.storyanvil.cogwheel;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryActionQueue;
-import com.storyanvil.cogwheel.util.DoubleValue;
-import com.storyanvil.cogwheel.util.LabelCloseable;
-import com.storyanvil.cogwheel.util.WeakList;
+import com.storyanvil.cogwheel.registry.CogwheelRegistries;
+import com.storyanvil.cogwheel.util.*;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
@@ -27,8 +27,10 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
@@ -60,10 +62,50 @@ public class EventBus {
                                 })
                         )
                 )
+                .then(Commands.literal("dump")
+                        .executes(ctx -> {
+                            StringBuilder sb = new StringBuilder("=== === === === === COGWHEEL ENGINE REPORT === === === === ===\n");
+                            sb.append("DATE: ").append(new Date());
+                            sb.append("\nMODDED: ").append(guessIfModded()).append("\n");
+                            ObjectMonitor.dumpAll(sb);
+                            CogwheelEngine.LOGGER.warn("\n{}", sb);
+                            return 0;
+                        })
+                )
+        );
+        event.getDispatcher().register(Commands.literal("@storyclient").requires(css -> css.hasPermission(0))
+                .then(Commands.literal("dialog")
+                        .then(Commands.argument("answer", IntegerArgumentType.integer())
+                                .then(Commands.argument("dialog", StringArgumentType.greedyString())
+                                        .executes(ctx -> {
+                                            String dialogID = StringArgumentType.getString(ctx, "dialog");
+                                            if (!dialogResponses.containsKey(dialogID)) return 1;
+                                            Consumer<Integer> call = dialogResponses.get(dialogID);
+                                            dialogResponses.remove(dialogID);
+                                            call.accept(IntegerArgumentType.getInteger(ctx, "answer"));
+                                            return 0;
+                                        })
+                                )
+                        )
+                )
         );
     }
 
+    private static @NotNull StringBuilder guessIfModded() {
+        StringBuilder modded = new StringBuilder();
+        for (ScriptLineHandler handler : CogwheelRegistries.getLineHandlers()) {
+            if (!handler.getResourceLocation().getNamespace().equals(CogwheelEngine.MODID)) {
+                modded.append(" DETECTED CUSTOM LINE HANDLERS");
+            }
+        }
+        if (modded.isEmpty()) {
+            modded.append("NO");
+        } else modded.insert(0, "YES:");
+        return modded;
+    }
+
     protected static List<DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
+    private static HashMap<String, Consumer<Integer>> dialogResponses = new HashMap<>();
     private static StoryLevel level = new StoryLevel();
     @SubscribeEvent
     public static void tick(TickEvent.LevelTickEvent event) {
@@ -107,6 +149,9 @@ public class EventBus {
         } else {
             labelListeners.put(label, new WeakList<>(closeable));
         }
+    }
+    public static void registerDialog(String id, Consumer<Integer> callback) {
+        dialogResponses.put(id, callback);
     }
 
     public static StoryLevel getStoryLevel() {

@@ -21,6 +21,7 @@ public class PathfindAction extends StoryAction<StoryNavigator> {
     private final BlockPos target;
 
     public PathfindAction(BlockPos target) {
+        super();
         this.target = target;
     }
 

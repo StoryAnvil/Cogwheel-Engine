@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryActionQueue;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryChatter;
+import com.storyanvil.cogwheel.util.ObjectMonitor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,7 +22,8 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter {
+public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, ObjectMonitor.IMonitored {
+    private static final ObjectMonitor<StoryLevel> MONITOR = new ObjectMonitor<>();
     @Override
     public <R extends StoryLevel> void addStoryAction(StoryAction<R> action) {
         actionQueue.add(action);
@@ -54,5 +56,18 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter {
             current = actionQueue.remove();
             current.proceed(this);
         }
+    }
+
+    public StoryLevel() {
+        MONITOR.register(this);
+    }
+
+    @Override
+    public void reportState(StringBuilder sb) {
+        for (StoryAction<?> action : actionQueue) {
+            sb.append(action.toString());
+        }
+        sb.append(">").append(current.toString());
+        sb.append(" | ").append(level.toString());
     }
 }

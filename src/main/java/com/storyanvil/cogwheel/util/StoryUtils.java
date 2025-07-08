@@ -9,26 +9,23 @@
  * You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrustructure.actions;
+package com.storyanvil.cogwheel.util;
 
-import com.storyanvil.cogwheel.infrustructure.StoryAction;
-import com.storyanvil.cogwheel.infrustructure.abilities.StoryChatter;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
-public class ChatAction extends StoryAction<StoryChatter> {
-    private final String text;
-
-    public ChatAction(String text) {
-        super();
-        this.text = text;
+public class StoryUtils {
+    public static void sendGlobalMessage(ServerLevel level, Component msg) {
+        for (ServerPlayer player : level.players()) {
+            player.sendSystemMessage(msg);
+        }
     }
-
-    @Override
-    public void proceed(StoryChatter myself) {
-        myself.chat(text);
-    }
-
-    @Override
-    public boolean freeToGo(StoryChatter myself) {
-        return true;
+    public static void sendGlobalMessage(ServerLevel level, Component... msg) {
+        for (ServerPlayer player : level.players()) {
+            for (Component c : msg) {
+                player.sendSystemMessage(c);
+            }
+        }
     }
 }

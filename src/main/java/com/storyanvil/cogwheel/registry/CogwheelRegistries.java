@@ -18,17 +18,16 @@ import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryActionQueue;
-import com.storyanvil.cogwheel.infrustructure.abilities.StoryChatter;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryNameHolder;
 import com.storyanvil.cogwheel.infrustructure.abilities.StorySkinHolder;
 import com.storyanvil.cogwheel.infrustructure.actions.ChatAction;
 import com.storyanvil.cogwheel.infrustructure.actions.PathfindAction;
 import com.storyanvil.cogwheel.infrustructure.actions.WaitForLabelAction;
-import com.storyanvil.cogwheel.util.ActionFactory;
-import com.storyanvil.cogwheel.util.DoubleValue;
-import com.storyanvil.cogwheel.util.MethodLikeLineHandler;
-import com.storyanvil.cogwheel.util.ScriptLineHandler;
+import com.storyanvil.cogwheel.util.*;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.AbortableIterationConsumer;
@@ -38,10 +37,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
@@ -337,6 +333,32 @@ public class CogwheelRegistries {
             public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
                 labelUnsupported(label);
                 CogScriptDispatcher.dispatch(args);
+                return ScriptLineHandler.blocking();
+            }
+        });
+        registerInternal(new MethodLikeLineHandler("dialogChoices", MODID) {
+            @Override
+            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+                labelUnsupported(label);
+                int sep = args.indexOf(':');
+                String variable = args.substring(0, sep);
+                String[] choices = args.substring(sep + 1).split(",");
+                Component[] components = new Component[choices.length];
+                final String dialogID = UUID.randomUUID().toString();
+                EventBus.registerDialog(dialogID, response -> {
+                    script.put(variable, response);
+                    script.lineDispatcher();
+                });
+                for (int i = 0; i < choices.length; i++) {
+                    final int finalI = i;
+                    components[i] = Component.literal("[" + (i + 1) + "] ").withStyle(style -> style.withColor(ChatFormatting.GRAY))
+                            .append(Component.literal(choices[i]).withStyle(style -> style.withClickEvent(
+                                    new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/@storyclient dialog " + finalI + " " + dialogID)
+                            )));
+                }
+                CogwheelExecutor.scheduleTickEvent(event -> {
+                    StoryUtils.sendGlobalMessage((ServerLevel) event.level, components);
+                });
                 return ScriptLineHandler.blocking();
             }
         });

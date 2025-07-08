@@ -20,11 +20,13 @@ public class WaitForLabelAction extends StoryAction<Object> implements LabelClos
     private int amount;
 
     public WaitForLabelAction(String label, int amount) {
+        super();
         this.amount = amount;
         this.label = label;
     }
 
     public WaitForLabelAction(String label) {
+        super();
         this.label = label;
         this.amount = 1;
     }

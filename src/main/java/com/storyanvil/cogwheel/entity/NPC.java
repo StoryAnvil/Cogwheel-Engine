@@ -11,9 +11,11 @@
 
 package com.storyanvil.cogwheel.entity;
 
+import com.storyanvil.cogwheel.StoryLevel;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.*;
 import com.storyanvil.cogwheel.util.DataStorage;
+import com.storyanvil.cogwheel.util.ObjectMonitor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -35,9 +37,11 @@ import java.util.Queue;
 
 public class NPC extends Animal implements
         StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder,
-        StoryNavigator {
+        StoryNavigator, ObjectMonitor.IMonitored {
+    private static final ObjectMonitor<NPC> MONITOR = new ObjectMonitor<>();
     public NPC(EntityType<? extends Animal> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
+        MONITOR.register(this);
         if (!pLevel.isClientSide) {
             setSkin(DataStorage.getString(this, "skin", "test"));
             setCustomName(DataStorage.getString(this, "name", "NPC"));
@@ -175,5 +179,14 @@ public class NPC extends Animal implements
     @Override
     public Queue<StoryAction<? extends NPC>> getActions() {
         return actionQueue;
+    }
+
+    @Override
+    public void reportState(StringBuilder sb) {
+        for (StoryAction<?> action : actionQueue) {
+            sb.append(action.toString());
+        }
+        sb.append(">").append(current.toString());
+        sb.append(" | ").append(this);
     }
 }

@@ -12,8 +12,10 @@
 package com.storyanvil.cogwheel.infrustructure;
 
 import com.storyanvil.cogwheel.EventBus;
+import com.storyanvil.cogwheel.util.ObjectMonitor;
 
-public abstract class StoryAction<T> {
+public abstract class StoryAction<T> implements ObjectMonitor.IMonitored {
+    private static final ObjectMonitor<StoryAction<?>> MONITOR = new ObjectMonitor<>();
     private String actionLabel = null;
     public abstract void proceed(T myself);
     public abstract boolean freeToGo(T myself);
@@ -36,7 +38,20 @@ public abstract class StoryAction<T> {
         EventBus.hitLabel(actionLabel, this);
     };
 
+    public StoryAction() {
+        MONITOR.register(this);
+    }
+
+    @Override
+    public void reportState(StringBuilder sb) {
+        sb.append(this);
+    }
+
     public abstract static class Instant<T> extends StoryAction<T> {
+        public Instant() {
+            super();
+        }
+
         @Override
         public boolean freeToGo(T myself) {
             hitLabel();
