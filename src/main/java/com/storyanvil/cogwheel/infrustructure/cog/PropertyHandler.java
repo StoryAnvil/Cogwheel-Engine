@@ -9,15 +9,11 @@
  * You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrustructure.abilities;
+package com.storyanvil.cogwheel.infrustructure.cog;
 
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.StoryAction;
+import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 
-import java.util.Queue;
-
-public interface StoryActionQueue<T> extends CogPropertyManager {
-    <R extends T> void addStoryAction(StoryAction<R> action);
-
-    Queue<StoryAction<? extends T>> getActions();
+public interface PropertyHandler {
+    CogPropertyManager handle(String name, String args, DispatchedScript script, Object o);
 }

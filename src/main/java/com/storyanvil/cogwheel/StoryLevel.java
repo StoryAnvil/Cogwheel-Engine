@@ -11,6 +11,8 @@
 
 package com.storyanvil.cogwheel;
 
+import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryActionQueue;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryChatter;
@@ -18,6 +20,7 @@ import com.storyanvil.cogwheel.util.ObjectMonitor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -69,5 +72,20 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
         }
         sb.append(">").append(current.toString());
         sb.append(" | ").append(level.toString());
+    }
+
+    @Override
+    public boolean hasOwnProperty(String name) {
+        return false;
+    }
+
+    @Override
+    public @Nullable CogPropertyManager getProperty(String name, String args, DispatchedScript script) {
+        return null;
+    }
+
+    @Override
+    public boolean equalsTo(CogPropertyManager o) {
+        return false;
     }
 }

@@ -11,10 +11,13 @@
 
 package com.storyanvil.cogwheel.entity;
 
-import com.storyanvil.cogwheel.StoryLevel;
+import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.*;
+import com.storyanvil.cogwheel.infrustructure.cog.CogString;
 import com.storyanvil.cogwheel.util.DataStorage;
+import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -30,6 +33,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
@@ -37,7 +41,7 @@ import java.util.Queue;
 
 public class NPC extends Animal implements
         StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder,
-        StoryNavigator, ObjectMonitor.IMonitored {
+        StoryNavigator, ObjectMonitor.IMonitored, CogPropertyManager {
     private static final ObjectMonitor<NPC> MONITOR = new ObjectMonitor<>();
     public NPC(EntityType<? extends Animal> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -188,5 +192,107 @@ public class NPC extends Animal implements
         }
         sb.append(">").append(current.toString());
         sb.append(" | ").append(this);
+    }
+
+    private static EasyPropManager MANAGER = new EasyPropManager("npc", NPC::registerProps);
+
+    private static void registerProps(EasyPropManager manager) {
+        manager.reg("setName", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            npc.addStoryAction(new StoryAction.Instant<NPC>() {
+                @Override
+                public void proceed(NPC myself) {
+                    myself.setCogName(args);
+                }
+            });
+            return null;
+        });
+        manager.reg("setNameV", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            npc.addStoryAction(new StoryAction.Instant<NPC>() {
+                @Override
+                public void proceed(NPC myself) {
+                    CogPropertyManager m = script.get(args);
+                    if (m instanceof CogString str) {
+                        myself.setCogName(str.getValue());
+                    } else throw new RuntimeException(args + " variable doesn't store CogString");
+                }
+            });
+            return null;
+        });
+        manager.reg("getName", (name, args, script, o) -> {
+            return new CogString(((NPC) o).getCogName());
+        });
+
+        manager.reg("setSkin", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            npc.addStoryAction(new StoryAction.Instant<NPC>() {
+                @Override
+                public void proceed(NPC myself) {
+                    myself.setSkin(args);
+                }
+            });
+            return null;
+        });
+        manager.reg("setSkinV", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            npc.addStoryAction(new StoryAction.Instant<NPC>() {
+                @Override
+                public void proceed(NPC myself) {
+                    CogPropertyManager m = script.get(args);
+                    if (m instanceof CogString str) {
+                        myself.setSkin(str.getValue());
+                    } else throw new RuntimeException(args + " variable doesn't store CogString");
+                }
+            });
+            return null;
+        });
+        manager.reg("getSkin", (name, args, script, o) -> {
+            return new CogString(((NPC) o).getSkin());
+        });
+
+        manager.reg("chat", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            npc.addStoryAction(new StoryAction.Instant<NPC>() {
+                @Override
+                public void proceed(NPC myself) {
+                    myself.chat(args);
+                }
+            });
+            return null;
+        });
+        manager.reg("chatV", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            npc.addStoryAction(new StoryAction.Instant<NPC>() {
+                @Override
+                public void proceed(NPC myself) {
+                    CogPropertyManager m = script.get(args);
+                    if (m instanceof CogString str) {
+                        myself.chat(str.getValue());
+                    } else throw new RuntimeException(args + " variable doesn't store CogString");
+                }
+            });
+            return null;
+        });
+    }
+
+    @Override
+    public boolean hasOwnProperty(String name) {
+        return MANAGER.hasOwnProperty(name);
+    }
+
+    @Override
+    public @Nullable CogPropertyManager getProperty(String name, String args, DispatchedScript script) {
+        return MANAGER.get(name).handle(name, args, script, me());
+    }
+
+    @Override
+    public boolean equalsTo(CogPropertyManager o) {
+        return o == this;
+    }
+
+    @Contract(value = " -> this", pure = true)
+    private NPC me() {
+        return this;
     }
 }

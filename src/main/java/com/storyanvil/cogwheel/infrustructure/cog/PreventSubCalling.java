@@ -9,15 +9,16 @@
  * You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrustructure.abilities;
+package com.storyanvil.cogwheel.infrustructure.cog;
 
-import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.StoryAction;
+public class PreventSubCalling extends RuntimeException {
+    private SubCallPostPrevention postPrevention;
 
-import java.util.Queue;
+    public PreventSubCalling(SubCallPostPrevention postPrevention) {
+        this.postPrevention = postPrevention;
+    }
 
-public interface StoryActionQueue<T> extends CogPropertyManager {
-    <R extends T> void addStoryAction(StoryAction<R> action);
-
-    Queue<StoryAction<? extends T>> getActions();
+    public SubCallPostPrevention getPostPrevention() {
+        return postPrevention;
+    }
 }
