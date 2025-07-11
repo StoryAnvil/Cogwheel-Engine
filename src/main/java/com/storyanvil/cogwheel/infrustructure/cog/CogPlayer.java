@@ -14,39 +14,49 @@ package com.storyanvil.cogwheel.infrustructure.cog;
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
-import com.storyanvil.cogwheel.infrustructure.StoryAction;
-import com.storyanvil.cogwheel.infrustructure.abilities.StoryActionQueue;
+import com.storyanvil.cogwheel.util.EasyPropManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
-import java.util.Objects;
 
-public class CogActionQueue<T> implements CogPropertyManager {
-    private WeakReference<StoryActionQueue<T>> actionQueue;
+public class CogPlayer implements CogPropertyManager {
+    private static EasyPropManager MANAGER = new EasyPropManager("player", CogPlayer::registerProps);
 
-    public CogActionQueue(StoryActionQueue<T> actionQueue) {
-        this.actionQueue = new WeakReference<>(actionQueue);
+    private static void registerProps(EasyPropManager manager) {
+        manager.logMe(o -> {
+            return String.valueOf(((CogPlayer) o).player.get());
+        });
+        manager.reg("sendMessage", (name, args, script, o) -> {
+            CogPlayer p = (CogPlayer) o;
+            if (p.player.refersTo(null)) throw new RuntimeException("Player got unloaded");
+            p.player.get().sendSystemMessage(Component.literal(args.getString(0)));
+            return null;
+        });
+    }
+
+    private WeakReference<ServerPlayer> player;
+
+    public CogPlayer(WeakReference<ServerPlayer> player) {
+        this.player = player;
     }
 
     @Override
     public boolean hasOwnProperty(String name) {
-        return false;
+        return MANAGER.hasOwnProperty(name);
     }
 
     @Override
     public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
-        return null;
+        return MANAGER.get(name).handle(name, args, script, this);
     }
 
     @Override
     public boolean equalsTo(CogPropertyManager o) {
-        if (o instanceof CogActionQueue<?> other) {
-            return other.actionQueue.equals(this.actionQueue);
+        if (o instanceof CogPlayer other) {
+            return other.player.equals(this.player);
         }
         return false;
-    }
-
-    public <R extends T> void addStoryAction(StoryAction<R> action) {
-        Objects.requireNonNull(actionQueue.get(), "ActionQueue got unloaded").addStoryAction(action);
     }
 }

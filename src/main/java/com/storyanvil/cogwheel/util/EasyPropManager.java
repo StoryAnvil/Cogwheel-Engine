@@ -2,16 +2,17 @@
  * StoryAnvil CogWheel Engine
  * Copyright (C) 2025 StoryAnvil
  *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.cog.PropertyHandler;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -33,7 +34,7 @@ public class EasyPropManager {
         if (this.manager.charAt(0) != '<') {
             this.manager = "<" + this.manager;
             this.reg("logMe", (__, args, script, o) -> {
-                CogwheelExecutor.log.info("{}: LogMe {} arguments: {}", script.getScriptName(), manager, args);
+                CogwheelExecutor.log.info("{}: LogMe {} arguments: {} | {}", script.getScriptName(), manager, args, ((CogPropertyManager) o).convertToString());
                 return null;
             });
             registrar.register(this);
