@@ -98,10 +98,10 @@ public class CogMaster implements CogPropertyManager {
             });
         });
         manager.reg("str", (name, args, script, o) -> {
-            return new CogString(args.getAsString());
+            return new CogString(args.getString(0));
         });
         manager.reg("int", (name, args, script, o) -> {
-            return new CogInteger(Integer.parseInt(args.getAsString()));
+            return new CogInteger(args.requireInt(0));
         });
         manager.reg("true", (name, args, script, o) -> {
             return CogBool.TRUE;
