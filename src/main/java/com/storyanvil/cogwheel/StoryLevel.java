@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel;
 
+import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
@@ -28,13 +29,8 @@ import java.util.Queue;
 public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, ObjectMonitor.IMonitored {
     private static final ObjectMonitor<StoryLevel> MONITOR = new ObjectMonitor<>();
     @Override
-    public <R extends StoryLevel> void addStoryAction(StoryAction<R> action) {
-        actionQueue.add(action);
-    }
-
-    @Override
-    public Queue<StoryAction<? extends StoryLevel>> getActions() {
-        return actionQueue;
+    public <R> void addStoryAction(StoryAction<R> action) {
+        actionQueue.add((StoryAction<? extends StoryLevel>) action);
     }
 
     @Override
@@ -80,7 +76,7 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
     }
 
     @Override
-    public @Nullable CogPropertyManager getProperty(String name, String args, DispatchedScript script) {
+    public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
         return null;
     }
 

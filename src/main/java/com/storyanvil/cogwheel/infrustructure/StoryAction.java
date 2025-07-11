@@ -12,9 +12,12 @@
 package com.storyanvil.cogwheel.infrustructure;
 
 import com.storyanvil.cogwheel.EventBus;
+import com.storyanvil.cogwheel.infrustructure.cog.CogString;
+import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class StoryAction<T> implements ObjectMonitor.IMonitored {
+public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPropertyManager {
     private static final ObjectMonitor<StoryAction<?>> MONITOR = new ObjectMonitor<>();
     private String actionLabel = null;
     public abstract void proceed(T myself);
@@ -45,6 +48,35 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored {
     @Override
     public void reportState(StringBuilder sb) {
         sb.append(this);
+    }
+
+    private static final EasyPropManager MANAGER = new EasyPropManager("storyAction", StoryAction::registerProps);
+
+    private static void registerProps(EasyPropManager manager) {
+        manager.reg("setLabel", (name, args, script, o) -> {
+            StoryAction<?> action = (StoryAction<?>) o;
+            action.setActionLabel(args.getString(0));
+            return action;
+        });
+        manager.reg("getLabel", (name, args, script, o) -> {
+            StoryAction<?> action = (StoryAction<?>) o;
+            return new CogString(action.getActionLabel());
+        });
+    }
+
+    @Override
+    public boolean hasOwnProperty(String name) {
+        return MANAGER.hasOwnProperty(name);
+    }
+
+    @Override
+    public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
+        return MANAGER.get(name).handle(name, args, script, this);
+    }
+
+    @Override
+    public boolean equalsTo(CogPropertyManager o) {
+        return o == this;
     }
 
     public abstract static class Instant<T> extends StoryAction<T> {

@@ -49,19 +49,6 @@ public class EventBus {
                                 })
                         )
                 )
-                .then(Commands.literal("list")
-                        .then(Commands.argument("e", EntityArgument.entity())
-                                .executes(ctx -> {
-                                    StoryActionQueue<?> actionQueue = (StoryActionQueue<?>) EntityArgument.getEntity(ctx, "e");
-                                    StringBuilder sb = new StringBuilder();
-                                    for (StoryAction<?> action : actionQueue.getActions()) {
-                                        sb.append(action.toString()).append('\n');
-                                    }
-                                    ctx.getSource().sendSystemMessage(Component.literal(sb.toString()));
-                                    return 0;
-                                })
-                        )
-                )
                 .then(Commands.literal("dump")
                         .executes(ctx -> {
                             StringBuilder sb = new StringBuilder("=== === === === === COGWHEEL ENGINE REPORT === === === === ===\n");

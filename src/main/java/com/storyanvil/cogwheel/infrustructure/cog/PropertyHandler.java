@@ -11,9 +11,10 @@
 
 package com.storyanvil.cogwheel.infrustructure.cog;
 
+import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 
 public interface PropertyHandler {
-    CogPropertyManager handle(String name, String args, DispatchedScript script, Object o);
+    CogPropertyManager handle(String name, ArgumentData args, DispatchedScript script, Object o);
 }

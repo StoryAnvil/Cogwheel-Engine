@@ -11,12 +11,15 @@
 
 package com.storyanvil.cogwheel.infrustructure.cog;
 
+import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrustructure.CogStringGen;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CogBool implements CogPropertyManager {
+public class CogBool implements CogPropertyManager, CogStringGen<CogBool> {
     private static EasyPropManager MANAGER = new EasyPropManager("bool", CogBool::registerProps);
     public static final CogBool TRUE = new CogBool(true);
     public static final CogBool FALSE = new CogBool(false);
@@ -46,8 +49,17 @@ public class CogBool implements CogPropertyManager {
     }
 
     @Override
-    public @Nullable CogPropertyManager getProperty(String name, String args, DispatchedScript script) {
+    public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
         return MANAGER.get(name).handle(name, args, script, this);
+    }
+
+    @Override
+    public String convertToString() {
+        return value ? "TRUE" : "FALSE";
+    }
+
+    public boolean getValue() {
+        return value;
     }
 
     @Override
@@ -56,5 +68,12 @@ public class CogBool implements CogPropertyManager {
             return other.value == this.value;
         }
         return false;
+    }
+
+    @Override
+    public @Nullable CogBool fromString(@NotNull String s) {
+        if (s.equals("TRUE")) return TRUE;
+        if (s.equals("FALSE")) return FALSE;
+        return null;
     }
 }

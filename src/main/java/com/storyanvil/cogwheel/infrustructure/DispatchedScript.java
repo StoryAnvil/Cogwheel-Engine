@@ -11,7 +11,6 @@
 
 package com.storyanvil.cogwheel.infrustructure;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrustructure.cog.CogActionQueue;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.DoubleValue;
@@ -29,6 +28,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
 
     private ArrayList<String> linesToExecute;
     private int executionDepth = 0;
+    private boolean skipCurrentDepth = false;
     private HashMap<String, CogPropertyManager> storage;
     private String scriptName = "unknown-script";
 
@@ -63,7 +63,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
                     return result.getB();
                 }
             } catch (Throwable e) {
-                log.warn("{}: LineHandler {} failed with exception", getScriptName(), handler.getResourceLocation(), e);
+                log.warn("{}: LineHandler {} failed with exception. Line: \"{}\"", getScriptName(), handler.getResourceLocation(), line, e);
             }
 
         }
@@ -112,5 +112,48 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
 //        for (Map.Entry<String, Object> d : storage.entrySet()) {
 //            sb.append('"').append(d.getKey()).append("\"=\"").append(d.getValue()).append("\";");
 //        }
+    }
+
+    public int getExecutionDepth() {
+        return executionDepth;
+    }
+
+    public void setExecutionDepth(int executionDepth) {
+        this.executionDepth = executionDepth;
+    }
+
+    public int pushDepth(boolean skip) {
+        executionDepth++;
+        skipCurrentDepth = skip;
+        return executionDepth;
+    }
+
+    public int pullDepth(boolean skip) {
+        executionDepth--;
+        skipCurrentDepth = skip;
+        return executionDepth;
+    }
+
+    public boolean isSkippingCurrentDepth() {
+        return skipCurrentDepth;
+    }
+
+    public void setSkipCurrentDepth(boolean skipCurrentDepth) {
+        this.skipCurrentDepth = skipCurrentDepth;
+    }
+
+    public String pullLine() {
+        if (linesToExecute.isEmpty()) return null;
+        String l = linesToExecute.get(0);
+        linesToExecute.remove(0);
+        return l;
+    }
+    public void removeLine() {
+        if (linesToExecute.isEmpty()) return;
+        linesToExecute.remove(0);
+    }
+    public String peekLine() {
+        if (linesToExecute.isEmpty()) return null;
+        return linesToExecute.get(0);
     }
 }

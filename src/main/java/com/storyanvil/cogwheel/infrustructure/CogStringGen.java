@@ -9,15 +9,11 @@
  * You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrustructure.abilities;
+package com.storyanvil.cogwheel.infrustructure;
 
-import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.StoryAction;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface StoryActionQueue<T> extends CogPropertyManager {
-    <R> void addStoryAction(StoryAction<R> action);
-    default <R> StoryAction<?> addChained(StoryAction<R> action) {
-        addStoryAction(action);
-        return action;
-    };
+public interface CogStringGen<T extends CogStringGen<T>> extends CogPropertyManager {
+    @Nullable T fromString(@NotNull String s);
 }

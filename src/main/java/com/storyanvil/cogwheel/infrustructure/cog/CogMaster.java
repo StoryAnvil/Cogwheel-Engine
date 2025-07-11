@@ -12,7 +12,9 @@
 package com.storyanvil.cogwheel.infrustructure.cog;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.entity.NPC;
+import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
@@ -42,7 +44,7 @@ public class CogMaster implements CogPropertyManager {
     }
 
     @Override
-    public @Nullable CogPropertyManager getProperty(String name, String args, DispatchedScript script) {
+    public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
         return MANAGER.get(name).handle(name, args, script, this);
     }
 
@@ -53,7 +55,7 @@ public class CogMaster implements CogPropertyManager {
 
     private static void register(EasyPropManager manager) {
         manager.reg("log", (name, args, script, o) -> {
-            CogwheelExecutor.log.info("{}: {}", script.getScriptName(), args);
+            CogwheelExecutor.log.info("{}: {}", script.getScriptName(), args.getString(0));
             return null;
         });
         manager.reg("getTaggedNPC", (name, args, script, o) -> {
@@ -61,7 +63,7 @@ public class CogMaster implements CogPropertyManager {
                 @Override
                 public void prevent(String variable) {
                     CogwheelExecutor.scheduleTickEvent(event -> {
-                        getNPCByTag((ServerLevel) event.level, variable, args, script);
+                        getNPCByTag((ServerLevel) event.level, variable, args.getString(0), script);
                     });
                 }
                 public static void getNPCByTag(ServerLevel level, String variable, String tag, DispatchedScript notify) {
@@ -96,10 +98,10 @@ public class CogMaster implements CogPropertyManager {
             });
         });
         manager.reg("str", (name, args, script, o) -> {
-            return new CogString(args);
+            return new CogString(args.getAsString());
         });
         manager.reg("int", (name, args, script, o) -> {
-            return new CogInteger(Integer.parseInt(args));
+            return new CogInteger(Integer.parseInt(args.getAsString()));
         });
         manager.reg("true", (name, args, script, o) -> {
             return CogBool.TRUE;
@@ -107,5 +109,13 @@ public class CogMaster implements CogPropertyManager {
         manager.reg("false", (name, args, script, o) -> {
             return CogBool.FALSE;
         });
+        manager.reg("getLevel", (name, args, script, o) -> {
+            return EventBus.getStoryLevel();
+        });
+    }
+
+    @Override
+    public String convertToString() {
+        return "Cogwheel Object";
     }
 }

@@ -11,31 +11,10 @@
 
 package com.storyanvil.cogwheel.registry;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.EventBus;
-import com.storyanvil.cogwheel.entity.NPC;
-import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
-import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
-import com.storyanvil.cogwheel.infrustructure.StoryAction;
-import com.storyanvil.cogwheel.infrustructure.abilities.*;
-import com.storyanvil.cogwheel.infrustructure.actions.ChatAction;
-import com.storyanvil.cogwheel.infrustructure.cog.CogMaster;
-import com.storyanvil.cogwheel.infrustructure.actions.PathfindAction;
-import com.storyanvil.cogwheel.infrustructure.actions.WaitForLabelAction;
-import com.storyanvil.cogwheel.infrustructure.cog.CogActionQueue;
-import com.storyanvil.cogwheel.infrustructure.cog.CogInteger;
-import com.storyanvil.cogwheel.infrustructure.cog.PreventSubCalling;
+import com.storyanvil.cogwheel.infrustructure.*;
+import com.storyanvil.cogwheel.infrustructure.cog.*;
 import com.storyanvil.cogwheel.util.*;
-import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.AbortableIterationConsumer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.entity.EntityTypeTest;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +23,6 @@ import java.util.*;
 import java.util.function.Function;
 
 import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
-import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class CogwheelRegistries {
     private static final List<DoubleValue<String, Function<DispatchedScript, CogPropertyManager>>> defaultVariables = new ArrayList<>();
@@ -127,68 +105,29 @@ public class CogwheelRegistries {
                 return ResourceLocation.fromNamespaceAndPath(MODID, "comment");
             }
         });
+//        registerInternal(new ScriptLineHandler() {
+//            @Override
+//            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String _line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+//                if (!_line.startsWith("*")) return ScriptLineHandler.ignore();
+//                String line = _line.substring(1);
+//                int bracket = line.indexOf('(');
+//                if (bracket == -1) return ScriptLineHandler.ignore();
+//                String sub = line.substring(0, bracket + 1);
+//                if (!methodLikes.containsKey(sub)) return ScriptLineHandler.ignore();
+//                MethodLikeLineHandler handler = methodLikes.get(sub);
+//                return handler.methodHandler(line.substring(sub.length(), line.length() - 1), label, script);
+//            }
+//
+//            @Override
+//            public @NotNull ResourceLocation getResourceLocation() {
+//                return ResourceLocation.fromNamespaceAndPath(MODID, "method_like");
+//            }
+//        });
         registerInternal(new ScriptLineHandler() {
             @Override
             public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String _line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                if (!_line.startsWith("*")) return ScriptLineHandler.ignore();
-                String line = _line.substring(1);
-                int bracket = line.indexOf('(');
-                if (bracket == -1) return ScriptLineHandler.ignore();
-                String sub = line.substring(0, bracket + 1);
-                if (!methodLikes.containsKey(sub)) return ScriptLineHandler.ignore();
-                MethodLikeLineHandler handler = methodLikes.get(sub);
-                return handler.methodHandler(line.substring(sub.length(), line.length() - 1), label, script);
-            }
-
-            @Override
-            public @NotNull ResourceLocation getResourceLocation() {
-                return ResourceLocation.fromNamespaceAndPath(MODID, "method_like");
-            }
-        });
-        registerInternal(new ScriptLineHandler() {
-            @Override
-            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String _line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                int eq = _line.indexOf('=');
-                String line;
-                String variable = null;
-                if (eq != -1) {
-                    line = _line.substring(eq + 1);
-                    variable = _line.substring(0, eq);
-                } else {
-                    line = _line;
-                }
-
-
-                int dot = line.indexOf('.');
-                if (dot != -1) {
-                    String sub = line.substring(0, dot);
-                    if (script.hasKey(sub)) {
-                        CogPropertyManager manager = CogPropertyManager.noNull(script.get(sub));
-                        String[] props = line.substring(dot + 1).split("\\.");
-                        for (int i = 0; i < props.length; i++) {
-                            String linkedProperty = props[i];
-                            if (!linkedProperty.endsWith(")")) throw new RuntimeException("Tail Bracket mismatch");
-                            int bracket = linkedProperty.indexOf('(');
-                            if (bracket == -1) throw new RuntimeException("Head Bracket mismatch");
-                            String args = linkedProperty.substring(bracket + 1, linkedProperty.length() - 1);
-                            String propName = linkedProperty.substring(0, bracket);
-                            if (manager.hasOwnProperty(propName)) {
-                                try {
-                                    manager = manager.getProperty(propName, args, script);
-                                } catch (PreventSubCalling preventSubCalling) {
-                                    preventSubCalling.getPostPrevention().prevent(variable);
-                                    return ScriptLineHandler.blocking();
-//                                    break;
-                                }
-                            } else throw new RuntimeException(manager.getClass().getCanonicalName() + " Manager does not have property named: " + linkedProperty + " as " + propName + " with " + args);
-                        }
-                        if (variable != null) {
-                            script.put(variable, manager);
-                        }
-                        return ScriptLineHandler.continueReading();
-                    }
-                }
-                return ScriptLineHandler.ignore();
+                DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> parseOutput = expressionHandler(_line, script, true);
+                return parseOutput.getA();
             }
 
             @Override
@@ -196,142 +135,202 @@ public class CogwheelRegistries {
                 return ResourceLocation.fromNamespaceAndPath(MODID, "property_managers");
             }
         });
+//        registerInternal(new ScriptLineHandler() {
+//            @Override
+//            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String _line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+//                if (_line.equals("}")) {
+//                    script.pullDepth();
+//                    return ScriptLineHandler.continueReading();
+//                }
+//                if (_line.startsWith("if (")) {
+//                    if (!_line.endsWith(") {")) throw new RuntimeException("Mismatched if closure");
+//                    int lastBracket = _line.lastIndexOf(')');
+//                    String expression = _line.substring(4, lastBracket);
+//                    DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> parseOutput = expressionHandler(expression, script, false);
+//                    CogPropertyManager result = parseOutput.getB();
+//                    if (result instanceof CogBool bool) {
+//                        script.pushDepth();
+//                        if (!bool.getValue()) {
+//                            script.setSkipCurrentDepth(true);
+//                        }
+//                    } else throw new RuntimeException("If statement in line: \"" + _line + "\" didn't return CogBool");
+//                }
+//                return ScriptLineHandler.ignore();
+//            }
+//
+//            @Override
+//            public @NotNull ResourceLocation getResourceLocation() {
+//                return ResourceLocation.fromNamespaceAndPath(MODID, "if_statement");
+//            }
+//        });
+        registerInternal(new ScriptLineHandler() {
+            @Override
+            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+                if (line.startsWith("*switch ")) {
+                    CogPropertyManager var = script.get(line.substring(8));
+                    if (var instanceof CogStringGen<?> gen) {
+                        while (true) {
+                            String l = script.peekLine();
+                            int arrow = l.indexOf("->");
+                            if (arrow == -1) break;
+                            script.removeLine();
+                            String left = l.substring(0, arrow).trim();
+                            String right = l.substring(arrow + 2).trim();
+                            if (left.equals("*")) {
+                                skip("@marker " + right, script);
+                                return ScriptLineHandler.continueReading();
+                            }
+                            CogStringGen<?> compareTo = gen.fromString(left);
+                            if (compareTo == null) throw new RuntimeException("Unexpected switch left hand");
+                            if (compareTo.equalsTo(gen)) {
+                                skip("@marker " + right, script);
+                                return ScriptLineHandler.continueReading();
+                            }
+                        }
+                        return ScriptLineHandler.continueReading();
+                    } else throw new RuntimeException("Switch variable");
+                }
+                return ScriptLineHandler.ignore();
+            }
+
+            @Override
+            public @NotNull ResourceLocation getResourceLocation() {
+                return ResourceLocation.fromNamespaceAndPath(MODID, "switch_case");
+            }
+        });
+        registerInternal(new ScriptLineHandler() {
+            @Override
+            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+                if (line.startsWith("@skipTo ")) {
+                    skip("@marker " + line.substring(8), script);
+                } else if (line.startsWith("@stop")) {
+                    return ScriptLineHandler.blocking();
+                }
+                return ScriptLineHandler.ignore();
+            }
+
+            @Override
+            public @NotNull ResourceLocation getResourceLocation() {
+                return ResourceLocation.fromNamespaceAndPath(MODID, "marker_tasks");
+            }
+        });
+
         registerInternal("Cogwheel", script -> CogMaster.getInstance());
 
 
         // //////////////////////////////////// //
         // Method Likes
-        // //////////////////////////////////// //
-        registerInternal(new MethodLikeLineHandler("chat", MODID) {
-            @Override
-            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                int sep = args.indexOf(':');
-                String variable = args.substring(0, sep);
-                String msg = args.substring(sep + 1);
-
-                script.getActionQueue(variable, StoryChatter.class).addStoryAction(new ChatAction(msg).setActionLabel(label));
-
-                return ScriptLineHandler.continueReading();
-            }
-        });
-        registerInternal(new MethodLikeLineHandler("skin", MODID) {
-            @Override
-            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                int sep = args.indexOf(':');
-                String variable = args.substring(0, sep);
-                String skin = args.substring(sep + 1);
-                script.getActionQueue(variable, StorySkinHolder.class).addStoryAction(new StoryAction.Instant<StorySkinHolder>() {
-                    @Override
-                    public void proceed(StorySkinHolder myself) {
-                        myself.setSkin(skin);
-                    }
-                }.setActionLabel(label));
-                return ScriptLineHandler.continueReading();
-            }
-        });
-        registerInternal(new MethodLikeLineHandler("name", MODID) {
-            @Override
-            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                int sep = args.indexOf(':');
-                String variable = args.substring(0, sep);
-                String name = args.substring(sep + 1);
-                script.getActionQueue(variable, StoryNameHolder.class).addStoryAction(new StoryAction.Instant<StoryNameHolder>() {
-                    @Override
-                    public void proceed(StoryNameHolder myself) {
-                        myself.setCogName(name);
-                    }
-                }.setActionLabel(label));
-                return ScriptLineHandler.continueReading();
-            }
-        });
-        registerInternal(new MethodLikeLineHandler("getLevel", MODID) {
-            @Override
-            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                labelUnsupported(label);
-                script.put(args, new CogActionQueue<>(EventBus.getStoryLevel()));
-                return ScriptLineHandler.continueReading();
-            }
-        });
-        registerInternal(new MethodLikeLineHandler("dataDump", MODID) {
-            @Override
-            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                labelUnsupported(label);
-                script.dataDump();
-                return ScriptLineHandler.continueReading();
-            }
-        });
-        registerInternal(new MethodLikeLineHandler("pathfind", MODID) {
-            @Override
-            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                int sep = args.indexOf(':');
-                String variable = args.substring(0, sep);
-                String a = args.substring(sep + 1);
-                String[] pos = a.split(" ");
-                if (pos.length != 3) throw new IllegalArgumentException("Invalid pos");
-                BlockPos blockPos = new BlockPos(Integer.parseInt(pos[0]), Integer.parseInt(pos[1]), Integer.parseInt(pos[2]));
-                script.getActionQueue(variable, StoryNavigator.class).addStoryAction(new PathfindAction(blockPos).setActionLabel(label));
-                return ScriptLineHandler.continueReading();
-            }
-        });
-        registerInternal(new MethodLikeLineHandler("wait", MODID) {
-            @Override
-            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                labelUnsupported(label);
-                int sep = args.indexOf(':');
-                String variable = args.substring(0, sep);
-                String name = args.substring(sep + 1);
-                script.getActionQueue(variable, Object.class).addStoryAction(new WaitForLabelAction(name));
-                return ScriptLineHandler.continueReading();
-            }
-        });
-        registerInternal(new MethodLikeLineHandler("suspendScript", MODID) {
-            @Override
-            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                EventBus.register(args, (label1, host) -> {
-                    CogwheelExecutor.schedule(script::lineDispatcher);
-                });
-                return ScriptLineHandler.blocking();
-            }
-        });
-        registerInternal(new MethodLikeLineHandler("dispatchScript", MODID) {
-            @Override
-            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                labelUnsupported(label);
-                CogScriptDispatcher.dispatch(args);
-                return ScriptLineHandler.blocking();
-            }
-        });
-        registerInternal(new MethodLikeLineHandler("dialogChoices", MODID) {
-            @Override
-            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                labelUnsupported(label);
-                int sep = args.indexOf(':');
-                String variable = args.substring(0, sep);
-                String[] choices = args.substring(sep + 1).split(",");
-                Component[] components = new Component[choices.length];
-                final String dialogID = UUID.randomUUID().toString();
-                EventBus.registerDialog(dialogID, response -> {
-                    script.put(variable, new CogInteger(response));
-                    script.lineDispatcher();
-                });
-                for (int i = 0; i < choices.length; i++) {
-                    final int finalI = i;
-                    components[i] = Component.literal("[" + (i + 1) + "] ").withStyle(style -> style.withColor(ChatFormatting.GRAY))
-                            .append(Component.literal(choices[i]).withStyle(style -> style.withClickEvent(
-                                    new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/@storyclient dialog " + finalI + " " + dialogID)
-                            )));
-                }
-                CogwheelExecutor.scheduleTickEvent(event -> {
-                    StoryUtils.sendGlobalMessage((ServerLevel) event.level, components);
-                });
-                return ScriptLineHandler.blocking();
-            }
-        });
+//        registerInternal(new MethodLikeLineHandler("wait", MODID) {
+//            @Override
+//            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+//                labelUnsupported(label);
+//                int sep = args.indexOf(':');
+//                String variable = args.substring(0, sep);
+//                String name = args.substring(sep + 1);
+//                script.getActionQueue(variable, Object.class).addStoryAction(new WaitForLabelAction(name));
+//                return ScriptLineHandler.continueReading();
+//            }
+//        });
+//        registerInternal(new MethodLikeLineHandler("suspendScript", MODID) {
+//            @Override
+//            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+//                EventBus.register(args, (label1, host) -> {
+//                    CogwheelExecutor.schedule(script::lineDispatcher);
+//                });
+//                return ScriptLineHandler.blocking();
+//            }
+//        });
+//        registerInternal(new MethodLikeLineHandler("dispatchScript", MODID) {
+//            @Override
+//            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+//                labelUnsupported(label);
+//                CogScriptDispatcher.dispatch(args);
+//                return ScriptLineHandler.blocking();
+//            }
+//        });
+//        registerInternal(new MethodLikeLineHandler("dialogChoices", MODID) {
+//            @Override
+//            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+//                labelUnsupported(label);
+//                int sep = args.indexOf(':');
+//                String variable = args.substring(0, sep);
+//                String[] choices = args.substring(sep + 1).split(",");
+//                Component[] components = new Component[choices.length];
+//                final String dialogID = UUID.randomUUID().toString();
+//                EventBus.registerDialog(dialogID, response -> {
+//                    script.put(variable, new CogInteger(response));
+//                    script.lineDispatcher();
+//                });
+//                for (int i = 0; i < choices.length; i++) {
+//                    final int finalI = i;
+//                    components[i] = Component.literal("[" + (i + 1) + "] ").withStyle(style -> style.withColor(ChatFormatting.GRAY))
+//                            .append(Component.literal(choices[i]).withStyle(style -> style.withClickEvent(
+//                                    new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/@storyclient dialog " + finalI + " " + dialogID)
+//                            )));
+//                }
+//                CogwheelExecutor.scheduleTickEvent(event -> {
+//                    StoryUtils.sendGlobalMessage((ServerLevel) event.level, components);
+//                });
+//                return ScriptLineHandler.blocking();
+//            }
+//        });
     }
 
     public static void putDefaults(HashMap<String, CogPropertyManager> storage, DispatchedScript script) {
         for (DoubleValue<String, Function<DispatchedScript, CogPropertyManager>> pair : defaultVariables) {
             storage.put(pair.getA(), pair.getB().apply(script));
+        }
+    }
+    public static DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> expressionHandler(String _line, DispatchedScript script, boolean allowBlocking) {
+        int eq = _line.indexOf('=');
+        String line;
+        String variable = null;
+        if (eq != -1) {
+            line = _line.substring(eq + 1);
+            variable = _line.substring(0, eq).trim();
+        } else {
+            line = _line;
+        }
+
+
+        int dot = line.indexOf('.');
+        if (dot != -1) {
+            String sub = line.substring(0, dot).stripLeading();
+            if (script.hasKey(sub)) {
+                CogPropertyManager manager = CogPropertyManager.noNull(script.get(sub));
+                String[] props = line.substring(dot + 1).split("^(?!\\\\)\\.");
+                for (int i = 0; i < props.length; i++) {
+                    String linkedProperty = props[i];
+                    if (!linkedProperty.endsWith(")")) throw new RuntimeException("Tail Bracket mismatch");
+                    int bracket = linkedProperty.indexOf('(');
+                    if (bracket == -1) throw new RuntimeException("Head Bracket mismatch");
+                    String args = linkedProperty.substring(bracket + 1, linkedProperty.length() - 1);
+                    String propName = linkedProperty.substring(0, bracket);
+                    if (manager.hasOwnProperty(propName)) {
+                        try {
+                            manager = manager.getProperty(propName, ArgumentData.createFromString(args, script), script);
+                        } catch (PreventSubCalling preventSubCalling) {
+                            if (!allowBlocking) throw new RuntimeException("Blocking not permitied!", preventSubCalling);
+                            preventSubCalling.getPostPrevention().prevent(variable);
+                            return new DoubleValue<>(ScriptLineHandler.blocking(), manager);
+                        }
+                    } else throw new RuntimeException(manager.getClass().getCanonicalName() + " Manager does not have property named: " + linkedProperty + " as " + propName + " with " + args);
+                }
+                if (variable != null) {
+                    script.put(variable, manager);
+                }
+                return new DoubleValue<>(ScriptLineHandler.continueReading(), manager);
+            }
+        }
+        return new DoubleValue<>(ScriptLineHandler.ignore(), null);
+    }
+    public static void skip(String label, DispatchedScript script) {
+        String line = script.pullLine();
+        while (!line.equals(label)) {
+            line = script.pullLine();
+            if (line == null) {
+                throw new RuntimeException("Skip failed. No label found");
+            }
         }
     }
 }

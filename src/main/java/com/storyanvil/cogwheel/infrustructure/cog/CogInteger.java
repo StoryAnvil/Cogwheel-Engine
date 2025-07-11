@@ -11,12 +11,15 @@
 
 package com.storyanvil.cogwheel.infrustructure.cog;
 
+import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrustructure.CogStringGen;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CogInteger implements CogPropertyManager {
+public class CogInteger implements CogPropertyManager, CogStringGen<CogInteger> {
     private static EasyPropManager MANAGER = new EasyPropManager("int", CogInteger::registerProps);
 
     private static void registerProps(EasyPropManager manager) {
@@ -29,6 +32,9 @@ public class CogInteger implements CogPropertyManager {
     public CogInteger(int value) {
         this.value = value;
     }
+    public CogInteger(String value) {
+        this(Integer.parseInt(value));
+    }
 
     @Override
     public boolean hasOwnProperty(String name) {
@@ -36,7 +42,7 @@ public class CogInteger implements CogPropertyManager {
     }
 
     @Override
-    public @Nullable CogPropertyManager getProperty(String name, String args, DispatchedScript script) {
+    public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
         return MANAGER.get(name).handle(name, args, script, this);
     }
 
@@ -46,5 +52,22 @@ public class CogInteger implements CogPropertyManager {
             return other.value == this.value;
         }
         return false;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    @Override
+    public String convertToString() {
+        return String.valueOf(value);
+    }
+
+    @Override
+    public @Nullable CogInteger fromString(@NotNull String s) {
+        if (s.charAt(0) == '^') {
+            return new CogInteger(s.substring(1));
+        }
+        return null;
     }
 }

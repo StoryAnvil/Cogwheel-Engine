@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.infrustructure.cog;
 
+import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
@@ -33,7 +34,7 @@ public class CogActionQueue<T> implements CogPropertyManager {
     }
 
     @Override
-    public @Nullable CogPropertyManager getProperty(String name, String args, DispatchedScript script) {
+    public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
         return null;
     }
 

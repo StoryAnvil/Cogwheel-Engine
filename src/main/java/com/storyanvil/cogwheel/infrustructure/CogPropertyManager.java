@@ -11,18 +11,25 @@
 
 package com.storyanvil.cogwheel.infrustructure;
 
+import com.storyanvil.cogwheel.infrustructure.cog.CogString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface CogPropertyManager {
     boolean hasOwnProperty(String name);
-    @Nullable CogPropertyManager getProperty(String name, String args, DispatchedScript script);
+    @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script);
     boolean equalsTo(CogPropertyManager o);
 
     NullManager nullManager = new NullManager();
     static @NotNull CogPropertyManager noNull(@Nullable CogPropertyManager manager) {
         if (manager == null) return nullManager;
         return manager;
+    }
+    default String convertToString() {
+        return toString();
+    }
+    default CogString convertToCogString() {
+        return new CogString(convertToString());
     }
 
     class NullManager implements CogPropertyManager {
@@ -34,13 +41,18 @@ public interface CogPropertyManager {
         }
 
         @Override
-        public @Nullable CogPropertyManager getProperty(String name, String args, DispatchedScript script) {
+        public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
             return null;
         }
 
         @Override
         public boolean equalsTo(CogPropertyManager o) {
             return o instanceof NullManager;
+        }
+
+        @Override
+        public String convertToString() {
+            return "NULL";
         }
     }
 }

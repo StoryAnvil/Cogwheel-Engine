@@ -11,12 +11,15 @@
 
 package com.storyanvil.cogwheel.infrustructure.cog;
 
+import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrustructure.CogStringGen;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CogString implements CogPropertyManager {
+public class CogString implements CogPropertyManager, CogStringGen<CogString> {
     private static EasyPropManager MANAGER = new EasyPropManager("string", CogString::registerProps);
 
     private static void registerProps(EasyPropManager manager) {
@@ -36,7 +39,7 @@ public class CogString implements CogPropertyManager {
     }
 
     @Override
-    public @Nullable CogPropertyManager getProperty(String name, String args, DispatchedScript script) {
+    public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
         return MANAGER.get(name).handle(name, args, script, this);
     }
 
@@ -50,5 +53,20 @@ public class CogString implements CogPropertyManager {
             return other.value.equals(this.value);
         }
         return false;
+    }
+
+    @Override
+    public String convertToString() {
+        return value;
+    }
+
+    @Override
+    public @Nullable CogString fromString(@NotNull String s) {
+        char head = s.charAt(0);
+        char tail = s.charAt(s.length() - 1);
+        if (head == '"' && tail == '"') {
+            return new CogString(s.substring(1, s.length() - 1));
+        }
+        return null;
     }
 }
