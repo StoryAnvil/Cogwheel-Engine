@@ -17,9 +17,9 @@ import com.storyanvil.cogwheel.infrustructure.cog.CogInteger;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
 
 public class ArgumentData {
-    private String s;
-    private String[] args;
-    private DispatchedScript script;
+    private final String s;
+    private final String[] args;
+    private final DispatchedScript script;
     private ArgumentData(String s, DispatchedScript script) {
         this.s = s;
         this.args = s.split(",");

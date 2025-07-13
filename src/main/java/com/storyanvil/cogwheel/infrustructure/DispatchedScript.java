@@ -26,10 +26,10 @@ import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 public class DispatchedScript implements ObjectMonitor.IMonitored {
     private static final ObjectMonitor<DispatchedScript> MONITOR = new ObjectMonitor<>();
 
-    private ArrayList<String> linesToExecute;
+    private final ArrayList<String> linesToExecute;
     private int executionDepth = 0;
     private boolean skipCurrentDepth = false;
-    private HashMap<String, CogPropertyManager> storage;
+    private final HashMap<String, CogPropertyManager> storage;
     private String scriptName = "unknown-script";
 
     public DispatchedScript(ArrayList<String> linesToExecute) {

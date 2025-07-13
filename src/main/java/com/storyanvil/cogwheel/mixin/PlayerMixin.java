@@ -32,6 +32,9 @@ public abstract class PlayerMixin extends LivingEntity {
     public void eat(Level pLevel, ItemStack pFood, CallbackInfoReturnable<?> callbackInfo) {
         if (!pLevel.isClientSide()) {
             LivingEntity entity = this;
+
+            // IDE will report this as false positive for constantValue. PlayerMixin will transform into Player class at runtime
+            //noinspection ConstantValue
             if (entity instanceof ServerPlayer player) {
                 HashMap<String, CogPropertyManager> storage = new HashMap<>();
                 CogEventCallback callback = new CogEventCallback();
