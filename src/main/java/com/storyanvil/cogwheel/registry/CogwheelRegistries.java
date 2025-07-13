@@ -11,7 +11,6 @@
 
 package com.storyanvil.cogwheel.registry;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrustructure.*;
 import com.storyanvil.cogwheel.infrustructure.cog.*;
 import com.storyanvil.cogwheel.util.*;
@@ -278,7 +277,7 @@ public class CogwheelRegistries {
             String sub = line.substring(0, dot).stripLeading();
             if (script.hasKey(sub)) {
                 CogPropertyManager manager = CogPropertyManager.noNull(script.get(sub));
-                String[] props = line.substring(dot + 1).split("^(?!\\\\)\\.");
+                String[] props = line.substring(dot + 1).split("\\.");
                 for (int i = 0; i < props.length; i++) {
                     String linkedProperty = props[i];
                     if (!linkedProperty.endsWith(")")) throw new RuntimeException("Tail Bracket mismatch");

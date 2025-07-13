@@ -27,7 +27,7 @@ public class ArgumentData {
     }
     public CogPropertyManager get(int argument) {
         if (argument >= args.length) throw new RuntimeException("Not enough arguments: \"" + s + "\" contains only " + args.length + " but " + argument + " is needed!");
-        String a = args[argument].trim();
+        String a = args[argument].trim().replace("<dot>", ".").replace("<comma>", ",");
         char head = a.charAt(0);
         char tail = a.charAt(a.length() - 1);
         if (head == '"' && tail == '"') {
@@ -79,6 +79,6 @@ public class ArgumentData {
     }
 
     public static ArgumentData createFromString(String s, DispatchedScript script) {
-        return new ArgumentData(s.replace("\\.", "."), script);
+        return new ArgumentData(s, script);
     }
 }

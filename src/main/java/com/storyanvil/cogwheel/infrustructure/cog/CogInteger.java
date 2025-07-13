@@ -67,6 +67,10 @@ public class CogInteger implements CogPropertyManager, CogStringGen<CogInteger> 
             CogInteger i = (CogInteger) o;
             return new CogDouble(i.value);
         });
+        manager.reg("clone", (name, args, script, o) -> {
+            CogInteger str = (CogInteger) o;
+            return new CogInteger(str.value);
+        });
     }
 
     private int value;
