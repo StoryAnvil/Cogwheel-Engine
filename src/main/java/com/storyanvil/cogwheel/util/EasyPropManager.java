@@ -13,6 +13,7 @@ package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrustructure.cog.CogBool;
 import com.storyanvil.cogwheel.infrustructure.cog.PropertyHandler;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -36,6 +37,12 @@ public class EasyPropManager {
             this.reg("logMe", (__, args, script, o) -> {
                 CogwheelExecutor.log.info("{}: LogMe {} arguments: {} | {}", script.getScriptName(), manager, args, ((CogPropertyManager) o).convertToString());
                 return null;
+            });
+            this.reg("toString", (__, args, script, o) -> {
+                return ((CogPropertyManager) o).convertToCogString();
+            });
+            this.reg("equals", (__, args, script, o) -> {
+                return CogBool.getInstance(((CogPropertyManager) o).equalsTo(args.get(0)));
             });
             registrar.register(this);
         }

@@ -19,6 +19,7 @@ import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.*;
 import com.storyanvil.cogwheel.infrustructure.actions.PathfindAction;
+import com.storyanvil.cogwheel.infrustructure.actions.WaitForLabelAction;
 import com.storyanvil.cogwheel.infrustructure.cog.CogInteger;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
 import com.storyanvil.cogwheel.infrustructure.cog.PreventSubCalling;
@@ -244,6 +245,13 @@ public class NPC extends Animal implements
             return npc.addChained(new PathfindAction(new BlockPos(
                     args.requireInt(0), args.requireInt(1), args.requireInt(2)
             )));
+        });
+
+        manager.reg("waitForLabel", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            if (args.size() == 1)
+                return npc.addChained(new WaitForLabelAction(args.getString(0)));
+            else return npc.addChained(new WaitForLabelAction(args.getString(0), args.requireInt(1)));
         });
 
         manager.reg("dialogChoices", (name, args, script, o) -> {

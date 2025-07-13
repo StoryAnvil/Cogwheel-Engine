@@ -26,6 +26,47 @@ public class CogInteger implements CogPropertyManager, CogStringGen<CogInteger> 
         manager.logMe(o -> {
             return String.valueOf(((CogInteger) o).value);
         });
+        manager.reg("add", (name, args, script, o) -> {
+            CogInteger i = (CogInteger) o;
+            i.value += args.requireInt(0);
+            return i;
+        });
+        manager.reg("subtract", (name, args, script, o) -> {
+            CogInteger i = (CogInteger) o;
+            i.value -= args.requireInt(0);
+            return i;
+        });
+        manager.reg("multiply", (name, args, script, o) -> {
+            CogInteger i = (CogInteger) o;
+            i.value *= args.requireInt(0);
+            return i;
+        });
+        manager.reg("divide", (name, args, script, o) -> {
+            CogInteger i = (CogInteger) o;
+            i.value /= args.requireInt(0);
+            return i;
+        });
+        manager.reg("clamp", (name, args, script, o) -> {
+            CogInteger i = (CogInteger) o;
+            int min = args.requireInt(0);
+            int max = args.requireInt(1);
+            if (i.value < min) {
+                i.value = min;
+            }
+            if (i.value > max) {
+                i.value = max;
+            }
+            return i;
+        });
+        manager.reg("abs", (name, args, script, o) -> {
+            CogInteger i = (CogInteger) o;
+            i.value = Math.abs(i.value);
+            return i;
+        });
+        manager.reg("toDouble", (name, args, script, o) -> {
+            CogInteger i = (CogInteger) o;
+            return new CogDouble(i.value);
+        });
     }
 
     private int value;

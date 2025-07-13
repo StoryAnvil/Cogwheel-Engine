@@ -156,4 +156,8 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         if (linesToExecute.isEmpty()) return null;
         return linesToExecute.get(0);
     }
+
+    public HashMap<String, CogPropertyManager> getStorage() {
+        return storage;
+    }
 }

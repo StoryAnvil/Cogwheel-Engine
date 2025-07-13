@@ -98,10 +98,13 @@ public class CogMaster implements CogPropertyManager {
             });
         });
         manager.reg("str", (name, args, script, o) -> {
-            return new CogString(args.getString(0));
+            return args.getCogString(0);
         });
         manager.reg("int", (name, args, script, o) -> {
             return new CogInteger(args.requireInt(0));
+        });
+        manager.reg("double", (name, args, script, o) -> {
+            return new CogDouble(args.requireInt(0));
         });
         manager.reg("true", (name, args, script, o) -> {
             return CogBool.TRUE;
@@ -111,6 +114,10 @@ public class CogMaster implements CogPropertyManager {
         });
         manager.reg("getLevel", (name, args, script, o) -> {
             return EventBus.getStoryLevel();
+        });
+        manager.reg("disposeVariable", (name, args, script, o) -> {
+            script.getStorage().remove(args.getString(0));
+            return null;
         });
     }
 

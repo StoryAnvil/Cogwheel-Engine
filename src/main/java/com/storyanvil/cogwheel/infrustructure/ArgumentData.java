@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.infrustructure;
 
+import com.storyanvil.cogwheel.infrustructure.cog.CogDouble;
 import com.storyanvil.cogwheel.infrustructure.cog.CogInteger;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
 
@@ -42,9 +43,21 @@ public class ArgumentData {
         }
         throw new RuntimeException("Argument #" + argument + " is not CogInteger");
     }
+    public double requireDouble(int argument) {
+        CogPropertyManager m = get(argument);
+        if (m instanceof CogDouble i) {
+            return i.getValue();
+        }
+        throw new RuntimeException("Argument #" + argument + " is not CogDouble");
+    }
     public String getString(int argument) {
         CogPropertyManager m = get(argument);
         return m.convertToString();
+    }
+    public CogString getCogString(int argument) {
+        CogPropertyManager m = get(argument);
+        if (m instanceof CogString string) return string;
+        return m.convertToCogString();
     }
     public String getAsString() {
         return s;

@@ -11,12 +11,18 @@
 
 package com.storyanvil.cogwheel.infrustructure.cog;
 
+import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RedstoneLampBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
