@@ -41,8 +41,8 @@ public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
         }
     }
 
-    private WeakList<T> objects;
-    private int id;
+    private final WeakList<T> objects;
+    private final int id;
 
     public ObjectMonitor() {
         if (!ENABLED) return;
