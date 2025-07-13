@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class CogMaster implements CogPropertyManager {
-    private static EasyPropManager MANAGER = new EasyPropManager("master", CogMaster::register);
+    private static final EasyPropManager MANAGER = new EasyPropManager("master", CogMaster::register);
     private static CogMaster instance = null;
 
     public static CogMaster getInstance() {
@@ -53,6 +53,7 @@ public class CogMaster implements CogPropertyManager {
         return o instanceof CogMaster;
     }
 
+    @SuppressWarnings("CodeBlock2Expr")
     private static void register(EasyPropManager manager) {
         manager.reg("log", (name, args, script, o) -> {
             CogwheelExecutor.log.info("{}: {}", script.getScriptName(), args.getString(0));
@@ -118,6 +119,10 @@ public class CogMaster implements CogPropertyManager {
         manager.reg("disposeVariable", (name, args, script, o) -> {
             script.getStorage().remove(args.getString(0));
             return null;
+        });
+        // Variable internal_callback should not be accessed from CogScript directly. Instead, this method should be used
+        manager.reg("getEvent", (name, args, script, o) -> {
+            return script.get("internal_callback");
         });
     }
 

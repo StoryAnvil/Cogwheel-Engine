@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.infrustructure;
 
+import com.storyanvil.cogwheel.infrustructure.cog.CogBool;
 import com.storyanvil.cogwheel.infrustructure.cog.CogDouble;
 import com.storyanvil.cogwheel.infrustructure.cog.CogInteger;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
@@ -33,6 +34,10 @@ public class ArgumentData {
             return new CogString(a.substring(1, a.length() - 1));
         } else if (head == '^') {
             return new CogInteger(a.substring(1));
+        } else if (a.equals("true")) {
+            return CogBool.TRUE;
+        } else if (a.equals("false")) {
+            return CogBool.FALSE;
         }
         return script.get(a);
     }
@@ -42,6 +47,13 @@ public class ArgumentData {
             return i.getValue();
         }
         throw new RuntimeException("Argument #" + argument + " is not CogInteger");
+    }
+    public boolean requireBoolean(int argument) {
+        CogPropertyManager m = get(argument);
+        if (m instanceof CogBool i) {
+            return i.getValue();
+        }
+        throw new RuntimeException("Argument #" + argument + " is not CogBool");
     }
     public double requireDouble(int argument) {
         CogPropertyManager m = get(argument);

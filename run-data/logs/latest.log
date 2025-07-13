@@ -1,38 +1,33 @@
-[06июл.2025 14:05:34.584] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgedatauserdev, --assetIndex, 5, --assetsDir, C:\Users\Семья\.gradle\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.4.0, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mod, storyanvil_cogwheel, --all, --output, D:\denisJava\java\CogwheelEngine\src\generated\resources, --existing, D:\denisJava\java\CogwheelEngine\src\main\resources, --mixin.config, mixins.storyanvil_cogwheel.json]
-[06июл.2025 14:05:34.589] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.9 by Azul Systems, Inc.; OS Windows 11 arch amd64 version 10.0
-[06июл.2025 14:05:34.681] [main/WARN] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Configuration file D:\denisJava\java\CogwheelEngine\run-data\config\fml.toml is not correct. Correcting
-[06июл.2025 14:05:34.682] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowSkipGLVersions] was corrected from null to []
-[06июл.2025 14:05:34.683] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowLogHelpMessage] was corrected from null to true
-[06июл.2025 14:05:34.683] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowSquir] was corrected from null to false
-[06июл.2025 14:05:34.683] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowShowCPU] was corrected from null to false
-[06июл.2025 14:05:34.697] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgedatauserdev
-[06июл.2025 14:05:34.742] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/C:/Users/Семья/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23128!/ Service=ModLauncher Env=CLIENT
-[06июл.2025 14:05:34.938] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Семья\.gradle\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.4.0\f0c0b352173d0a378cbdcec9cfc4ba65899a721\javafmllanguage-1.20.1-47.4.0.jar is missing mods.toml file
-[06июл.2025 14:05:34.940] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Семья\.gradle\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.4.0\e862740d8c84d08dbfedea412bef88fe42e727c5\lowcodelanguage-1.20.1-47.4.0.jar is missing mods.toml file
-[06июл.2025 14:05:34.941] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Семья\.gradle\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.4.0\5719b3a297a33f877ed5dde4cb4bd75c859096af\mclanguage-1.20.1-47.4.0.jar is missing mods.toml file
-[06июл.2025 14:05:34.943] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Семья\.gradle\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.4.0\235975dafa4309945b59c56b53f31dc5b65a6051\fmlcore-1.20.1-47.4.0.jar is missing mods.toml file
-[06июл.2025 14:05:35.002] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: No dependencies to load found. Skipping!
-[06июл.2025 14:05:37.080] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
-[06июл.2025 14:05:37.083] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgedatauserdev' with arguments [--gameDir, ., --assetsDir, C:\Users\Семья\.gradle\caches\forge_gradle\assets, --assetIndex, 5, --mod, storyanvil_cogwheel, --all, --output, D:\denisJava\java\CogwheelEngine\src\generated\resources, --existing, D:\denisJava\java\CogwheelEngine\src\main\resources]
-[06июл.2025 14:05:37.159] [main/WARN] [mixin/]: Reference map 'mixins.storyanvil_cogwheel.refmap.json' for mixins.storyanvil_cogwheel.json could not be read. If this is a development environment you can ignore this message
-[06июл.2025 14:05:37.698] [main/INFO] [net.minecraftforge.data.loading.DatagenModLoader/]: Initializing Data Gatherer for mods [storyanvil_cogwheel]
-[06июл.2025 14:05:41.519] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.4.0, for MC 1.20.1 with MCP 20230612.114412
-[06июл.2025 14:05:41.520] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.4.0 Initialized
-[06июл.2025 14:05:41.716] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager...
-[06июл.2025 14:05:41.721] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager took 2.621 ms
-[06июл.2025 14:05:41.941] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/C:/Users/Семья/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1/forge-1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1-recomp.jar%23191!/assets/.mcassetsroot' uses unexpected schema
-[06июл.2025 14:05:41.941] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/C:/Users/Семья/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1/forge-1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1-recomp.jar%23191!/data/.mcassetsroot' uses unexpected schema
-[06июл.2025 14:05:42.069] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Recipes
-[06июл.2025 14:05:42.071] [main/INFO] [net.minecraft.data.DataGenerator/]: Recipes finished after 2 ms
-[06июл.2025 14:05:42.071] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Loot Tables
-[06июл.2025 14:05:42.084] [main/INFO] [net.minecraft.data.DataGenerator/]: Loot Tables finished after 12 ms
-[06июл.2025 14:05:42.085] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Block States: storyanvil_cogwheel
-[06июл.2025 14:05:42.085] [main/INFO] [net.minecraft.data.DataGenerator/]: Block States: storyanvil_cogwheel finished after 0 ms
-[06июл.2025 14:05:42.085] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Item Models: storyanvil_cogwheel
-[06июл.2025 14:05:42.085] [main/INFO] [net.minecraft.data.DataGenerator/]: Item Models: storyanvil_cogwheel finished after 0 ms
-[06июл.2025 14:05:42.085] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Tags for minecraft:block mod id storyanvil_cogwheel
-[06июл.2025 14:05:42.138] [main/INFO] [net.minecraft.data.DataGenerator/]: Tags for minecraft:block mod id storyanvil_cogwheel finished after 53 ms
-[06июл.2025 14:05:42.138] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Tags for minecraft:item mod id storyanvil_cogwheel
-[06июл.2025 14:05:42.139] [main/INFO] [net.minecraft.data.DataGenerator/]: Tags for minecraft:item mod id storyanvil_cogwheel finished after 0 ms
-[06июл.2025 14:05:42.139] [main/INFO] [net.minecraft.data.DataGenerator/]: All providers took: 70 ms
-[06июл.2025 14:05:42.157] [main/INFO] [net.minecraft.data.HashCache/]: Caching: total files: 30, old count: 18, new count: 1, removed stale: 30, written: 0
+[13Jul2025 12:37:30.139] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgedatauserdev, --assetIndex, 5, --assetsDir, /home/denisjava/.gradle/caches/forge_gradle/assets, --gameDir, ., --fml.forgeVersion, 47.4.0, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mod, storyanvil_cogwheel, --all, --output, /home/denisjava/IdeaProjects/Cogwheel-Engine/src/generated/resources, --existing, /home/denisjava/IdeaProjects/Cogwheel-Engine/src/main/resources, --mixin.config, mixins.storyanvil_cogwheel.json]
+[13Jul2025 12:37:30.140] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 21.0.7 by Microsoft; OS Linux arch amd64 version 6.11.0-29-generic
+[13Jul2025 12:37:30.196] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgedatauserdev
+[13Jul2025 12:37:30.225] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/home/denisjava/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23116!/ Service=ModLauncher Env=CLIENT
+[13Jul2025 12:37:30.414] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/denisjava/.gradle/caches/modules-2/files-2.1/net.minecraftforge/javafmllanguage/1.20.1-47.4.0/f0c0b352173d0a378cbdcec9cfc4ba65899a721/javafmllanguage-1.20.1-47.4.0.jar is missing mods.toml file
+[13Jul2025 12:37:30.415] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/denisjava/.gradle/caches/modules-2/files-2.1/net.minecraftforge/lowcodelanguage/1.20.1-47.4.0/e862740d8c84d08dbfedea412bef88fe42e727c5/lowcodelanguage-1.20.1-47.4.0.jar is missing mods.toml file
+[13Jul2025 12:37:30.415] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/denisjava/.gradle/caches/modules-2/files-2.1/net.minecraftforge/mclanguage/1.20.1-47.4.0/5719b3a297a33f877ed5dde4cb4bd75c859096af/mclanguage-1.20.1-47.4.0.jar is missing mods.toml file
+[13Jul2025 12:37:30.416] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/denisjava/.gradle/caches/modules-2/files-2.1/net.minecraftforge/fmlcore/1.20.1-47.4.0/235975dafa4309945b59c56b53f31dc5b65a6051/fmlcore-1.20.1-47.4.0.jar is missing mods.toml file
+[13Jul2025 12:37:30.451] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: No dependencies to load found. Skipping!
+[13Jul2025 12:37:31.138] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[13Jul2025 12:37:31.141] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgedatauserdev' with arguments [--gameDir, ., --assetsDir, /home/denisjava/.gradle/caches/forge_gradle/assets, --assetIndex, 5, --mod, storyanvil_cogwheel, --all, --output, /home/denisjava/IdeaProjects/Cogwheel-Engine/src/generated/resources, --existing, /home/denisjava/IdeaProjects/Cogwheel-Engine/src/main/resources]
+[13Jul2025 12:37:31.157] [main/WARN] [mixin/]: Reference map 'mixins.storyanvil_cogwheel.refmap.json' for mixins.storyanvil_cogwheel.json could not be read. If this is a development environment you can ignore this message
+[13Jul2025 12:37:31.274] [main/INFO] [net.minecraftforge.data.loading.DatagenModLoader/]: Initializing Data Gatherer for mods [storyanvil_cogwheel]
+[13Jul2025 12:37:33.894] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.4.0, for MC 1.20.1 with MCP 20230612.114412
+[13Jul2025 12:37:33.895] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.4.0 Initialized
+[13Jul2025 12:37:34.005] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager...
+[13Jul2025 12:37:34.007] [modloading-worker-0/INFO] [mezz.jei.library.load.PluginCaller/]: Sending ConfigManager took 1.545 ms
+[13Jul2025 12:37:34.261] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/home/denisjava/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1/forge-1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1.jar%23181!/assets/.mcassetsroot' uses unexpected schema
+[13Jul2025 12:37:34.262] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/home/denisjava/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1/forge-1.20.1-47.4.0_mapped_parchment_2023.09.03-1.20.1.jar%23181!/data/.mcassetsroot' uses unexpected schema
+[13Jul2025 12:37:34.336] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Recipes
+[13Jul2025 12:37:34.338] [main/INFO] [net.minecraft.data.DataGenerator/]: Recipes finished after 1 ms
+[13Jul2025 12:37:34.338] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Loot Tables
+[13Jul2025 12:37:34.345] [main/INFO] [net.minecraft.data.DataGenerator/]: Loot Tables finished after 6 ms
+[13Jul2025 12:37:34.345] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Block States: storyanvil_cogwheel
+[13Jul2025 12:37:34.345] [main/INFO] [net.minecraft.data.DataGenerator/]: Block States: storyanvil_cogwheel finished after 0 ms
+[13Jul2025 12:37:34.345] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Item Models: storyanvil_cogwheel
+[13Jul2025 12:37:34.345] [main/INFO] [net.minecraft.data.DataGenerator/]: Item Models: storyanvil_cogwheel finished after 0 ms
+[13Jul2025 12:37:34.345] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Tags for minecraft:block mod id storyanvil_cogwheel
+[13Jul2025 12:37:34.471] [main/INFO] [net.minecraft.data.DataGenerator/]: Tags for minecraft:block mod id storyanvil_cogwheel finished after 125 ms
+[13Jul2025 12:37:34.471] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Tags for minecraft:item mod id storyanvil_cogwheel
+[13Jul2025 12:37:34.472] [main/INFO] [net.minecraft.data.DataGenerator/]: Tags for minecraft:item mod id storyanvil_cogwheel finished after 0 ms
+[13Jul2025 12:37:34.472] [main/INFO] [net.minecraft.data.DataGenerator/]: All providers took: 135 ms
+[13Jul2025 12:37:34.474] [main/INFO] [net.minecraft.data.HashCache/]: Caching: total files: 0, old count: 0, new count: 1, removed stale: 0, written: 0

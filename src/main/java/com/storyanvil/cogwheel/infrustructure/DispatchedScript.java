@@ -38,6 +38,12 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         this.storage = new HashMap<>();
         CogwheelRegistries.putDefaults(storage, this);
     }
+    public DispatchedScript(ArrayList<String> linesToExecute, HashMap<String, CogPropertyManager> storage) {
+        MONITOR.register(this);
+        this.linesToExecute = linesToExecute;
+        this.storage = storage;
+        CogwheelRegistries.putDefaults(this.storage, this);
+    }
 
     @ApiStatus.Internal
     public DispatchedScript setScriptName(String scriptName) {
@@ -91,6 +97,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
 //        log.warn(storage.keySet().toString());
         return storage.containsKey(key);
     }
+    @SuppressWarnings("unchecked")
     public <T> CogActionQueue<T> getActionQueue(String key, Class<T> clazz) {
         return (CogActionQueue<T>) storage.get(key);
     }

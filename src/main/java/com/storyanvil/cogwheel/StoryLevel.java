@@ -39,6 +39,7 @@ import java.util.Queue;
 
 public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, ObjectMonitor.IMonitored {
     private static final ObjectMonitor<StoryLevel> MONITOR = new ObjectMonitor<>();
+    @SuppressWarnings("unchecked")
     @Override
     public <R> void addStoryAction(StoryAction<R> action) {
         actionQueue.add((StoryAction<? extends StoryLevel>) action);
@@ -52,9 +53,11 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
         }
     }
 
-    private Queue<StoryAction<? extends StoryLevel>> actionQueue = new ArrayDeque<>();
+    private final Queue<StoryAction<? extends StoryLevel>> actionQueue = new ArrayDeque<>();
+    @SuppressWarnings("rawtypes")
     private StoryAction current;
     private ServerLevel level;
+    @SuppressWarnings("unchecked")
     public void tick(ServerLevel level) {
         this.level = level;
         if (current != null) {
@@ -77,8 +80,10 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
         for (StoryAction<?> action : actionQueue) {
             sb.append(action.toString());
         }
-        sb.append(">").append(current.toString());
-        sb.append(" | ").append(level.toString());
+        if (current != null)
+            sb.append(">").append(current);
+        if (level != null)
+            sb.append(" | ").append(level);
     }
 
     private static final EasyPropManager MANAGER = new EasyPropManager("level", StoryLevel::registerProps);

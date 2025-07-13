@@ -28,8 +28,14 @@ public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
     }
     public static synchronized void dumpAll(StringBuilder sb) {
         if (!ENABLED) return;
-        for (ObjectMonitor<?> monitor : MONITOR_REGISTRY) {
-            monitor.dump(sb);
+        try {
+            for (int i = 0; i < MONITOR_REGISTRY.size(); i++) {
+                ObjectMonitor<?> monitor = MONITOR_REGISTRY.get(i);
+                if (monitor == null) sb.append("=NULL MONITOR=\n");
+                monitor.dump(sb);
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 
