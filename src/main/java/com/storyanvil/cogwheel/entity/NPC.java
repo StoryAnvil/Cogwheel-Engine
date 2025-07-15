@@ -20,10 +20,7 @@ import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.*;
 import com.storyanvil.cogwheel.infrustructure.actions.PathfindAction;
 import com.storyanvil.cogwheel.infrustructure.actions.WaitForLabelAction;
-import com.storyanvil.cogwheel.infrustructure.cog.CogInteger;
-import com.storyanvil.cogwheel.infrustructure.cog.CogString;
-import com.storyanvil.cogwheel.infrustructure.cog.PreventSubCalling;
-import com.storyanvil.cogwheel.infrustructure.cog.SubCallPostPrevention;
+import com.storyanvil.cogwheel.infrustructure.cog.*;
 import com.storyanvil.cogwheel.util.DataStorage;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
@@ -60,6 +57,7 @@ public class NPC extends Animal implements
         super(pEntityType, pLevel);
         MONITOR.register(this);
         if (!pLevel.isClientSide) {
+            me = new CogEntity(this);
             setSkin(DataStorage.getString(this, "skin", "test"));
             setCustomName(DataStorage.getString(this, "name", "NPC"));
         }
@@ -69,6 +67,7 @@ public class NPC extends Animal implements
     private int idleAnimTimeout = 0;
     private Queue<StoryAction<? extends NPC>> actionQueue = new ArrayDeque<>();
     private StoryAction current;
+    private CogEntity me;
 
     private static EntityDataAccessor<String> SKIN = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
     private static EntityDataAccessor<String> NAME = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
@@ -289,17 +288,21 @@ public class NPC extends Animal implements
 
     @Override
     public boolean hasOwnProperty(String name) {
+        if (me.hasOwnProperty(name)) return true;
         return MANAGER.hasOwnProperty(name);
     }
 
     @Override
     public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
+        if (me.hasOwnProperty(name)) {
+            return me.getProperty(name, args, script);
+        }
         return MANAGER.get(name).handle(name, args, script, me());
     }
 
     @Override
     public boolean equalsTo(CogPropertyManager o) {
-        return o == this;
+        return me.equalsTo(o);
     }
 
     @Contract(value = " -> this", pure = true)
