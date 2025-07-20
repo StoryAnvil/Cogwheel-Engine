@@ -26,10 +26,10 @@ import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 public class DispatchedScript implements ObjectMonitor.IMonitored {
     private static final ObjectMonitor<DispatchedScript> MONITOR = new ObjectMonitor<>();
 
-    private ArrayList<String> linesToExecute;
+    private final ArrayList<String> linesToExecute;
     private int executionDepth = 0;
     private boolean skipCurrentDepth = false;
-    private HashMap<String, CogPropertyManager> storage;
+    private final HashMap<String, CogPropertyManager> storage;
     private String scriptName = "unknown-script";
 
     public DispatchedScript(ArrayList<String> linesToExecute) {
@@ -37,6 +37,12 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         this.linesToExecute = linesToExecute;
         this.storage = new HashMap<>();
         CogwheelRegistries.putDefaults(storage, this);
+    }
+    public DispatchedScript(ArrayList<String> linesToExecute, HashMap<String, CogPropertyManager> storage) {
+        MONITOR.register(this);
+        this.linesToExecute = linesToExecute;
+        this.storage = storage;
+        CogwheelRegistries.putDefaults(this.storage, this);
     }
 
     @ApiStatus.Internal
@@ -91,6 +97,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
 //        log.warn(storage.keySet().toString());
         return storage.containsKey(key);
     }
+    @SuppressWarnings("unchecked")
     public <T> CogActionQueue<T> getActionQueue(String key, Class<T> clazz) {
         return (CogActionQueue<T>) storage.get(key);
     }
@@ -155,5 +162,9 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     public String peekLine() {
         if (linesToExecute.isEmpty()) return null;
         return linesToExecute.get(0);
+    }
+
+    public HashMap<String, CogPropertyManager> getStorage() {
+        return storage;
     }
 }

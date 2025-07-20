@@ -11,7 +11,6 @@
 
 package com.storyanvil.cogwheel.registry;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrustructure.*;
 import com.storyanvil.cogwheel.infrustructure.cog.*;
 import com.storyanvil.cogwheel.util.*;
@@ -27,7 +26,6 @@ import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
 
 public class CogwheelRegistries {
     private static final List<DoubleValue<String, Function<DispatchedScript, CogPropertyManager>>> defaultVariables = new ArrayList<>();
-    private static final HashMap<String, MethodLikeLineHandler> methodLikes = new HashMap<>();
     private static final ArrayList<ScriptLineHandler> lineHandlers = new ArrayList<>();
     /**
      * Registries ScriptLineHandler
@@ -50,31 +48,11 @@ public class CogwheelRegistries {
         }
     }
     /**
-     * Registries MethodLikeHandler
-     * @apiNote Namespaces <code>storyanvil</code> and <code>storyanvil_cogwheel</code> reserved for internal purposes and cannot be used
-     * @param factory factory that will be registered
-     */
-    public static void register(@NotNull MethodLikeLineHandler factory) {
-        synchronized (methodLikes) {
-            ResourceLocation id = factory.getResourceLocation();
-            if (id.getNamespace().equals("storyanvil") || id.getNamespace().equals(MODID))
-                throw new IllegalArgumentException("ActionFactory with namespace \"" + id.getNamespace() + "\" cannot be registered as this namespace is reserved for internal purposes");
-            methodLikes.put(factory.getSub(), factory);
-        }
-    }
-
-    @ApiStatus.Internal
-    protected static void registerInternal(@NotNull MethodLikeLineHandler factory) {
-        synchronized (methodLikes) {
-            methodLikes.put(factory.getSub(), factory);
-        }
-    }
-    /**
      * Registries Default Variable
      * @apiNote Name must not be "StoryAnvil" or "CogWheel"
      */
     public static void register(@NotNull String name, @NotNull Function<DispatchedScript, CogPropertyManager> f) {
-        synchronized (methodLikes) {
+        synchronized (defaultVariables) {
             if (name.equalsIgnoreCase("storyanvil") || name.equalsIgnoreCase("cogwheel")) throw new IllegalArgumentException("Name not permitted");
             defaultVariables.add(new DoubleValue<>(name, f));
         }
@@ -82,7 +60,7 @@ public class CogwheelRegistries {
 
     @ApiStatus.Internal
     protected static void registerInternal(@NotNull String name, @NotNull Function<DispatchedScript, CogPropertyManager> f) {
-        synchronized (methodLikes) {
+        synchronized (defaultVariables) {
             defaultVariables.add(new DoubleValue<>(name, f));
         }
     }
@@ -299,7 +277,7 @@ public class CogwheelRegistries {
             String sub = line.substring(0, dot).stripLeading();
             if (script.hasKey(sub)) {
                 CogPropertyManager manager = CogPropertyManager.noNull(script.get(sub));
-                String[] props = line.substring(dot + 1).split("^(?!\\\\)\\.");
+                String[] props = line.substring(dot + 1).split("\\.");
                 for (int i = 0; i < props.length; i++) {
                     String linkedProperty = props[i];
                     if (!linkedProperty.endsWith(")")) throw new RuntimeException("Tail Bracket mismatch");

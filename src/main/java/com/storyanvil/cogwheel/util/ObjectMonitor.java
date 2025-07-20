@@ -17,8 +17,8 @@ import java.lang.ref.Reference;
  * ObjectMonitor used for debugging purposes and finding memory leaks
  */
 public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
-    private static WeakList<ObjectMonitor<?>> MONITOR_REGISTRY = new WeakList<>();
-    private static boolean ENABLED = true;
+    private final static WeakList<ObjectMonitor<?>> MONITOR_REGISTRY = new WeakList<>();
+    private final static boolean ENABLED = true;
 
     private static synchronized int register(ObjectMonitor<?> monitor) {
         if (!ENABLED) return 0;
@@ -28,13 +28,21 @@ public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
     }
     public static synchronized void dumpAll(StringBuilder sb) {
         if (!ENABLED) return;
-        for (ObjectMonitor<?> monitor : MONITOR_REGISTRY) {
-            monitor.dump(sb);
+        try {
+            // For each is not supported by WeakList
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < MONITOR_REGISTRY.size(); i++) {
+                ObjectMonitor<?> monitor = MONITOR_REGISTRY.get(i);
+                if (monitor == null) {sb.append("=NULL MONITOR=\n");continue;}
+                monitor.dump(sb);
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 
-    private WeakList<T> objects;
-    private int id;
+    private final WeakList<T> objects;
+    private final int id;
 
     public ObjectMonitor() {
         if (!ENABLED) return;

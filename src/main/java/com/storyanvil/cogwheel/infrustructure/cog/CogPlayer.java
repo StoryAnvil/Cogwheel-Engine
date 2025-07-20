@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
 
-public class CogPlayer implements CogPropertyManager {
+public class CogPlayer extends CogEntity implements CogPropertyManager {
     private static EasyPropManager MANAGER = new EasyPropManager("player", CogPlayer::registerProps);
 
     private static void registerProps(EasyPropManager manager) {
@@ -39,6 +39,7 @@ public class CogPlayer implements CogPropertyManager {
     private WeakReference<ServerPlayer> player;
 
     public CogPlayer(WeakReference<ServerPlayer> player) {
+        super(player.get());
         this.player = player;
     }
 

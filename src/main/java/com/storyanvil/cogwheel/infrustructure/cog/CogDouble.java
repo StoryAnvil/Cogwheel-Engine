@@ -19,37 +19,37 @@ import com.storyanvil.cogwheel.util.EasyPropManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CogInteger implements CogPropertyManager, CogStringGen<CogInteger> {
-    private static EasyPropManager MANAGER = new EasyPropManager("int", CogInteger::registerProps);
+public class CogDouble implements CogPropertyManager, CogStringGen<CogDouble> {
+    private static EasyPropManager MANAGER = new EasyPropManager("double", CogDouble::registerProps);
 
     private static void registerProps(EasyPropManager manager) {
         manager.logMe(o -> {
-            return String.valueOf(((CogInteger) o).value);
+            return String.valueOf(((CogDouble) o).value);
         });
         manager.reg("add", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            i.value += args.requireInt(0);
+            CogDouble i = (CogDouble) o;
+            i.value += args.requireDouble(0);
             return i;
         });
         manager.reg("subtract", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            i.value -= args.requireInt(0);
+            CogDouble i = (CogDouble) o;
+            i.value -= args.requireDouble(0);
             return i;
         });
         manager.reg("multiply", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            i.value *= args.requireInt(0);
+            CogDouble i = (CogDouble) o;
+            i.value *= args.requireDouble(0);
             return i;
         });
         manager.reg("divide", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            i.value /= args.requireInt(0);
+            CogDouble i = (CogDouble) o;
+            i.value /= args.requireDouble(0);
             return i;
         });
         manager.reg("clamp", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            int min = args.requireInt(0);
-            int max = args.requireInt(1);
+            CogDouble i = (CogDouble) o;
+            double min = args.requireDouble(0);
+            double max = args.requireDouble(1);
             if (i.value < min) {
                 i.value = min;
             }
@@ -59,26 +59,26 @@ public class CogInteger implements CogPropertyManager, CogStringGen<CogInteger> 
             return i;
         });
         manager.reg("abs", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
+            CogDouble i = (CogDouble) o;
             i.value = Math.abs(i.value);
             return i;
         });
-        manager.reg("toDouble", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            return new CogDouble(i.value);
+        manager.reg("toInt", (name, args, script, o) -> {
+            CogDouble i = (CogDouble) o;
+            return new CogInteger(Math.toIntExact(Math.round(i.value)));
         });
         manager.reg("clone", (name, args, script, o) -> {
-            CogInteger str = (CogInteger) o;
-            return new CogInteger(str.value);
+            CogDouble i = (CogDouble) o;
+            return new CogDouble(i.value);
         });
     }
 
-    private int value;
-    public CogInteger(int value) {
+    private double value;
+    public CogDouble(double value) {
         this.value = value;
     }
-    public CogInteger(String value) {
-        this(Integer.parseInt(value));
+    public CogDouble(String value) {
+        this(Double.parseDouble(value));
     }
 
     @Override
@@ -93,13 +93,13 @@ public class CogInteger implements CogPropertyManager, CogStringGen<CogInteger> 
 
     @Override
     public boolean equalsTo(CogPropertyManager o) {
-        if (o instanceof CogInteger other) {
+        if (o instanceof CogDouble other) {
             return other.value == this.value;
         }
         return false;
     }
 
-    public int getValue() {
+    public double getValue() {
         return value;
     }
 
@@ -109,9 +109,9 @@ public class CogInteger implements CogPropertyManager, CogStringGen<CogInteger> 
     }
 
     @Override
-    public @Nullable CogInteger fromString(@NotNull String s) {
-        if (s.charAt(0) == '^') {
-            return new CogInteger(s.substring(1));
+    public @Nullable CogDouble fromString(@NotNull String s) {
+        if (s.charAt(0) == ':') {
+            return new CogDouble(s.substring(1));
         }
         return null;
     }

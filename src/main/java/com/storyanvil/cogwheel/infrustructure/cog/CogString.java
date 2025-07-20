@@ -22,9 +22,60 @@ import org.jetbrains.annotations.Nullable;
 public class CogString implements CogPropertyManager, CogStringGen<CogString> {
     private static EasyPropManager MANAGER = new EasyPropManager("string", CogString::registerProps);
 
+    public CogString(char c) {
+        this(String.valueOf(c));
+    }
+
     private static void registerProps(EasyPropManager manager) {
         manager.logMe(o -> {
             return ((CogString) o).value;
+        });
+        manager.reg("append", (name, args, script, o) -> {
+            CogString str = (CogString) o;
+            for (int i = 0; i < args.size(); i++) {
+                str.value += args.getString(i);
+            }
+            return str;
+        });
+        manager.reg("format", (name, args, script, o) -> {
+            CogString str = (CogString) o;
+            for (int i = 0; i < args.size(); i++) {
+                str.value = str.value.replaceFirst("\\{}", args.getString(i));
+            }
+            return str;
+        });
+        manager.reg("toUpperCase", (name, args, script, o) -> {
+            CogString str = (CogString) o;
+            str.value = str.value.toUpperCase();
+            return str;
+        });
+        manager.reg("toLowerCase", (name, args, script, o) -> {
+            CogString str = (CogString) o;
+            str.value = str.value.toLowerCase();
+            return str;
+        });
+        manager.reg("charAt", (name, args, script, o) -> {
+            CogString str = (CogString) o;
+            return new CogString(str.value.charAt(args.requireInt(0)));
+        });
+        manager.reg("substring", (name, args, script, o) -> {
+            CogString str = (CogString) o;
+            if (args.size() == 1)
+                return new CogString(str.value.substring(args.requireInt(0)));
+            else return new CogString(str.value.substring(args.requireInt(0), args.requireInt(1)));
+        });
+        manager.reg("replace", (name, args, script, o) -> {
+            CogString str = (CogString) o;
+            str.value = str.value.replace(args.getString(0), args.getString(1));
+            return str;
+        });
+        manager.reg("indexOf", (name, args, script, o) -> {
+            CogString str = (CogString) o;
+            return new CogInteger(str.value.indexOf(args.getString(0)));
+        });
+        manager.reg("clone", (name, args, script, o) -> {
+            CogString str = (CogString) o;
+            return new CogString(str.value);
         });
     }
 

@@ -25,11 +25,14 @@ import net.minecraft.world.level.entity.EntityTypeTest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Random;
+
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class CogMaster implements CogPropertyManager {
-    private static EasyPropManager MANAGER = new EasyPropManager("master", CogMaster::register);
+    private static final EasyPropManager MANAGER = new EasyPropManager("master", CogMaster::register);
     private static CogMaster instance = null;
+    private static Random random = new Random();
 
     public static CogMaster getInstance() {
         if (instance == null) {
@@ -53,6 +56,7 @@ public class CogMaster implements CogPropertyManager {
         return o instanceof CogMaster;
     }
 
+    @SuppressWarnings("CodeBlock2Expr")
     private static void register(EasyPropManager manager) {
         manager.reg("log", (name, args, script, o) -> {
             CogwheelExecutor.log.info("{}: {}", script.getScriptName(), args.getString(0));
@@ -98,10 +102,13 @@ public class CogMaster implements CogPropertyManager {
             });
         });
         manager.reg("str", (name, args, script, o) -> {
-            return new CogString(args.getString(0));
+            return args.getCogString(0);
         });
         manager.reg("int", (name, args, script, o) -> {
             return new CogInteger(args.requireInt(0));
+        });
+        manager.reg("double", (name, args, script, o) -> {
+            return new CogDouble(args.requireInt(0));
         });
         manager.reg("true", (name, args, script, o) -> {
             return CogBool.TRUE;
@@ -111,6 +118,20 @@ public class CogMaster implements CogPropertyManager {
         });
         manager.reg("getLevel", (name, args, script, o) -> {
             return EventBus.getStoryLevel();
+        });
+        manager.reg("disposeVariable", (name, args, script, o) -> {
+            script.getStorage().remove(args.getString(0));
+            return null;
+        });
+        // Variable internal_callback should not be accessed from CogScript directly. Instead, this method should be used
+        manager.reg("getEvent", (name, args, script, o) -> {
+            return script.get("internal_callback");
+        });
+        manager.reg("randomInt", (name, args, script, o) -> {
+            return new CogInteger(random.nextInt(args.requireInt(0), args.requireInt(1)));
+        });
+        manager.reg("createList", (name, args, script, o) -> {
+            return CogArray.getInstance(args.get(0));
         });
     }
 
