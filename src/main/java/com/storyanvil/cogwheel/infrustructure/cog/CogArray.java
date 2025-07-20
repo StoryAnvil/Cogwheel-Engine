@@ -44,6 +44,10 @@ public class CogArray<T extends CogPropertyManager> implements CogPropertyManage
             array.list.add(args.get(0));
             return null;
         });
+        manager.reg("size", (name, args, script, o) -> {
+            CogArray<CogPropertyManager> array = (CogArray<CogPropertyManager>) o;
+            return new CogInteger(array.list.size());
+        });
     }
 
     @Override

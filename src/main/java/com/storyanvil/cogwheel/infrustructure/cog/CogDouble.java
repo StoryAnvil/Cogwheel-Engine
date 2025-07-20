@@ -67,6 +67,10 @@ public class CogDouble implements CogPropertyManager, CogStringGen<CogDouble> {
             CogDouble i = (CogDouble) o;
             return new CogInteger(Math.toIntExact(Math.round(i.value)));
         });
+        manager.reg("clone", (name, args, script, o) -> {
+            CogDouble i = (CogDouble) o;
+            return new CogDouble(i.value);
+        });
     }
 
     private double value;
