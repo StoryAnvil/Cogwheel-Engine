@@ -62,6 +62,16 @@ public class ArgumentData {
         }
         throw new RuntimeException("Argument #" + argument + " is not CogDouble");
     }
+    public double requireDoubleOrInt(int argument) {
+        CogPropertyManager m = get(argument);
+        if (m instanceof CogDouble i) {
+            return i.getValue();
+        }
+        if (m instanceof CogInteger i) {
+            return i.getValue();
+        }
+        throw new RuntimeException("Argument #" + argument + " is not CogDouble/CogInteger");
+    }
     public String getString(int argument) {
         CogPropertyManager m = get(argument);
         return m.convertToString();

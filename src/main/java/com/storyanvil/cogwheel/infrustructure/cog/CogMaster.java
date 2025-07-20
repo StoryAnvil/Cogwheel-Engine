@@ -25,11 +25,14 @@ import net.minecraft.world.level.entity.EntityTypeTest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Random;
+
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class CogMaster implements CogPropertyManager {
     private static final EasyPropManager MANAGER = new EasyPropManager("master", CogMaster::register);
     private static CogMaster instance = null;
+    private static Random random = new Random();
 
     public static CogMaster getInstance() {
         if (instance == null) {
@@ -123,6 +126,12 @@ public class CogMaster implements CogPropertyManager {
         // Variable internal_callback should not be accessed from CogScript directly. Instead, this method should be used
         manager.reg("getEvent", (name, args, script, o) -> {
             return script.get("internal_callback");
+        });
+        manager.reg("randomInt", (name, args, script, o) -> {
+            return new CogInteger(random.nextInt(args.requireInt(0), args.requireInt(1)));
+        });
+        manager.reg("createList", (name, args, script, o) -> {
+            return CogArray.getInstance(args.get(0));
         });
     }
 

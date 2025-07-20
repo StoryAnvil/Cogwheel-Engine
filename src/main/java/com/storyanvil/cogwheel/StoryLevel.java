@@ -110,7 +110,7 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
                         for (ServerPlayer player : ((ServerLevel) event.level).players()) {
                             players.add(new CogPlayer(new WeakReference<>(player)));
                         }
-                        script.put(variable, new CogArray<>(players));
+                        script.put(variable, CogArray.getInstance(players));
                         CogwheelExecutor.schedule(script::lineDispatcher);
                     });
                 }

@@ -18,13 +18,14 @@ import com.storyanvil.cogwheel.util.EasyPropManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class CogArray<T extends CogPropertyManager> implements CogPropertyManager {
     private static final EasyPropManager MANAGER = new EasyPropManager("array", CogArray::registerProps);
 
     private ArrayList<T> list;
 
-    public CogArray(ArrayList<T> list) {
+    private CogArray(ArrayList<T> list) {
         this.list = list;
     }
 
@@ -75,5 +76,35 @@ public class CogArray<T extends CogPropertyManager> implements CogPropertyManage
     @Override
     public boolean equalsTo(CogPropertyManager o) {
         return false;
+    }
+
+    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(ArrayList<Q> t) {
+        return new CogArray<>(t);
+    }
+    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(List<Q> t) {
+        return new CogArray<>(new ArrayList<>(t));
+    }
+    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(Iterable<Q> t) {
+        ArrayList<Q> list = new ArrayList<>();
+        for (Q q : t) {
+            list.add(q);
+        }
+        return new CogArray<>(list);
+    }
+    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(Q q) {
+        ArrayList<Q> list = new ArrayList<>();
+        list.add(q);
+        return new CogArray<>(list);
+    }
+    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(Class<Q> q) {
+        return new CogArray<>(new ArrayList<>());
+    }
+
+    public static CogArray<CogString> convertInstance(Iterable<String> s) {
+        ArrayList<CogString> list = new ArrayList<>();
+        for (String q : s) {
+            list.add(new CogString(q));
+        }
+        return new CogArray<>(list);
     }
 }
