@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CogDouble implements CogPropertyManager, CogStringGen<CogDouble> {
-    private static EasyPropManager MANAGER = new EasyPropManager("double", CogDouble::registerProps);
+    private static final EasyPropManager MANAGER = new EasyPropManager("double", CogDouble::registerProps);
 
     private static void registerProps(EasyPropManager manager) {
         manager.logMe(o -> {

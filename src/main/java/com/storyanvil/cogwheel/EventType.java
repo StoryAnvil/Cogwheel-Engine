@@ -9,7 +9,8 @@ import java.util.HashMap;
 public enum EventType {
     BLOCK_PLACED, BLOCK_BROKEN, PLAYER_ATE,
     CHAT_MESSAGE, TOTEM_USAGE, BLOCK_RIGHT_CLICK,
-    ENTITY_RIGHT_CLICK, PLAYER_RESPAWN, ENTITY_ATTACKED;
+    ENTITY_RIGHT_CLICK, PLAYER_RESPAWN, ENTITY_ATTACKED,
+    BELT_MESSAGE;
 
     private static final HashMap<EventType, String> SUBSCRIBERS = new HashMap<>();
     public static void dispatchEvent(EventType type) {

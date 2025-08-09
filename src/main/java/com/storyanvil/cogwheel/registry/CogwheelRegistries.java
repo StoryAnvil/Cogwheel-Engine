@@ -195,6 +195,8 @@ public class CogwheelRegistries {
         });
 
         registerInternal("Cogwheel", script -> CogMaster.getInstance());
+        registerInternal("true", script -> CogBool.TRUE);
+        registerInternal("false", script -> CogBool.FALSE);
 
 
         // //////////////////////////////////// //
@@ -224,32 +226,6 @@ public class CogwheelRegistries {
 //            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
 //                labelUnsupported(label);
 //                CogScriptDispatcher.dispatch(args);
-//                return ScriptLineHandler.blocking();
-//            }
-//        });
-//        registerInternal(new MethodLikeLineHandler("dialogChoices", MODID) {
-//            @Override
-//            public DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-//                labelUnsupported(label);
-//                int sep = args.indexOf(':');
-//                String variable = args.substring(0, sep);
-//                String[] choices = args.substring(sep + 1).split(",");
-//                Component[] components = new Component[choices.length];
-//                final String dialogID = UUID.randomUUID().toString();
-//                EventBus.registerDialog(dialogID, response -> {
-//                    script.put(variable, new CogInteger(response));
-//                    script.lineDispatcher();
-//                });
-//                for (int i = 0; i < choices.length; i++) {
-//                    final int finalI = i;
-//                    components[i] = Component.literal("[" + (i + 1) + "] ").withStyle(style -> style.withColor(ChatFormatting.GRAY))
-//                            .append(Component.literal(choices[i]).withStyle(style -> style.withClickEvent(
-//                                    new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/@storyclient dialog " + finalI + " " + dialogID)
-//                            )));
-//                }
-//                CogwheelExecutor.scheduleTickEvent(event -> {
-//                    StoryUtils.sendGlobalMessage((ServerLevel) event.level, components);
-//                });
 //                return ScriptLineHandler.blocking();
 //            }
 //        });

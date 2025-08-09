@@ -25,10 +25,12 @@ import java.util.function.Consumer;
 public class CogwheelExecutor {
     public static final Logger log = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/EXECUTOR");
     private static final ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(1, new DefaultThreadFactory("cogwheel-executor"));
+    private static final ScheduledThreadPoolExecutor beltThread = new ScheduledThreadPoolExecutor(1, new DefaultThreadFactory("cogwheel-belt-protocol"));
 
     @ApiStatus.Internal
     protected static void init() {
         poolExecutor.setMaximumPoolSize(1);
+        beltThread.setMaximumPoolSize(1);
     }
 
     /**
@@ -67,5 +69,18 @@ public class CogwheelExecutor {
      */
     public static void scheduleTickEvent(Consumer<TickEvent.LevelTickEvent> task, int ticks) {
         EventBus.queue.add(new DoubleValue<>(task, ticks));
+    }
+
+    /**
+     * Schedules task to be executed as soon as possible on Belt Protocol thread
+     */
+    public static void scheduleBelt(Runnable task) {
+        beltThread.execute(task);
+    }
+    /**
+     * Schedules task to be executed as soon as possible after specified amount of milliseconds on Belt Protocol thread
+     */
+    public static void scheduleBelt(Runnable task, int ms) {
+        beltThread.schedule(task, ms, TimeUnit.MILLISECONDS);
     }
 }

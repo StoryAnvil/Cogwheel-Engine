@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
@@ -31,11 +32,17 @@ public class CogScriptDispatcher {
     public static void dispatch(String scriptName, HashMap<String, CogPropertyManager> storage) {
         CogwheelExecutor.schedule(() -> dispatcher(scriptName, storage));
     }
-    private static void dispatcher(String scriptName, HashMap<String, CogPropertyManager> storage) {
+    public static void dispatch(String scriptName, Consumer<DispatchedScript> s) {
+        CogwheelExecutor.schedule(() -> s.accept(dispatcher(scriptName, new HashMap<>())));
+    }
+    public static void dispatch(String scriptName, HashMap<String, CogPropertyManager> storage, Consumer<DispatchedScript> s) {
+        CogwheelExecutor.schedule(() -> s.accept(dispatcher(scriptName, storage)));
+    }
+    private static DispatchedScript dispatcher(String scriptName, HashMap<String, CogPropertyManager> storage) {
         File script = new File(Minecraft.getInstance().gameDirectory, "config/cog/" + scriptName);
         if (!script.exists()) {
             log.error("Script {} does not exist. Dispatch ignored!", script);
-            return;
+            return null;
         }
         if (scriptName.endsWith(".sa") /* storyanvil */) {
             log.info("Script: {} dispatched", scriptName);
@@ -44,7 +51,9 @@ public class CogScriptDispatcher {
                 while (sc.hasNextLine()) {
                     lines.add(sc.nextLine());
                 }
-                CogwheelExecutor.schedule(new DispatchedScript(lines, storage).setScriptName(scriptName)::lineDispatcher);
+                DispatchedScript s = new DispatchedScript(lines, storage);
+                CogwheelExecutor.schedule(s.setScriptName(scriptName)::lineDispatcher);
+                return s;
             } catch (IOException e) {
                 log.error("Script dispatch failed while file reading", e);
             }
@@ -66,5 +75,6 @@ public class CogScriptDispatcher {
         } else {
             log.error("Script {} does not end with any known extension (known extensions are: \".sa\", \".sam\" ). Dispatch ignored!", script);
         }
+        return null;
     }
 }

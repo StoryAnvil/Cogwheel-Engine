@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CogBool implements CogPropertyManager, CogStringGen<CogBool> {
-    private static EasyPropManager MANAGER = new EasyPropManager("bool", CogBool::registerProps);
+    private static final EasyPropManager MANAGER = new EasyPropManager("bool", CogBool::registerProps);
     public static final CogBool TRUE = new CogBool(true);
     public static final CogBool FALSE = new CogBool(false);
     public static CogBool getInstance(boolean value) {
@@ -32,6 +32,18 @@ public class CogBool implements CogPropertyManager, CogStringGen<CogBool> {
             CogBool bool = (CogBool) o;
             if (bool.value) return FALSE;
             else return TRUE;
+        });
+        manager.reg("and", (name, args, script, o) -> {
+            CogBool bool = (CogBool) o;
+            return getInstance(args.requireBoolean(0) && bool.value);
+        });
+        manager.reg("or", (name, args, script, o) -> {
+            CogBool bool = (CogBool) o;
+            return getInstance(args.requireBoolean(0) || bool.value);
+        });
+        manager.reg("xor", (name, args, script, o) -> {
+            CogBool bool = (CogBool) o;
+            return getInstance(args.requireBoolean(0) != bool.value);
         });
         manager.logMe(o -> {
             return ((CogBool) o).value ? "TRUE" : "FALSE";
