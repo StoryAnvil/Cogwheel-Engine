@@ -200,7 +200,7 @@ public class NPC extends Animal implements
         sb.append(" | ").append(this);
     }
 
-    private static EasyPropManager MANAGER = new EasyPropManager("npc", NPC::registerProps);
+    private static final EasyPropManager MANAGER = new EasyPropManager("npc", NPC::registerProps);
 
     private static void registerProps(EasyPropManager manager) {
         manager.reg("setName", (name, args, script, o) -> {

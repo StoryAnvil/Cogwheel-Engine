@@ -3,6 +3,7 @@ package com.storyanvil.cogwheel.infrustructure.cog;
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
+import com.storyanvil.cogwheel.util.DataStorage;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -86,6 +87,33 @@ public class CogEntity implements CogPropertyManager {
         manager.reg("getTags", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
             return CogArray.convertInstance(e.e.get().getTags());
+        });
+        manager.reg("putInt", (name, args, script, o) -> {
+            CogEntity e = (CogEntity) o;
+            DataStorage.setInt(e.e.get(), args.getString(0), args.requireInt(1));
+            return e;
+        });
+        manager.reg("getInt", (name, args, script, o) -> {
+            CogEntity e = (CogEntity) o;
+            return new CogInteger(DataStorage.getInt(e.e.get(), args.getString(0), 0));
+        });
+        manager.reg("putString", (name, args, script, o) -> {
+            CogEntity e = (CogEntity) o;
+            DataStorage.setString(e.e.get(), args.getString(0), args.getString(1));
+            return e;
+        });
+        manager.reg("getString", (name, args, script, o) -> {
+            CogEntity e = (CogEntity) o;
+            return new CogString(DataStorage.getString(e.e.get(), args.getString(0), ""));
+        });
+        manager.reg("putBoolean", (name, args, script, o) -> {
+            CogEntity e = (CogEntity) o;
+            DataStorage.setBoolean(e.e.get(), args.getString(0), args.requireBoolean(1));
+            return e;
+        });
+        manager.reg("getBoolean", (name, args, script, o) -> {
+            CogEntity e = (CogEntity) o;
+            return CogBool.getInstance(DataStorage.getBoolean(e.e.get(), args.getString(0), false));
         });
     }
 

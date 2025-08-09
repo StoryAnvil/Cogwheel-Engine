@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CogString implements CogPropertyManager, CogStringGen<CogString> {
-    private static EasyPropManager MANAGER = new EasyPropManager("string", CogString::registerProps);
+    private static final EasyPropManager MANAGER = new EasyPropManager("string", CogString::registerProps);
 
     public CogString(char c) {
         this(String.valueOf(c));

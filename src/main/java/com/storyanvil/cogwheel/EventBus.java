@@ -15,9 +15,12 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
+import com.storyanvil.cogwheel.network.belt.BeltCommunications;
+import com.storyanvil.cogwheel.network.belt.BeltPacket;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -25,6 +28,7 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -56,6 +60,49 @@ public class EventBus {
                             CogwheelEngine.LOGGER.warn("\n{}", sb);
                             return 0;
                         })
+                )
+                .then(Commands.literal("cogwheel-belt")
+                        .then(Commands.literal("start")
+                                .then(Commands.argument("host", StringArgumentType.greedyString())
+                                        .executes(ctx -> {
+                                            beltCommunications = BeltCommunications.create(StringArgumentType.getString(ctx, "host"));
+                                            return 0;
+                                        })
+                                )
+                        )
+                        .then(Commands.literal("getLink")
+                                .executes(ctx -> {
+                                    if (beltCommunications == null) {
+                                        ctx.getSource().getPlayerOrException().sendSystemMessage(Component.literal(
+                                                "No belt server is connected"
+                                        ));
+                                        return 1;
+                                    }
+                                    String link = beltCommunications.getUserLink(ctx.getSource().getPlayerOrException());;
+                                    ctx.getSource().getPlayerOrException().sendSystemMessage(Component.literal(
+                                            "Click to open " + link + " | This will authorize you on " + beltCommunications.getRemoteServerName()
+                                    ).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link))));
+                                    return 0;
+                                })
+                        )
+                        .then(Commands.literal("auth")
+                                .then(Commands.argument("code", StringArgumentType.greedyString())
+                                        .executes(ctx -> {
+                                            if (beltCommunications == null) {
+                                                ctx.getSource().getPlayerOrException().sendSystemMessage(Component.literal(
+                                                        "No belt server is connected"
+                                                ));
+                                                return 1;
+                                            }
+                                            String link = beltCommunications.getHost() + "/~";
+                                            ctx.getSource().getPlayerOrException().sendSystemMessage(Component.literal(
+                                                    "You will be authorized on " + beltCommunications.getRemoteServerName() + " as soon as possible."
+                                            ).append("\nVisit " + link + " to check").withStyle(s -> s.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link))));
+                                            BeltPacket.createAuthCode(StringArgumentType.getString(ctx, "code"), ctx.getSource().getPlayerOrException().getScoreboardName());
+                                            return 0;
+                                        })
+                                )
+                        )
                 )
         );
         event.getDispatcher().register(Commands.literal("@storyclient").requires(css -> css.hasPermission(0))
@@ -92,6 +139,8 @@ public class EventBus {
     protected static List<DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
     private static HashMap<String, Consumer<Integer>> dialogResponses = new HashMap<>();
     private static StoryLevel level = new StoryLevel();
+    @ApiStatus.Internal
+    public static BeltCommunications beltCommunications = null;
     @SubscribeEvent
     public static void tick(TickEvent.LevelTickEvent event) {
         if (event.level.isClientSide()) return;

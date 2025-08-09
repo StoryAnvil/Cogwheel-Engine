@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.infrustructure;
 
+import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrustructure.cog.CogActionQueue;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.DoubleValue;
@@ -78,11 +79,16 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     }
 
     public void lineDispatcher() {
+        if (!Thread.currentThread().getName().contains("cogwheel-executor"))
+            throw new RuntimeException("Line dispatcher can only be run in cogwheel executor thread");
+        lineDispatcherInternal();
+    }
+    private void lineDispatcherInternal() {
         if (linesToExecute.isEmpty()) return;
         String line = linesToExecute.get(0).trim();
         linesToExecute.remove(0);
         if (executeLine(line)) {
-            lineDispatcher();
+            lineDispatcherInternal();
         }
     }
 

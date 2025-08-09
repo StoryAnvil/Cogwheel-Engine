@@ -16,7 +16,10 @@ import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.entity.NPC;
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
+import com.storyanvil.cogwheel.network.belt.BeltPacket;
+import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.AbortableIterationConsumer;
@@ -108,7 +111,13 @@ public class CogMaster implements CogPropertyManager {
             return new CogInteger(args.requireInt(0));
         });
         manager.reg("double", (name, args, script, o) -> {
-            return new CogDouble(args.requireInt(0));
+            return new CogDouble(args.requireDouble(0));
+        });
+        manager.reg("toInt", (name, args, script, o) -> {
+            return new CogInteger(args.getString(0));
+        });
+        manager.reg("toDouble", (name, args, script, o) -> {
+            return new CogDouble(args.getString(0));
         });
         manager.reg("true", (name, args, script, o) -> {
             return CogBool.TRUE;
@@ -132,6 +141,38 @@ public class CogMaster implements CogPropertyManager {
         });
         manager.reg("createList", (name, args, script, o) -> {
             return CogArray.getInstance(args.get(0));
+        });
+        manager.reg("dispatchScript", (name, args, script, o) -> {
+            CogScriptDispatcher.dispatch(args.getString(0));
+            return null;
+        });
+        manager.reg("waitForLabel", (name, args, script, o) -> {
+            throw new PreventSubCalling(new SubCallPostPrevention() {
+                @Override
+                public void prevent(String variable) {
+                    EventBus.register(args.getString(0), (label, host) -> {
+                        CogwheelExecutor.schedule(script::lineDispatcher);
+                    });
+                }
+            });
+        });
+        manager.reg("skipToLabel", (name, args, script, o) -> {
+            throw new PreventSubCalling(new SubCallPostPrevention() {
+                @Override
+                public void prevent(String variable) {
+                    CogwheelExecutor.schedule(() -> {
+                        CogwheelRegistries.skip("@marker " + args.getString(0), script);
+                        script.lineDispatcher();
+                    });
+                }
+            });
+        });
+        manager.reg("isBeltConnected", (name, args, script, o) -> {
+            return CogBool.getInstance(EventBus.beltCommunications == null);
+        });
+        manager.reg("sendBeltMessage", (name, args, script, o) -> {
+            BeltPacket.createBeltMessage(args.getString(0));
+            return null;
         });
     }
 
