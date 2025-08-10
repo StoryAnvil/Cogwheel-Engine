@@ -18,6 +18,7 @@ import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.*;
+import com.storyanvil.cogwheel.infrustructure.actions.AnimationAction;
 import com.storyanvil.cogwheel.infrustructure.actions.PathfindAction;
 import com.storyanvil.cogwheel.infrustructure.actions.WaitForLabelAction;
 import com.storyanvil.cogwheel.infrustructure.cog.*;
@@ -35,23 +36,31 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.AgeableMob;
-import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class NPC extends Animal implements
         StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder,
-        StoryNavigator, ObjectMonitor.IMonitored, CogPropertyManager {
+        StoryNavigator, ObjectMonitor.IMonitored, CogPropertyManager,
+        StoryAnimator, GeoEntity {
     private static final ObjectMonitor<NPC> MONITOR = new ObjectMonitor<>();
     public NPC(EntityType<? extends Animal> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -63,8 +72,6 @@ public class NPC extends Animal implements
         }
     }
 
-    public final AnimationState idle = new AnimationState();
-    private int idleAnimTimeout = 0;
     private Queue<StoryAction<? extends NPC>> actionQueue = new ArrayDeque<>();
     private StoryAction current;
     private CogEntity me;
@@ -77,7 +84,7 @@ public class NPC extends Animal implements
         super.tick();
 
         if (this.level().isClientSide) {
-            setupState();
+//            setupState();
         } else {
             if (current != null) {
                 if (current.freeToGo(this)) {
@@ -92,17 +99,17 @@ public class NPC extends Animal implements
     }
 
 
-    @Override
-    protected void updateWalkAnimation(float pPartialTick) {
-        float f;
-        if (this.getPose() == Pose.STANDING) {
-            f = Math.min(pPartialTick * 6f, 1f);
-        } else {
-            f = 0f;
-        }
-
-        this.walkAnimation.update(f, 0.2f);
-    }
+//    @Override
+//    protected void updateWalkAnimation(float pPartialTick) {
+//        float f;
+//        if (this.getPose() == Pose.STANDING) {
+//            f = Math.min(pPartialTick * 6f, 1f);
+//        } else {
+//            f = 0f;
+//        }
+//
+//        this.walkAnimation.update(f, 0.2f);
+//    }
 
     @Override
     public @Nullable Component getCustomName() {
@@ -129,14 +136,14 @@ public class NPC extends Animal implements
         this.entityData.set(NAME, pName == null ? "NPC" : pName, true);
     }
 
-    private void setupState() {
-        if (this.idleAnimTimeout <= 0) {
-            this.idleAnimTimeout = this.random.nextInt(40) + 80;
-            this.idle.start(this.tickCount);
-        } else {
-            --this.idleAnimTimeout;
-        }
-    }
+//    private void setupState() {
+//        if (this.idleAnimTimeout <= 0) {
+//            this.idleAnimTimeout = this.random.nextInt(40) + 80;
+//            this.idle.start(this.tickCount);
+//        } else {
+//            --this.idleAnimTimeout;
+//        }
+//    }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createLivingAttributes()
@@ -253,6 +260,11 @@ public class NPC extends Animal implements
             else return npc.addChained(new WaitForLabelAction(args.getString(0), args.requireInt(1)));
         });
 
+        manager.reg("animation", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            return npc.addChained(new AnimationAction(args.getString(0), args.requireInt(1)));
+        });
+
         manager.reg("dialogChoices", (name, args, script, o) -> {
             NPC npc = (NPC) o;
             final String dialogID = UUID.randomUUID().toString();
@@ -302,11 +314,50 @@ public class NPC extends Animal implements
 
     @Override
     public boolean equalsTo(CogPropertyManager o) {
-        return me.equalsTo(o);
+        return false;
     }
 
     @Contract(value = " -> this", pure = true)
     private NPC me() {
         return this;
+    }
+
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+    protected static final RawAnimation WALK_ANIM = RawAnimation.begin().thenLoop("animation.npc.walk");
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "walking", this::walkAnim));
+    }
+
+    protected <E extends NPC> PlayState walkAnim(final AnimationState<E> event) {
+        if (customAnimation != null) {
+            CogwheelExecutor.log.error(customAnimation.getAnimationStages().stream().map(RawAnimation.Stage::animationName).collect(Collectors.joining()));
+            return event.setAndContinue(customAnimation);
+        }
+        if (event.isMoving())
+            return event.setAndContinue(WALK_ANIM);
+
+        return PlayState.STOP;
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
+    }
+
+    @Override
+    public String getAnimatorID() {
+        return this.getStringUUID();
+    }
+
+    private RawAnimation customAnimation = null;
+    @Override
+    public void pushAnimation(String name) {
+        if (name.equals("null")) {
+            customAnimation = null;
+            return;
+        }
+        customAnimation = RawAnimation.begin().thenLoop(name);
     }
 }

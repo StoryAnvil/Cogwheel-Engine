@@ -12,12 +12,13 @@
 package com.storyanvil.cogwheel.infrustructure;
 
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
+import com.storyanvil.cogwheel.infrustructure.cog.PreventSubCalling;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface CogPropertyManager {
     boolean hasOwnProperty(String name);
-    @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script);
+    @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling;
     boolean equalsTo(CogPropertyManager o);
 
     NullManager nullManager = new NullManager();
