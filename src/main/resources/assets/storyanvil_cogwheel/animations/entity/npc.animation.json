@@ -1,0 +1,38 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.npc.walk": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"Right Leg": {
+					"rotation": {
+						"0.0": {
+							"vector": [35, 0, 0]
+						},
+						"0.5": {
+							"vector": [-35, 0, 0]
+						},
+						"1.0": {
+							"vector": [35, 0, 0]
+						}
+					}
+				},
+				"Left Leg": {
+					"rotation": {
+						"0.0": {
+							"vector": [-35, 0, 0]
+						},
+						"0.5": {
+							"vector": [35, 0, 0]
+						},
+						"1.0": {
+							"vector": [-35, 0, 0]
+						}
+					}
+				}
+			}
+		}
+	},
+	"geckolib_format_version": 2
+}

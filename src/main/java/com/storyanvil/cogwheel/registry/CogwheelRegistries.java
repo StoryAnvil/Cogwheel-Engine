@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.registry;
 
+import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.infrustructure.*;
 import com.storyanvil.cogwheel.infrustructure.cog.*;
 import com.storyanvil.cogwheel.util.*;
@@ -21,7 +22,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import static com.storyanvil.cogwheel.CogwheelEngine.LOGGER;
 import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
 
 public class CogwheelRegistries {
@@ -236,48 +239,96 @@ public class CogwheelRegistries {
             storage.put(pair.getA(), pair.getB().apply(script));
         }
     }
-    public static DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> expressionHandler(String _line, DispatchedScript script, boolean allowBlocking) {
-        int eq = _line.indexOf('=');
-        String line;
-        String variable = null;
-        if (eq != -1) {
-            line = _line.substring(eq + 1);
-            variable = _line.substring(0, eq).trim();
-        } else {
-            line = _line;
-        }
+    public static DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> expressionHandler(String line, DispatchedScript script, boolean allowBlocking) {
+        // Return: DoubleValue<ScriptLineHandler.*(), ExpressionReturn>
 
+        int currentStart = 0;
 
-        int dot = line.indexOf('.');
-        if (dot != -1) {
-            String sub = line.substring(0, dot).stripLeading();
-            if (script.hasKey(sub)) {
-                CogPropertyManager manager = CogPropertyManager.noNull(script.get(sub));
-                String[] props = line.substring(dot + 1).split("\\.");
-                for (int i = 0; i < props.length; i++) {
-                    String linkedProperty = props[i];
-                    if (!linkedProperty.endsWith(")")) throw new RuntimeException("Tail Bracket mismatch");
-                    int bracket = linkedProperty.indexOf('(');
-                    if (bracket == -1) throw new RuntimeException("Head Bracket mismatch");
-                    String args = linkedProperty.substring(bracket + 1, linkedProperty.length() - 1);
-                    String propName = linkedProperty.substring(0, bracket);
-                    if (manager.hasOwnProperty(propName)) {
-                        try {
-                            manager = manager.getProperty(propName, ArgumentData.createFromString(args, script), script);
-                        } catch (PreventSubCalling preventSubCalling) {
-                            if (!allowBlocking) throw new RuntimeException("Blocking not permitied!", preventSubCalling);
-                            preventSubCalling.getPostPrevention().prevent(variable);
-                            return new DoubleValue<>(ScriptLineHandler.blocking(), manager);
-                        }
-                    } else throw new RuntimeException(manager.getClass().getCanonicalName() + " Manager does not have property named: " + linkedProperty + " as " + propName + " with " + args);
-                }
-                if (variable != null) {
-                    script.put(variable, manager);
-                }
-                return new DoubleValue<>(ScriptLineHandler.continueReading(), manager);
+        // Variable search
+        String variable = "";
+        boolean hasVariable = false;
+        for (int i = currentStart; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '=') {
+                hasVariable = true;
+                variable = variable.trim();
+                currentStart = i + 1;
+                break;
+            } else if (c == '.') {
+                variable = null;
+                break;
+            } else {
+                variable += c;
             }
         }
-        return new DoubleValue<>(ScriptLineHandler.ignore(), null);
+        if (!hasVariable) {
+            variable = null;
+        }
+
+        // Chain call search
+        StringBuilder currentName = new StringBuilder();
+        int depth = 0;
+        ArrayList<String> chainCalls = new ArrayList<>();
+        for (int i = currentStart; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '.' && depth == 0) {
+                chainCalls.add(currentName.toString());
+                currentName = new StringBuilder();
+            } else if (c == '(') {
+                depth++;
+                currentName.append(c);
+            } else if (c == ')') {
+                depth--;
+                if (depth < 0) {
+                    throw new CogExpressionFailure("Closing bracket mismatch!");
+                }
+                currentName.append(c);
+            } else {
+                currentName.append(c);
+            }
+        }
+        if (depth == 0) {
+            chainCalls.add(currentName.toString());
+        } else {
+            throw new CogExpressionFailure("Tail closing bracket mismatch!");
+        }
+        currentName = null;
+
+        if (chainCalls.size() < 2) {
+            throw new CogExpressionFailure("Expression does not have enough steps!");
+        }
+        if (chainCalls.get(0).endsWith(")")) {
+            throw new CogExpressionFailure("Expression does not have first step!");
+        }
+        CogPropertyManager manager = script.get(chainCalls.get(0).stripLeading());
+        for (int i = 1 /* do not take first step */; i < chainCalls.size(); i++) {
+            String step = chainCalls.get(i);
+            if (!step.endsWith(")")) {
+                throw new CogExpressionFailure("Invalid step: \"" + step + "\"!");
+            }
+            int firstBracket = step.indexOf('(');
+            String propName = step.substring(0, firstBracket);
+            ArgumentData argumentData = ArgumentData.createFromString(step.substring(firstBracket + 1, step.length() - 1), script);
+            if (manager == null) {
+                throw new CogExpressionFailure("Calling \"" + propName + "\" property is not possible as current object is NULL");
+            }
+            if (!manager.hasOwnProperty(propName)) {
+                throw new CogExpressionFailure(manager.getClass().getCanonicalName() + " object does not have property \"" + propName + "\"!");
+            }
+            try {
+                manager = manager.getProperty(propName, argumentData, script);
+            } catch (PreventSubCalling preventSubCalling) {
+                if (!allowBlocking) {
+                    throw new CogExpressionFailure("SubCalling Prevention is not allowed in this context!");
+                }
+                preventSubCalling.getPostPrevention().prevent(variable);
+                return new DoubleValue<>(ScriptLineHandler.blocking(), manager);
+            }
+        }
+        if (variable != null) {
+            script.put(variable, manager);
+        }
+        return new DoubleValue<>(ScriptLineHandler.continueReading(), manager);
     }
     public static void skip(String label, DispatchedScript script) {
         String line = script.pullLine();

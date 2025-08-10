@@ -11,8 +11,6 @@
 
 package com.storyanvil.cogwheel.infrustructure;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.infrustructure.cog.CogActionQueue;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.DoubleValue;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
@@ -102,10 +100,6 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     public boolean hasKey(String key) {
 //        log.warn(storage.keySet().toString());
         return storage.containsKey(key);
-    }
-    @SuppressWarnings("unchecked")
-    public <T> CogActionQueue<T> getActionQueue(String key, Class<T> clazz) {
-        return (CogActionQueue<T>) storage.get(key);
     }
 
     public void dataDump() {
