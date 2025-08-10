@@ -12,7 +12,7 @@
 package com.storyanvil.cogwheel;
 
 import com.storyanvil.cogwheel.entity.NPCRenderer;
-import com.storyanvil.cogwheel.network.CogwheelPacketHandler;
+import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.registry.*;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraftforge.api.distmarker.Dist;

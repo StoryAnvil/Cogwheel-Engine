@@ -11,9 +11,13 @@
 
 package com.storyanvil.cogwheel.util;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
+
+import java.nio.charset.StandardCharsets;
 
 public class StoryUtils {
     public static void sendGlobalMessage(ServerLevel level, Component msg) {
@@ -27,5 +31,18 @@ public class StoryUtils {
                 player.sendSystemMessage(c);
             }
         }
+    }
+    public static void encodeString(@NotNull FriendlyByteBuf buf, @NotNull String str) {
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+        buf.writeInt(bytes.length);
+        buf.writeBytes(bytes);
+    }
+    public static  @NotNull String decodeString(@NotNull FriendlyByteBuf buf) {
+        int length = buf.readInt();
+        byte[] bytes = new byte[length];
+        for (int i = 0; i < length; i++) {
+            bytes[i] = buf.readByte();
+        }
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 }

@@ -69,6 +69,7 @@ public class CogScriptDispatcher {
                     } catch (IllegalArgumentException e) {log.error("Event type: \"{}\" was not recognized", parts[0].trim()); continue;}
                     EventType.setSubscriber(type, parts[1].trim());
                 }
+                EventType.dispatchEvent(EventType.INITIALIZE);
             } catch (IOException e) {
                 log.error("Script dispatch failed while file reading", e);
             }

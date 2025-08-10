@@ -17,6 +17,8 @@ import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.network.belt.BeltCommunications;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
+import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
+import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.commands.Commands;
@@ -24,10 +26,13 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -137,18 +142,38 @@ public class EventBus {
     }
 
     protected static List<DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
+    protected static List<DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer>> clientQueue = new ArrayList<>();
+
     private static HashMap<String, Consumer<Integer>> dialogResponses = new HashMap<>();
     private static StoryLevel level = new StoryLevel();
     @ApiStatus.Internal
     public static BeltCommunications beltCommunications = null;
     @SubscribeEvent
     public static void tick(TickEvent.LevelTickEvent event) {
-        if (event.level.isClientSide()) return;
+        if (!event.level.dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) return;
+        if (event.level.isClientSide()) {
+            if (event.phase != TickEvent.Phase.END) return;
+            try {
+                int size = clientQueue.size();
+                for (int i = 0; i < size; i++) {
+                    DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer> e = clientQueue.get(i);
+                    if (e.getB() < 2) {
+                        e.getA().accept(event);
+                        clientQueue.remove(i);
+                        i--;
+                    } else {
+                        e.setB(e.getB() - 1);
+                    }
+                }
+            } catch (IndexOutOfBoundsException e) {
+                CogwheelEngine.LOGGER.warn("Client Queue bound error");
+            }
+            return;
+        }
         if (event.phase == TickEvent.Phase.END) {
             level.tick((ServerLevel) event.level);
             return;
         }
-        if (!event.level.dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) return;
         try {
             int size = queue.size();
             for (int i = 0; i < size; i++) {
@@ -166,6 +191,25 @@ public class EventBus {
         }
     }
 
+    @SubscribeEvent
+    public static void boundEvent(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            StringBuilder sb = new StringBuilder();
+            boolean a = true;
+            for (ResourceLocation loc : serverSideAnimations) {
+                if (a) {
+                    a = false;
+                } else {
+                    sb.append("|");
+                }
+                sb.append(loc.toString());
+            }
+            CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(() -> player), new AnimationDataBound(sb.toString()));
+        }
+    }
+
+    @ApiStatus.Internal
+    public static ArrayList<ResourceLocation> serverSideAnimations = new ArrayList<>();
     private static HashMap<String, WeakList<LabelCloseable>> labelListeners = new HashMap<>();
     public static void hitLabel(String label, StoryAction<?> action) {
         if (labelListeners.containsKey(label)) {

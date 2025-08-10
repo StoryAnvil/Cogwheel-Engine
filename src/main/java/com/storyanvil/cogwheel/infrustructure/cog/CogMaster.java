@@ -19,12 +19,16 @@ import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
+import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
+import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.AbortableIterationConsumer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.EntityTypeTest;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -172,6 +176,65 @@ public class CogMaster implements CogPropertyManager {
         });
         manager.reg("sendBeltMessage", (name, args, script, o) -> {
             BeltPacket.createBeltMessage(args.getString(0));
+            return null;
+        });
+        manager.reg("addAnimationSource", (name, args, script, o) -> {
+            ResourceLocation loc = ResourceLocation.parse(args.getString(0) + ".json");
+            String m = loc.toString();
+            boolean found = false;
+            for (ResourceLocation r : EventBus.serverSideAnimations) {
+                if (r.toString().equals(m)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                EventBus.serverSideAnimations.add(loc);
+
+                StringBuilder sb = new StringBuilder();
+                boolean a = true;
+                for (ResourceLocation locc : EventBus.serverSideAnimations) {
+                    if (a) {
+                        a = false;
+                    } else {
+                        sb.append("|");
+                    }
+                    sb.append(locc.toString());
+                }
+                CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationDataBound(sb.toString()));
+            }
+            return null;
+        });
+        manager.reg("removeAnimationSource", (name, args, script, o) -> {
+            ResourceLocation loc = ResourceLocation.parse(args.getString(0) + ".json");
+            String m = loc.toString();
+            boolean found = false;
+            for (int i = 0; i < EventBus.serverSideAnimations.size(); i++) {
+                ResourceLocation bad = EventBus.serverSideAnimations.get(i);
+                if (bad.toString().equals(m)) {
+                    EventBus.serverSideAnimations.remove(i);
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                StringBuilder sb = new StringBuilder();
+                boolean a = true;
+                for (ResourceLocation locc : EventBus.serverSideAnimations) {
+                    if (a) {
+                        a = false;
+                    } else {
+                        sb.append("|");
+                    }
+                    sb.append(locc.toString());
+                }
+                CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationDataBound(sb.toString()));
+            }
+            return null;
+        });
+        manager.reg("clearAnimationSources", (name, args, script, o) -> {
+            EventBus.serverSideAnimations.clear();
+            CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationDataBound(""));
             return null;
         });
     }
