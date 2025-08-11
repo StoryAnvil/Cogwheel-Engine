@@ -27,6 +27,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -44,6 +45,12 @@ import java.util.function.Consumer;
 
 @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
 public class EventBus {
+
+    @SubscribeEvent
+    public static void dataInjector(AddPackFindersEvent event) {
+        // TODO: Inject datapacks and resourcepacks
+    }
+
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("@storyanvil").requires(css -> css.hasPermission(1))

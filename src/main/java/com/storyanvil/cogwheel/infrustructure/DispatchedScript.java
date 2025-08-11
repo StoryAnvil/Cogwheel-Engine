@@ -159,9 +159,19 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         if (linesToExecute.isEmpty()) return;
         linesToExecute.remove(0);
     }
+    public void removeLine(int line) {
+        linesToExecute.remove(line);
+    }
     public String peekLine() {
         if (linesToExecute.isEmpty()) return null;
         return linesToExecute.get(0);
+    }
+    public String peekLine(int line) {
+        if (line >= linesToExecute.size()) return null;
+        return linesToExecute.get(line);
+    }
+    public int linesLeft() {
+        return linesToExecute.size();
     }
 
     public HashMap<String, CogPropertyManager> getStorage() {

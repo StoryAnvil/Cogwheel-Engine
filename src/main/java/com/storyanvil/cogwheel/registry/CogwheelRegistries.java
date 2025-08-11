@@ -107,6 +107,54 @@ public class CogwheelRegistries {
 //        });
         registerInternal(new ScriptLineHandler() {
             @Override
+            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+                if (line.startsWith("if (") && line.endsWith("{")) {
+                    int endBracket = line.lastIndexOf(')');
+                    String expression = line.substring(4, endBracket);
+                    DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> out = expressionHandler(expression, script, false);
+                    if (out.getB() instanceof CogBool bool) {
+                        if (bool.getValue()) {
+                            // Remove closing bracket of this IF
+                            int level = 0;
+                            for (int i = 0; i < script.linesLeft(); i++) {
+                                String l = script.peekLine(i);
+                                if (l.endsWith("{")) {
+                                    level++;
+                                } else if (l.equals("}")) {
+                                    level--;
+                                    if (level <= -1) {
+                                        script.removeLine(i);
+                                        break;
+                                    }
+                                }
+                            }
+                            return ScriptLineHandler.continueReading();
+                        }
+                        // Skip this IF
+                        int level = 0;
+                        String l = script.pullLine();
+                        while (l != null) {
+                            if (l.endsWith("{")) {
+                                level++;
+                            } else if (l.equals("}")) {
+                                level--;
+                                if (level <= -1) break;
+                            }
+                            l = script.pullLine();
+                        }
+                        return ScriptLineHandler.continueReading();
+                    } else throw new CogExpressionFailure("If expression returned non-CogBool");
+                }
+                return ScriptLineHandler.ignore();
+            }
+
+            @Override
+            public @NotNull ResourceLocation getResourceLocation() {
+                return ResourceLocation.fromNamespaceAndPath(MODID, "if");
+            }
+        });
+        registerInternal(new ScriptLineHandler() {
+            @Override
             public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String _line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
                 DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> parseOutput = expressionHandler(_line, script, true);
                 return parseOutput.getA();
@@ -117,34 +165,6 @@ public class CogwheelRegistries {
                 return ResourceLocation.fromNamespaceAndPath(MODID, "property_managers");
             }
         });
-//        registerInternal(new ScriptLineHandler() {
-//            @Override
-//            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String _line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-//                if (_line.equals("}")) {
-//                    script.pullDepth();
-//                    return ScriptLineHandler.continueReading();
-//                }
-//                if (_line.startsWith("if (")) {
-//                    if (!_line.endsWith(") {")) throw new RuntimeException("Mismatched if closure");
-//                    int lastBracket = _line.lastIndexOf(')');
-//                    String expression = _line.substring(4, lastBracket);
-//                    DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> parseOutput = expressionHandler(expression, script, false);
-//                    CogPropertyManager result = parseOutput.getB();
-//                    if (result instanceof CogBool bool) {
-//                        script.pushDepth();
-//                        if (!bool.getValue()) {
-//                            script.setSkipCurrentDepth(true);
-//                        }
-//                    } else throw new RuntimeException("If statement in line: \"" + _line + "\" didn't return CogBool");
-//                }
-//                return ScriptLineHandler.ignore();
-//            }
-//
-//            @Override
-//            public @NotNull ResourceLocation getResourceLocation() {
-//                return ResourceLocation.fromNamespaceAndPath(MODID, "if_statement");
-//            }
-//        });
         registerInternal(new ScriptLineHandler() {
             @Override
             public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
@@ -280,7 +300,7 @@ public class CogwheelRegistries {
             } else if (c == ')') {
                 depth--;
                 if (depth < 0) {
-                    throw new CogExpressionFailure("Closing bracket mismatch!");
+                    throw new CogExpressionFailure("Closing bracket mismatch! \"" + line + "\"");
                 }
                 currentName.append(c);
             } else {
@@ -290,36 +310,36 @@ public class CogwheelRegistries {
         if (depth == 0) {
             chainCalls.add(currentName.toString());
         } else {
-            throw new CogExpressionFailure("Tail closing bracket mismatch!");
+            throw new CogExpressionFailure("Tail closing bracket mismatch! \"" + line + "\"");
         }
         currentName = null;
 
         if (chainCalls.size() < 2) {
-            throw new CogExpressionFailure("Expression does not have enough steps!");
+            throw new CogExpressionFailure("Expression does not have enough steps! \"" + line + "\"");
         }
         if (chainCalls.get(0).endsWith(")")) {
-            throw new CogExpressionFailure("Expression does not have first step!");
+            throw new CogExpressionFailure("Expression does not have first step! \"" + line + "\"");
         }
         CogPropertyManager manager = script.get(chainCalls.get(0).stripLeading());
         for (int i = 1 /* do not take first step */; i < chainCalls.size(); i++) {
             String step = chainCalls.get(i);
             if (!step.endsWith(")")) {
-                throw new CogExpressionFailure("Invalid step: \"" + step + "\"!");
+                throw new CogExpressionFailure("Invalid step: \"" + step + "\"! \"" + line + "\"");
             }
             int firstBracket = step.indexOf('(');
             String propName = step.substring(0, firstBracket);
             ArgumentData argumentData = ArgumentData.createFromString(step.substring(firstBracket + 1, step.length() - 1), script);
             if (manager == null) {
-                throw new CogExpressionFailure("Calling \"" + propName + "\" property is not possible as current object is NULL");
+                throw new CogExpressionFailure("Calling \"" + propName + "\" property is not possible as current object is NULL \"" + line + "\"");
             }
             if (!manager.hasOwnProperty(propName)) {
-                throw new CogExpressionFailure(manager.getClass().getCanonicalName() + " object does not have property \"" + propName + "\"!");
+                throw new CogExpressionFailure(manager.getClass().getCanonicalName() + " object does not have property \"" + propName + "\"! \"" + line + "\"");
             }
             try {
                 manager = manager.getProperty(propName, argumentData, script);
             } catch (PreventSubCalling preventSubCalling) {
                 if (!allowBlocking) {
-                    throw new CogExpressionFailure("SubCalling Prevention is not allowed in this context!");
+                    throw new CogExpressionFailure("SubCalling Prevention is not allowed in this context! \"" + line + "\"");
                 }
                 preventSubCalling.getPostPrevention().prevent(variable);
                 return new DoubleValue<>(ScriptLineHandler.blocking(), manager);
