@@ -21,6 +21,7 @@ import com.storyanvil.cogwheel.util.WeakList;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
@@ -30,6 +31,37 @@ public abstract class CogScriptEnvironment {
 
     public CogScriptEnvironment() {
         this.eventSubscribers = new HashMap<>();
+    }
+
+    public void dispatchEvent(ResourceLocation event, HashMap<String, CogPropertyManager> storage) {
+        if (eventSubscribers.containsKey(event)) {
+            List<String> subscribedScripts = eventSubscribers.get(event);
+            for (String script : subscribedScripts) {
+                dispatchScript(script, storage);
+            }
+        }
+    }
+    public void subscribeForEvent(ResourceLocation event, String scriptName) {
+        if (!eventSubscribers.containsKey(event)) {
+            eventSubscribers.put(event, new ArrayList<>());
+        }
+        eventSubscribers.get(event).add(scriptName);
+    }
+    public void unsubscribeFromEvent(ResourceLocation event, String scriptName) {
+        if (!eventSubscribers.containsKey(event)) {
+            eventSubscribers.put(event, new ArrayList<>());
+            return;
+        }
+        eventSubscribers.get(event).remove(scriptName);
+    }
+    public void unsubscribeAllFromEvent(ResourceLocation event) {
+        eventSubscribers.remove(event);
+    }
+    public static void dispatchEventGlobal(ResourceLocation event, HashMap<String, CogPropertyManager> storage) {
+        CogwheelExecutor.getDefaultEnvironment().dispatchEvent(event, storage);
+        for (CogScriptEnvironment environment : CogwheelExecutor.getLibraryEnvironments()) {
+            environment.dispatchEvent(event, storage);
+        }
     }
 
     /**

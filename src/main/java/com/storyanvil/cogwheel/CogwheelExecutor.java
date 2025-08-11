@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -166,5 +167,8 @@ public class CogwheelExecutor {
 
     public static CogScriptEnvironment getLibraryEnvironment(String namespace) {
         return libraryEnvironments.get(namespace);
+    }
+    public static Collection<CogScriptEnvironment.LibraryEnvironment> getLibraryEnvironments() {
+        return libraryEnvironments.values();
     }
 }

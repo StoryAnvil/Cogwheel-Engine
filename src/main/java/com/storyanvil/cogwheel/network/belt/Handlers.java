@@ -27,6 +27,8 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.HashMap;
 
+import static com.storyanvil.cogwheel.ScriptEventBus.getEventLocation;
+
 public class Handlers {
     public static void none(BeltPacket packet) {
 
@@ -48,6 +50,6 @@ public class Handlers {
     public static void scriptMessage(BeltPacket packet) {
         HashMap<String, CogPropertyManager> storage = new HashMap<>();
         storage.put("msg", new CogString(packet.getData()[0]));
-        EventType.dispatchEvent(EventType.BELT_MESSAGE, storage);
+        CogScriptEnvironment.dispatchEventGlobal(getEventLocation("belt/message"), storage);
     }
 }
