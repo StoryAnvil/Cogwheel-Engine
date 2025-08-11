@@ -33,6 +33,7 @@ import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Random;
 
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
@@ -148,11 +149,17 @@ public class CogMaster implements CogPropertyManager {
             return CogArray.getInstance((CogPropertyManager) args.get(0));
         });
         manager.reg("dispatchScript", (name, args, script, o) -> {
-            script.getEnvironment().dispatchScript(args.getString(0));
+            if (args.size() == 1)
+                script.getEnvironment().dispatchScript(args.getString(0));
+            else
+                script.getEnvironment().dispatchScript(args.getString(0), (HashMap<String, CogPropertyManager>) args.get(1));
             return null;
         });
         manager.reg("dispatchScriptGlobal", (name, args, script, o) -> {
-            CogScriptEnvironment.dispatchScriptGlobal(args.getString(0));
+            if (args.size() == 1)
+                CogScriptEnvironment.dispatchScriptGlobal(args.getString(0));
+            else
+                CogScriptEnvironment.dispatchScriptGlobal(args.getString(0), (HashMap<String, CogPropertyManager>) args.get(1));
             return null;
         });
         manager.reg("waitForLabel", (name, args, script, o) -> {
@@ -241,6 +248,9 @@ public class CogMaster implements CogPropertyManager {
             EventBus.serverSideAnimations.clear();
             CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationDataBound(""));
             return null;
+        });
+        manager.reg("createHashmap", (name, args, script, o) -> {
+            return new CogHashmap();
         });
     }
 

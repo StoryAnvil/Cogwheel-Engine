@@ -19,6 +19,8 @@ import com.storyanvil.cogwheel.util.EasyPropManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class CogDouble implements CogPropertyManager, CogStringGen<CogDouble> {
     private static final EasyPropManager MANAGER = new EasyPropManager("double", CogDouble::registerProps);
 
@@ -114,5 +116,10 @@ public class CogDouble implements CogPropertyManager, CogStringGen<CogDouble> {
             return new CogDouble(s.substring(1));
         }
         return null;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 }

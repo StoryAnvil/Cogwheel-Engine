@@ -88,4 +88,9 @@ public class CogBool implements CogPropertyManager, CogStringGen<CogBool> {
         if (s.equals("FALSE")) return FALSE;
         return null;
     }
+
+    @Override
+    public int hashCode() {
+        return value ? 0 : 1;
+    }
 }

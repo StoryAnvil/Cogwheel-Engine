@@ -10,6 +10,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.Objects;
 
 public class CogEntity implements CogPropertyManager {
     private static final EasyPropManager MANAGER = new EasyPropManager("entity", CogEntity::registerProps);
@@ -141,5 +142,9 @@ public class CogEntity implements CogPropertyManager {
             return e.get().getUUID().equals(other.e.get().getUUID());
         }
         return false;
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(e);
     }
 }
