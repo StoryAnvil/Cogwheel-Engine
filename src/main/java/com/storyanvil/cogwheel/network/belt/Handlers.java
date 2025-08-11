@@ -14,10 +14,10 @@
 package com.storyanvil.cogwheel.network.belt;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.EventType;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
+import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
@@ -42,7 +42,7 @@ public class Handlers {
     }
 
     public static void dispatchScript(BeltPacket packet) {
-        CogScriptDispatcher.dispatch(packet.getData()[0]);
+        CogScriptEnvironment.dispatchScriptGlobal(packet.getData()[0]);
     }
 
     public static void scriptMessage(BeltPacket packet) {

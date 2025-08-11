@@ -15,6 +15,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
+import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.network.belt.BeltCommunications;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
@@ -22,6 +23,7 @@ import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -55,10 +57,10 @@ public class EventBus {
     public static void registerCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("@storyanvil").requires(css -> css.hasPermission(1))
                 .then(Commands.literal("dispatch-script")
-                        .then(Commands.argument("name", StringArgumentType.greedyString())
+                        .then(Commands.argument("name", ResourceLocationArgument.id())
                                 .executes(ctx -> {
                                     ctx.getSource().sendSystemMessage(Component.literal("Script execution will be dispatched"));
-                                    CogScriptDispatcher.dispatch(StringArgumentType.getString(ctx, "name"));
+                                    CogScriptEnvironment.dispatchScriptGlobal(ResourceLocationArgument.getId(ctx, "name").toString());
                                     return 0;
                                 })
                         )
@@ -123,9 +125,9 @@ public class EventBus {
                                 .then(Commands.argument("dialog", StringArgumentType.greedyString())
                                         .executes(ctx -> {
                                             String dialogID = StringArgumentType.getString(ctx, "dialog");
-                                            if (!dialogResponses.containsKey(dialogID)) return 1;
-                                            Consumer<Integer> call = dialogResponses.get(dialogID);
-                                            dialogResponses.remove(dialogID);
+                                            if (!CogwheelExecutor.getDefaultEnvironment().getDialogs().containsKey(dialogID)) return 1;
+                                            Consumer<Integer> call = CogwheelExecutor.getDefaultEnvironment().getDialogs().get(dialogID);
+                                            CogwheelExecutor.getDefaultEnvironment().getDialogs().remove(dialogID);
                                             call.accept(IntegerArgumentType.getInteger(ctx, "answer"));
                                             return 0;
                                         })
@@ -151,7 +153,6 @@ public class EventBus {
     protected static List<DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
     protected static List<DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer>> clientQueue = new ArrayList<>();
 
-    private static HashMap<String, Consumer<Integer>> dialogResponses = new HashMap<>();
     private static StoryLevel level = new StoryLevel();
     @ApiStatus.Internal
     public static BeltCommunications beltCommunications = null;
@@ -234,9 +235,6 @@ public class EventBus {
         } else {
             labelListeners.put(label, new WeakList<>(closeable));
         }
-    }
-    public static void registerDialog(String id, Consumer<Integer> callback) {
-        dialogResponses.put(id, callback);
     }
 
     public static StoryLevel getStoryLevel() {

@@ -17,7 +17,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class StoryUtils {
     public static void sendGlobalMessage(ServerLevel level, Component msg) {
@@ -37,12 +40,68 @@ public class StoryUtils {
         buf.writeInt(bytes.length);
         buf.writeBytes(bytes);
     }
-    public static  @NotNull String decodeString(@NotNull FriendlyByteBuf buf) {
+    public static @NotNull String decodeString(@NotNull FriendlyByteBuf buf) {
         int length = buf.readInt();
         byte[] bytes = new byte[length];
         for (int i = 0; i < length; i++) {
             bytes[i] = buf.readByte();
         }
         return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    public static void deleteDirectory(File dir) {
+        if (!dir.exists()) return;
+        if (dir.isDirectory()) {
+            File[] childFiles = dir.listFiles();
+            if (childFiles != null) {
+                for (File f : childFiles) {
+                    deleteDirectory(f);
+                }
+            }
+        }
+        if (!dir.delete()) throw new RuntimeException("Failed to delete: " + dir);
+    }
+    public static void unpackZip(File zip, File directory) throws IOException {
+        byte[] buffer = new byte[1024];
+        ZipInputStream zis = new ZipInputStream(new FileInputStream(zip));
+        ZipEntry zipEntry = zis.getNextEntry();
+        while (zipEntry != null) {
+            File newFile = newFile(directory, zipEntry);
+            if (zipEntry.isDirectory()) {
+                if (!newFile.isDirectory() && !newFile.mkdirs()) {
+                    throw new IOException("Failed to create directory " + newFile);
+                }
+            } else {
+                // fix for Windows-created archives
+                File parent = newFile.getParentFile();
+                if (!parent.isDirectory() && !parent.mkdirs()) {
+                    throw new IOException("Failed to create directory " + parent);
+                }
+
+                // write file content
+                FileOutputStream fos = new FileOutputStream(newFile);
+                int len;
+                while ((len = zis.read(buffer)) > 0) {
+                    fos.write(buffer, 0, len);
+                }
+                fos.close();
+            }
+            zipEntry = zis.getNextEntry();
+        }
+
+        zis.closeEntry();
+        zis.close();
+    }
+    private static @NotNull File newFile(File destinationDir, @NotNull ZipEntry zipEntry) throws IOException {
+        File destFile = new File(destinationDir, zipEntry.getName());
+
+        String destDirPath = destinationDir.getCanonicalPath();
+        String destFilePath = destFile.getCanonicalPath();
+
+        if (!destFilePath.startsWith(destDirPath + File.separator)) {
+            throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
+        }
+
+        return destFile;
     }
 }

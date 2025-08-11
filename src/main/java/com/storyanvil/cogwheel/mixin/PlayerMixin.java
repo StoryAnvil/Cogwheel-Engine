@@ -1,6 +1,5 @@
 package com.storyanvil.cogwheel.mixin;
 
-import com.storyanvil.cogwheel.EventType;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.cog.CogEventCallback;
 import com.storyanvil.cogwheel.infrustructure.cog.CogPlayer;

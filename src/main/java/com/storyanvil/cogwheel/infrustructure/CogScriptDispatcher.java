@@ -12,7 +12,7 @@
 package com.storyanvil.cogwheel.infrustructure;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.EventType;
+import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import net.minecraft.client.Minecraft;
 
 import java.io.File;
@@ -26,20 +26,20 @@ import java.util.function.Consumer;
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class CogScriptDispatcher {
-    public static void dispatch(String scriptName) {
-        CogwheelExecutor.schedule(() -> dispatcher(scriptName, new HashMap<>()));
+    public static void dispatch(String scriptName, CogScriptEnvironment environment) {
+        CogwheelExecutor.schedule(() -> dispatcher(scriptName, new HashMap<>(), environment));
     }
-    public static void dispatch(String scriptName, HashMap<String, CogPropertyManager> storage) {
-        CogwheelExecutor.schedule(() -> dispatcher(scriptName, storage));
+    public static void dispatch(String scriptName, HashMap<String, CogPropertyManager> storage, CogScriptEnvironment environment) {
+        CogwheelExecutor.schedule(() -> dispatcher(scriptName, storage, environment));
     }
-    public static void dispatch(String scriptName, Consumer<DispatchedScript> s) {
-        CogwheelExecutor.schedule(() -> s.accept(dispatcher(scriptName, new HashMap<>())));
+    public static void dispatch(String scriptName, Consumer<DispatchedScript> s, CogScriptEnvironment environment) {
+        CogwheelExecutor.schedule(() -> s.accept(dispatcher(scriptName, new HashMap<>(), environment)));
     }
-    public static void dispatch(String scriptName, HashMap<String, CogPropertyManager> storage, Consumer<DispatchedScript> s) {
-        CogwheelExecutor.schedule(() -> s.accept(dispatcher(scriptName, storage)));
+    public static void dispatch(String scriptName, HashMap<String, CogPropertyManager> storage, Consumer<DispatchedScript> s, CogScriptEnvironment environment) {
+        CogwheelExecutor.schedule(() -> s.accept(dispatcher(scriptName, storage, environment)));
     }
-    private static DispatchedScript dispatcher(String scriptName, HashMap<String, CogPropertyManager> storage) {
-        File script = new File(Minecraft.getInstance().gameDirectory, "config/cog/" + scriptName);
+    private static DispatchedScript dispatcher(String scriptName, HashMap<String, CogPropertyManager> storage, CogScriptEnvironment environment) {
+        File script = new File(Minecraft.getInstance().gameDirectory, "config/" + scriptName);
         if (!script.exists()) {
             log.error("Script {} does not exist. Dispatch ignored!", script);
             return null;
@@ -51,7 +51,7 @@ public class CogScriptDispatcher {
                 while (sc.hasNextLine()) {
                     lines.add(sc.nextLine().trim());
                 }
-                DispatchedScript s = new DispatchedScript(lines, storage);
+                DispatchedScript s = new DispatchedScript(lines, storage, environment);
                 CogwheelExecutor.schedule(s.setScriptName(scriptName)::lineDispatcher);
                 return s;
             } catch (IOException e) {
@@ -61,15 +61,7 @@ public class CogScriptDispatcher {
             try (FileReader fr = new FileReader(script); Scanner sc = new Scanner(fr)) {
                 while (sc.hasNextLine()) {
                     String line = sc.nextLine();
-                    String[] parts = line.split(" -> ");
-                    if (parts.length != 2) log.error("Manifest line {} is not valid and will be ignored", line);
-                    EventType type;
-                    try {
-                        type = EventType.valueOf(parts[0].trim());
-                    } catch (IllegalArgumentException e) {log.error("Event type: \"{}\" was not recognized", parts[0].trim()); continue;}
-                    EventType.setSubscriber(type, parts[1].trim());
                 }
-                EventType.dispatchEvent(EventType.INITIALIZE);
             } catch (IOException e) {
                 log.error("Script dispatch failed while file reading", e);
             }
