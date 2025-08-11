@@ -73,8 +73,8 @@ public abstract class CogScriptEnvironment {
         for (int i = 0; i < scripts.size(); i++) {
             DispatchedScript script = scripts.get(i);
             if (script == null) {
-                i--;
                 scripts.remove(i);
+                i--;
                 continue;
             }
             if (script.getEnvironment() == this) {
@@ -92,7 +92,7 @@ public abstract class CogScriptEnvironment {
     public static void dispatchScriptGlobal(String rl) {
         ResourceLocation loc = ResourceLocation.parse(rl);
         CogScriptEnvironment environment = null;
-        if (loc.getNamespace().equalsIgnoreCase("DEF")) {
+        if (loc.getNamespace().equals("def") || loc.getNamespace().equals("minecraft")) {
             environment = CogwheelExecutor.getDefaultEnvironment();
         } else {
             environment = CogwheelExecutor.getLibraryEnvironment(loc.getNamespace());

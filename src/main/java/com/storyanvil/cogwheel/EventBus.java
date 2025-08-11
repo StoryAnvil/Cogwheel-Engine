@@ -60,7 +60,11 @@ public class EventBus {
                         .then(Commands.argument("name", ResourceLocationArgument.id())
                                 .executes(ctx -> {
                                     ctx.getSource().sendSystemMessage(Component.literal("Script execution will be dispatched"));
-                                    CogScriptEnvironment.dispatchScriptGlobal(ResourceLocationArgument.getId(ctx, "name").toString());
+                                    try {
+                                        CogScriptEnvironment.dispatchScriptGlobal(ResourceLocationArgument.getId(ctx, "name").toString());
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                     return 0;
                                 })
                         )
@@ -187,7 +191,11 @@ public class EventBus {
             for (int i = 0; i < size; i++) {
                 DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer> e = queue.get(i);
                 if (e.getB() < 2) {
-                    e.getA().accept(event);
+                    try {
+                        e.getA().accept(event);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                     queue.remove(i);
                     i--;
                 } else {

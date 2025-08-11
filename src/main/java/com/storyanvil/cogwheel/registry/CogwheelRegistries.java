@@ -285,6 +285,22 @@ public class CogwheelRegistries {
             variable = null;
         }
 
+        // Check for string and integer creations
+        String leftLine = line.substring(currentStart).stripLeading();
+        CogPropertyManager cm = null;
+        if (leftLine.startsWith("\"") && leftLine.endsWith("\"")) {
+            cm = new CogString(leftLine.substring(1, leftLine.length() - 1));
+        } else if (leftLine.startsWith("^")) {
+            cm = new CogInteger(leftLine.substring(1));
+        }
+
+        if (cm != null) {
+            if (variable != null) {
+                script.put(variable, cm);
+            }
+            return new DoubleValue<>(ScriptLineHandler.continueReading(), cm);
+        }
+
         // Chain call search
         StringBuilder currentName = new StringBuilder();
         int depth = 0;
@@ -314,11 +330,15 @@ public class CogwheelRegistries {
         }
         currentName = null;
 
-        if (chainCalls.size() < 2) {
-            throw new CogExpressionFailure("Expression does not have enough steps! \"" + line + "\"");
-        }
         if (chainCalls.get(0).endsWith(")")) {
             throw new CogExpressionFailure("Expression does not have first step! \"" + line + "\"");
+        }
+        if (chainCalls.size() == 1) {
+            cm = script.get(chainCalls.get(0));
+            if (variable != null) {
+                script.put(variable, cm);
+            }
+            return new DoubleValue<>(ScriptLineHandler.continueReading(), cm);
         }
         CogPropertyManager manager = script.get(chainCalls.get(0).stripLeading());
         for (int i = 1 /* do not take first step */; i < chainCalls.size(); i++) {
