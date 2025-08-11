@@ -49,7 +49,7 @@ public class CogScriptDispatcher {
             try (FileReader fr = new FileReader(script); Scanner sc = new Scanner(fr)) {
                 ArrayList<String> lines = new ArrayList<>();
                 while (sc.hasNextLine()) {
-                    lines.add(sc.nextLine());
+                    lines.add(sc.nextLine().trim());
                 }
                 DispatchedScript s = new DispatchedScript(lines, storage);
                 CogwheelExecutor.schedule(s.setScriptName(scriptName)::lineDispatcher);
