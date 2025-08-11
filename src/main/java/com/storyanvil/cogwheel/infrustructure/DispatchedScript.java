@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.infrustructure;
 
+import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.DoubleValue;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
@@ -23,24 +24,28 @@ import java.util.HashMap;
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class DispatchedScript implements ObjectMonitor.IMonitored {
-    private static final ObjectMonitor<DispatchedScript> MONITOR = new ObjectMonitor<>();
+    @ApiStatus.Internal
+    public static final ObjectMonitor<DispatchedScript> MONITOR = new ObjectMonitor<>();
 
     private final ArrayList<String> linesToExecute;
     private int executionDepth = 0;
     private boolean skipCurrentDepth = false;
-    private final HashMap<String, CogPropertyManager> storage;
+    private HashMap<String, CogPropertyManager> storage;
     private String scriptName = "unknown-script";
+    private CogScriptEnvironment environment;
 
-    public DispatchedScript(ArrayList<String> linesToExecute) {
+    public DispatchedScript(ArrayList<String> linesToExecute, CogScriptEnvironment environment) {
         MONITOR.register(this);
         this.linesToExecute = linesToExecute;
         this.storage = new HashMap<>();
+        this.environment = environment;
         CogwheelRegistries.putDefaults(storage, this);
     }
-    public DispatchedScript(ArrayList<String> linesToExecute, HashMap<String, CogPropertyManager> storage) {
+    public DispatchedScript(ArrayList<String> linesToExecute, HashMap<String, CogPropertyManager> storage, CogScriptEnvironment environment) {
         MONITOR.register(this);
         this.linesToExecute = linesToExecute;
         this.storage = storage;
+        this.environment = environment;
         CogwheelRegistries.putDefaults(this.storage, this);
     }
 
@@ -176,5 +181,19 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
 
     public HashMap<String, CogPropertyManager> getStorage() {
         return storage;
+    }
+
+    public CogScriptEnvironment getEnvironment() {
+        return environment;
+    }
+
+    /**
+     * Removes this script from its environment, clears and releases its storage and removes all lines for execution
+     */
+    public void haltExecution() {
+        linesToExecute.clear();
+        environment = null;
+        storage.clear();
+        storage = null;
     }
 }

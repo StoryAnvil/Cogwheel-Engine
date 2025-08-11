@@ -11,6 +11,8 @@
 
 package com.storyanvil.cogwheel.util;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.lang.ref.Reference;
 
 /**
@@ -79,6 +81,11 @@ public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
             t.reportState(sb);
             sb.append('\n');
         }
+    }
+
+    @ApiStatus.Internal
+    public WeakList<T> getObjects() {
+        return objects;
     }
 
     public interface IMonitored {

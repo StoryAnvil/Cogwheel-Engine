@@ -18,6 +18,7 @@ import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
@@ -147,7 +148,11 @@ public class CogMaster implements CogPropertyManager {
             return CogArray.getInstance((CogPropertyManager) args.get(0));
         });
         manager.reg("dispatchScript", (name, args, script, o) -> {
-            CogScriptDispatcher.dispatch(args.getString(0));
+            script.getEnvironment().dispatchScript(args.getString(0));
+            return null;
+        });
+        manager.reg("dispatchScriptGlobal", (name, args, script, o) -> {
+            CogScriptEnvironment.dispatchScriptGlobal(args.getString(0));
             return null;
         });
         manager.reg("waitForLabel", (name, args, script, o) -> {

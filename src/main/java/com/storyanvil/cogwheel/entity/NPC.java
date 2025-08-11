@@ -287,7 +287,8 @@ public class NPC extends Animal implements
             throw new PreventSubCalling(new SubCallPostPrevention() {
                 @Override
                 public void prevent(String variable) {
-                    EventBus.registerDialog(dialogID, response -> {
+                    // Dialogs can be registered only in default environment
+                    CogwheelExecutor.getDefaultEnvironment().registerDialog(dialogID, response -> {
                         CogwheelExecutor.schedule(() -> {
                             script.put(variable, new CogInteger(response));
                             script.lineDispatcher();

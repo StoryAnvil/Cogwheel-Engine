@@ -1,10 +1,10 @@
 package com.storyanvil.cogwheel.mixin;
 
-import com.storyanvil.cogwheel.EventType;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.cog.CogEventCallback;
 import com.storyanvil.cogwheel.infrustructure.cog.CogPlayer;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
+import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -20,6 +20,8 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+
+import static com.storyanvil.cogwheel.ScriptEventBus.getEventLocation;
 
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntity {
@@ -43,7 +45,7 @@ public abstract class PlayerMixin extends LivingEntity {
                 storage.put("food_item", new CogString(
                         ForgeRegistries.ITEMS.getKey(pFood.getItem()).toString()
                 ));
-                EventType.dispatchEvent(EventType.PLAYER_ATE, storage);
+                CogScriptEnvironment.dispatchEventGlobal(getEventLocation("player/eat"), storage);
             }
         }
     }

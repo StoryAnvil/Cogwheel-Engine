@@ -15,31 +15,23 @@ import com.storyanvil.cogwheel.infrustructure.cog.CogBool;
 import com.storyanvil.cogwheel.infrustructure.cog.CogDouble;
 import com.storyanvil.cogwheel.infrustructure.cog.CogInteger;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
+import com.storyanvil.cogwheel.registry.CogwheelRegistries;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class ArgumentData {
-    private final String s;
-    private final String[] args;
+    private final CogPropertyManager[] args;
     private final DispatchedScript script;
-    private ArgumentData(String s, DispatchedScript script) {
-        this.s = s;
-        this.args = s.split(",");
+    private ArgumentData(CogPropertyManager[] args, DispatchedScript script) {
+        this.args = args;
         this.script = script;
     }
     public CogPropertyManager get(int argument) {
-        if (argument >= args.length) throw new RuntimeException("Not enough arguments: \"" + s + "\" contains only " + args.length + " but " + argument + " is needed!");
-        String a = args[argument].trim().replace("<dot>", ".").replace("<comma>", ",");
-        char head = a.charAt(0);
-        char tail = a.charAt(a.length() - 1);
-        if (head == '"' && tail == '"') {
-            return new CogString(a.substring(1, a.length() - 1));
-        } else if (head == '^') {
-            return new CogInteger(a.substring(1));
-        } else if (a.equals("true")) {
-            return CogBool.TRUE;
-        } else if (a.equals("false")) {
-            return CogBool.FALSE;
-        }
-        return script.get(a);
+        if (argument >= args.length) throw new RuntimeException("Not enough arguments: contains only " + args.length + " but " + argument + " is needed!");
+        return args[argument];
     }
     public int requireInt(int argument) {
         CogPropertyManager m = get(argument);
@@ -81,14 +73,46 @@ public class ArgumentData {
         if (m instanceof CogString string) return string;
         return m.convertToCogString();
     }
-    public String getAsString() {
-        return s;
+
+    public DispatchedScript getScript() {
+        return script;
     }
+
+    public CogPropertyManager[] getArgs() {
+        return args;
+    }
+
     public int size() {
         return args.length;
     }
 
-    public static ArgumentData createFromString(String s, DispatchedScript script) {
-        return new ArgumentData(s, script);
+    @Contract(value = "_, _ -> new", pure = false)
+    public static @NotNull ArgumentData createFromString(@NotNull String str, DispatchedScript script) {
+        ArrayList<String> expressions = new ArrayList<>();
+        boolean quotes = false;
+        int level = 0;
+        int start = 0;
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (c == '"') {
+                quotes = !quotes;
+            } else if (!quotes) {
+                if (c == '(') {
+                    level++;
+                } else if (c == ')') {
+                    level--;
+                } else if (c == ',' && level == 0) {
+                    expressions.add(str.substring(start, i));
+                    start = i + 1;
+                }
+            }
+        }
+        expressions.add(str.substring(start));
+        System.out.println(String.join("<|>", expressions) + " <---");
+        CogPropertyManager[] managers = new CogPropertyManager[expressions.size()];
+        for (int i = 0; i < managers.length; i++) {
+            managers[i] = CogwheelRegistries.expressionHandler(expressions.get(i), script, false).getB();
+        }
+        return new ArgumentData(managers, script);
     }
 }

@@ -11,17 +11,30 @@
 
 package com.storyanvil.cogwheel;
 
+import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.util.DoubleValue;
+import com.storyanvil.cogwheel.util.StoryUtils;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+@Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
 public class CogwheelExecutor {
     public static final Logger log = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/EXECUTOR");
     private static final ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(1, new DefaultThreadFactory("cogwheel-executor"));
@@ -94,5 +107,68 @@ public class CogwheelExecutor {
      */
     public static void scheduleBelt(Runnable task, int ms) {
         beltThread.schedule(task, ms, TimeUnit.MILLISECONDS);
+    }
+
+    private static CogScriptEnvironment.DefaultEnvironment defaultEnvironment;
+    private static HashMap<String, CogScriptEnvironment.LibraryEnvironment> libraryEnvironments;
+
+    @SubscribeEvent
+    public static void serverStart(ServerStartingEvent event) {
+        log.info("Creating CogScript default environment...");
+        defaultEnvironment = new CogScriptEnvironment.DefaultEnvironment();
+        if (libraryEnvironments != null) {
+            libraryEnvironments.clear();
+        }
+        libraryEnvironments = new HashMap<>();
+        File libs = new File(Minecraft.getInstance().gameDirectory, "config/cog-libs/");
+        File scripts = new File(Minecraft.getInstance().gameDirectory, "config/cog/");
+        File unpackedLibraries = new File(libs, ".cog");
+        if (!libs.exists()) libs.mkdir();
+        if (!scripts.exists()) scripts.mkdir();
+        if (unpackedLibraries.exists()) {
+            StoryUtils.deleteDirectory(unpackedLibraries);
+        }
+        unpackedLibraries.mkdir();
+        File[] libFiles = libs.listFiles();
+        ArrayList<String> libraryNames = new ArrayList<>();
+        if (libFiles != null) {
+            for (File lib : libFiles) {
+                String name = lib.getName();
+                if (name.endsWith(".salc") /* StoryAnvil Locomotive Car */) {
+                    File unpacked = new File(unpackedLibraries, name);
+                    if (!unpacked.mkdir()) throw new RuntimeException("Failed to create " + unpacked);
+                    try {
+                        StoryUtils.unpackZip(lib, unpacked);
+                        libraryNames.add(name);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to unpack " + lib, e);
+                    }
+                }
+            }
+        }
+        for (String library : libraryNames) {
+            CogScriptEnvironment.LibraryEnvironment environment = new CogScriptEnvironment.LibraryEnvironment(library);
+            libraryEnvironments.put(library, environment);
+        }
+    }
+    @SubscribeEvent
+    public static void serverStop(ServerStoppingEvent event) {
+        log.info("Disposing all CogScript environments...");
+        defaultEnvironment.dispose();
+        defaultEnvironment = null;
+        for (CogScriptEnvironment.LibraryEnvironment environment : libraryEnvironments.values()) {
+            environment.dispose();;
+        }
+        libraryEnvironments = null;
+    }
+    public static CogScriptEnvironment.DefaultEnvironment getDefaultEnvironment() {
+        return defaultEnvironment;
+    }
+
+    public static CogScriptEnvironment getLibraryEnvironment(String namespace) {
+        return libraryEnvironments.get(namespace);
+    }
+    public static Collection<CogScriptEnvironment.LibraryEnvironment> getLibraryEnvironments() {
+        return libraryEnvironments.values();
     }
 }
