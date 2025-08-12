@@ -16,10 +16,11 @@ import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.CogStringGen;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CogBool implements CogPropertyManager, CogStringGen<CogBool> {
+public final class CogBool implements CogPropertyManager, CogStringGen<CogBool>, CogPrimalType {
     private static final EasyPropManager MANAGER = new EasyPropManager("bool", CogBool::registerProps);
     public static final CogBool TRUE = new CogBool(true);
     public static final CogBool FALSE = new CogBool(false);
@@ -87,5 +88,20 @@ public class CogBool implements CogPropertyManager, CogStringGen<CogBool> {
         if (s.equals("TRUE")) return TRUE;
         if (s.equals("FALSE")) return FALSE;
         return null;
+    }
+
+    @Override
+    public int hashCode() {
+        return value ? 0 : 1;
+    }
+
+    @Override
+    public byte getPrimalID() {
+        return (byte) -218;
+    }
+
+    @Override
+    public void putPrimal(CompoundTag tag, String key) {
+        tag.putBoolean(key, value);
     }
 }

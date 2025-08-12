@@ -37,12 +37,12 @@ import java.util.function.Consumer;
 @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
 public class CogwheelExecutor {
     public static final Logger log = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/EXECUTOR");
-    private static final ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(1, new DefaultThreadFactory("cogwheel-executor"));
+    private static final ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(2, new DefaultThreadFactory("cogwheel-executor"));
     private static final ScheduledThreadPoolExecutor beltThread = new ScheduledThreadPoolExecutor(1, new DefaultThreadFactory("cogwheel-belt-protocol"));
 
     @ApiStatus.Internal
     protected static void init() {
-        poolExecutor.setMaximumPoolSize(1);
+        poolExecutor.setMaximumPoolSize(2);
         beltThread.setMaximumPoolSize(1);
     }
 

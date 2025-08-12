@@ -196,4 +196,12 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         storage.clear();
         storage = null;
     }
+
+    @Override
+    public String toString() {
+        return "DispatchedScript{" +
+                "scriptName='" + scriptName + '\'' +
+                ", environment=" + environment +
+                '}';
+    }
 }
