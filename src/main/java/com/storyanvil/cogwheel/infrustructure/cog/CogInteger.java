@@ -16,12 +16,13 @@ import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.CogStringGen;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class CogInteger implements CogPropertyManager, CogStringGen<CogInteger> {
+public final class CogInteger implements CogPropertyManager, CogStringGen<CogInteger>, CogPrimalType {
     private static final EasyPropManager MANAGER = new EasyPropManager("int", CogInteger::registerProps);
 
     private static void registerProps(EasyPropManager manager) {
@@ -120,5 +121,15 @@ public class CogInteger implements CogPropertyManager, CogStringGen<CogInteger> 
     @Override
     public int hashCode() {
         return Objects.hashCode(value);
+    }
+
+    @Override
+    public byte getPrimalID() {
+        return (byte) -217;
+    }
+
+    @Override
+    public void putPrimal(CompoundTag tag, String key) {
+        tag.putInt(key, value);
     }
 }

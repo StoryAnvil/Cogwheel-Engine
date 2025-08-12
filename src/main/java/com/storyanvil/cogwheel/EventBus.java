@@ -13,8 +13,10 @@ package com.storyanvil.cogwheel;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
+import com.storyanvil.cogwheel.infrustructure.cog.CogTestCallback;
 import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.network.belt.BeltCommunications;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
@@ -22,10 +24,13 @@ import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.*;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,10 +44,8 @@ import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.io.File;
+import java.util.*;
 import java.util.function.Consumer;
 
 @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
@@ -79,6 +82,66 @@ public class EventBus {
                             return 0;
                         })
                 )
+                .then(Commands.literal("run-tests").executes(ctx -> {
+                    CogwheelExecutor.schedule(() -> {
+                        CogScriptEnvironment.TestEnvironment environment = new CogScriptEnvironment.TestEnvironment();
+                        File scripts = new File(Minecraft.getInstance().gameDirectory, "config/cog");
+                        for (File f : Objects.requireNonNull(scripts.listFiles(), "No scripts available")) {
+                            String name = f.getName();
+                            if (name.startsWith("test.") && !name.startsWith("test..")) {
+                                HashMap<String, CogPropertyManager> s = new HashMap<>();
+                                CogTestCallback callback = new CogTestCallback();
+                                s.put("TEST", callback);
+                                environment.dispatchScript(name.substring(5), s);
+                                while (!callback.isComplete()) {
+                                    try {
+                                        //noinspection BusyWait
+                                        Thread.sleep(10);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                if (callback.isSuccessful()) {
+                                    ctx.getSource().sendSystemMessage(Component.literal("Test " + name + " completed!").withStyle(x -> x.withColor(TextColor.fromLegacyFormat(ChatFormatting.GREEN))));
+                                } else {
+                                    ctx.getSource().sendSystemMessage(Component.literal("Test " + name + " failed!").withStyle(x -> x.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED))));
+                                }
+                            }
+                        }
+                        ctx.getSource().sendSystemMessage(Component.literal("All tests completed!"));
+                    });
+                    return 0;
+                }))
+                .then(Commands.literal("run-all-tests").executes(ctx -> {
+                    CogwheelExecutor.schedule(() -> {
+                        CogScriptEnvironment.TestEnvironment environment = new CogScriptEnvironment.TestEnvironment();
+                        File scripts = new File(Minecraft.getInstance().gameDirectory, "config/cog");
+                        for (File f : Objects.requireNonNull(scripts.listFiles(), "No scripts available")) {
+                            String name = f.getName();
+                            if (name.startsWith("test.")) {
+                                HashMap<String, CogPropertyManager> s = new HashMap<>();
+                                CogTestCallback callback = new CogTestCallback();
+                                s.put("TEST", callback);
+                                environment.dispatchScript(name.substring(5), s);
+                                while (!callback.isComplete()) {
+                                    try {
+                                        //noinspection BusyWait
+                                        Thread.sleep(10);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                if (callback.isSuccessful()) {
+                                    ctx.getSource().sendSystemMessage(Component.literal("Test " + name + " completed!").withStyle(x -> x.withColor(TextColor.fromLegacyFormat(ChatFormatting.GREEN))));
+                                } else {
+                                    ctx.getSource().sendSystemMessage(Component.literal("Test " + name + " failed!").withStyle(x -> x.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED))));
+                                }
+                            }
+                        }
+                        ctx.getSource().sendSystemMessage(Component.literal("All tests completed!"));
+                    });
+                    return 0;
+                }))
                 .then(Commands.literal("cogwheel-belt")
                         .then(Commands.literal("start")
                                 .then(Commands.argument("host", StringArgumentType.greedyString())

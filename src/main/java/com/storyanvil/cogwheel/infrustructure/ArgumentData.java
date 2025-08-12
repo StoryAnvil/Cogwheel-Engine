@@ -11,15 +11,13 @@
 
 package com.storyanvil.cogwheel.infrustructure;
 
-import com.storyanvil.cogwheel.infrustructure.cog.CogBool;
-import com.storyanvil.cogwheel.infrustructure.cog.CogDouble;
-import com.storyanvil.cogwheel.infrustructure.cog.CogInteger;
-import com.storyanvil.cogwheel.infrustructure.cog.CogString;
+import com.storyanvil.cogwheel.infrustructure.cog.*;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class ArgumentData {
@@ -32,6 +30,13 @@ public class ArgumentData {
     public CogPropertyManager get(int argument) {
         if (argument >= args.length) throw new RuntimeException("Not enough arguments: contains only " + args.length + " but " + argument + " is needed!");
         return args[argument];
+    }
+    public CogPrimalType requirePrimal(int argument) {
+        CogPropertyManager m = get(argument);
+        if (m instanceof CogPrimalType i) {
+            return i;
+        }
+        throw new RuntimeException("Argument #" + argument + " is not primal type");
     }
     public int requireInt(int argument) {
         CogPropertyManager m = get(argument);
@@ -108,11 +113,19 @@ public class ArgumentData {
             }
         }
         expressions.add(str.substring(start));
-//        System.out.println(String.join("<|>", expressions) + " <---");
+//        System.out.println(String.join("<|>", expressions) + "<---");
         CogPropertyManager[] managers = new CogPropertyManager[expressions.size()];
         for (int i = 0; i < managers.length; i++) {
             managers[i] = CogwheelRegistries.expressionHandler(expressions.get(i), script, false).getB();
         }
         return new ArgumentData(managers, script);
+    }
+
+    @Override
+    public String toString() {
+        return "ArgumentData{" +
+                "args=" + Arrays.toString(args) +
+                ", script=" + script +
+                '}';
     }
 }

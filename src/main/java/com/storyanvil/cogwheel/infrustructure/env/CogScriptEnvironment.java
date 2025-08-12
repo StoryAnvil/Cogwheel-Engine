@@ -14,16 +14,22 @@
 package com.storyanvil.cogwheel.infrustructure.env;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrustructure.cog.*;
 import com.storyanvil.cogwheel.util.WeakList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public abstract class CogScriptEnvironment {
@@ -116,6 +122,17 @@ public abstract class CogScriptEnvironment {
         environment.dispatchScript(loc.getPath(), storage);
     }
 
+    public @NotNull EnvironmentData getData() {
+        return EventBus.getStoryLevel().getLevel().getDataStorage().computeIfAbsent(EnvironmentData::new, EnvironmentData::new, "cg" + this.getUniqueIdentifier());
+    }
+
+    public abstract String getUniqueIdentifier();
+
+    @Override
+    public String toString() {
+        return "CogScriptEnvironment{name=" + getUniqueIdentifier() + "}";
+    }
+
     public static class DefaultEnvironment extends CogScriptEnvironment {
         private final HashMap<String, Consumer<Integer>> dialogs;
 
@@ -132,6 +149,11 @@ public abstract class CogScriptEnvironment {
         @Override
         public void dispatchScript(String name, HashMap<String, CogPropertyManager> storage) {
             CogScriptDispatcher.dispatch("cog/" + name, storage, this);
+        }
+
+        @Override
+        public String getUniqueIdentifier() {
+            return "default.environment";
         }
 
         public void registerDialog(String id, Consumer<Integer> callback) {
@@ -159,8 +181,81 @@ public abstract class CogScriptEnvironment {
             CogScriptDispatcher.dispatch("cog-libs/" + this.name + "/" + name, storage, this);
         }
 
+        @Override
+        public String getUniqueIdentifier() {
+            return name;
+        }
+
         public String getName() {
             return name;
+        }
+    }
+    public static class TestEnvironment extends LibraryEnvironment {
+        public TestEnvironment() {
+            super("test.environment");
+        }
+
+        @Override
+        public void dispatchScript(String name) {
+            CogScriptDispatcher.dispatch("cog/test." + name, this);
+        }
+
+        @Override
+        public void dispatchScript(String name, HashMap<String, CogPropertyManager> storage) {
+            CogScriptDispatcher.dispatch("cog/test." + name, storage, this);
+        }
+    }
+    public static class EnvironmentData extends SavedData {
+        private EnvironmentData() {
+            super();
+            data = new HashMap<>();
+        }
+        private EnvironmentData(CompoundTag tag) {
+            super();
+            data = new HashMap<>();
+            for (String key : tag.getAllKeys()) {
+                CompoundTag t = (CompoundTag) tag.get(key);
+                if (t == null) throw new RuntimeException("Failed to parse EnvironmentData for " + tag);
+                byte type = t.getByte("t");
+                CogPrimalType v = null;
+                switch (type) {
+                    case ((byte) -218) -> {
+                        v = CogBool.getInstance(t.getBoolean("v"));
+                    }
+                    case ((byte) -217) -> {
+                        v = new CogInteger(t.getInt("v"));
+                    }
+                    case ((byte) -216) -> {
+                        v = new CogDouble(t.getDouble("v"));
+                    }
+                    case ((byte) -215) -> {
+                        v = new CogString(t.getString("v"));
+                    }
+                }
+                data.put(key, v);
+            }
+        }
+        private final HashMap<String, CogPrimalType> data;
+        @Override
+        public @NotNull CompoundTag save(@NotNull CompoundTag tag) {
+            for (Map.Entry<String, CogPrimalType> entry : data.entrySet()) {
+                CompoundTag t = new CompoundTag();
+                t.putByte("t", entry.getValue().getPrimalID());
+                entry.getValue().putPrimal(t, "v");
+                tag.put(entry.getKey(), t);
+            }
+            return tag;
+        }
+        public void put(String key, CogPrimalType value) {
+            data.put(key, value);
+            this.setDirty();
+        }
+        public CogPrimalType get(String key) {
+            return data.get(key);
+        }
+        public void remove(String key) {
+            data.remove(key);
+            this.setDirty();
         }
     }
 }

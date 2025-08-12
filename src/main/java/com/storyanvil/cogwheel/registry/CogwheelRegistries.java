@@ -261,7 +261,7 @@ public class CogwheelRegistries {
     }
     public static DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> expressionHandler(String line, DispatchedScript script, boolean allowBlocking) {
         // Return: DoubleValue<ScriptLineHandler.*(), ExpressionReturn>
-
+        line = line.trim();
         int currentStart = 0;
 
         // Variable search
@@ -363,6 +363,8 @@ public class CogwheelRegistries {
                 }
                 preventSubCalling.getPostPrevention().prevent(variable);
                 return new DoubleValue<>(ScriptLineHandler.blocking(), manager);
+            } catch (RuntimeException e) {
+                throw new RuntimeException("Expression handler caught while getting property. ArgData: " + argumentData, e);
             }
         }
         if (variable != null) {

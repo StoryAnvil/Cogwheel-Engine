@@ -11,12 +11,13 @@
 
 package com.storyanvil.cogwheel.infrustructure;
 
+import com.storyanvil.cogwheel.infrustructure.cog.CogLike;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
 import com.storyanvil.cogwheel.infrustructure.cog.PreventSubCalling;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface CogPropertyManager {
+public interface CogPropertyManager extends CogLike {
     boolean hasOwnProperty(String name);
     @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling;
     boolean equalsTo(CogPropertyManager o);
@@ -31,6 +32,10 @@ public interface CogPropertyManager {
     }
     default CogString convertToCogString() {
         return new CogString(convertToString());
+    }
+    @Override
+    default CogPropertyManager getCogManager() {
+        return this;
     }
 
     class NullManager implements CogPropertyManager {

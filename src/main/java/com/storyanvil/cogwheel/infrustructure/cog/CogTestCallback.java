@@ -13,46 +13,52 @@
 
 package com.storyanvil.cogwheel.infrustructure.cog;
 
+import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
+public class CogTestCallback implements CogPropertyManager {
+    private static final EasyPropManager MANAGER = new EasyPropManager("testcallback", CogTestCallback::registerProps);
 
-public class CogHashmap implements CogPropertyManager {
-    private static final EasyPropManager MANAGER = new EasyPropManager("hashmap", CogHashmap::registerProps);
+    private boolean complete = false;
+    private boolean successful = true;
 
-    public CogHashmap(HashMap<String, CogPropertyManager> value) {
-        this.value = value;
-    }
-    public CogHashmap() {
-        this.value = new HashMap<>();
+    public boolean isComplete() {
+        return complete;
     }
 
-    public HashMap<String, CogPropertyManager> getValue() {
-        return value;
+    public boolean isSuccessful() {
+        return successful;
     }
 
-    private final HashMap<String, CogPropertyManager> value;
     private static void registerProps(EasyPropManager manager) {
-        manager.reg("get", (name, args, script, o) -> {
-            CogHashmap hashmap = (CogHashmap) o;
-            return hashmap.value.get(args.get(0).convertToString());
+        manager.reg("done", (name, args, script, o) -> {
+            CogTestCallback callback = (CogTestCallback) o;
+            callback.complete = true;
+            return null;
         });
-        manager.reg("put", (name, args, script, o) -> {
-            CogHashmap hashmap = (CogHashmap) o;
-            return hashmap.value.put(args.get(0).convertToString(), args.get(1));
+        manager.reg("assertEquals", (name, args, script, o) -> {
+            CogTestCallback callback = (CogTestCallback) o;
+            if (callback.successful) {
+                CogPropertyManager a = args.get(0);
+                CogPropertyManager b = args.get(1);
+                callback.successful = a.equalsTo(b);
+                if (!callback.successful) {
+                    CogwheelExecutor.log.warn("TEST ASSERTION FAILED! ASSERTED EQUALS, BUT {} != {}", a.convertToString(), b.convertToString());
+                }
+            }
+            return null;
         });
-        manager.reg("clear", (name, args, script, o) -> {
-            CogHashmap hashmap = (CogHashmap) o;
-            hashmap.value.clear();
-            return hashmap;
-        });
-        manager.reg("containsKey", (name, args, script, o) -> {
-            CogHashmap hashmap = (CogHashmap) o;
-            return CogBool.getInstance(hashmap.value.containsKey(args.get(0).convertToString()));
+        manager.reg("debugWait", (name, args, script, o) -> {
+            try {
+                Thread.sleep(args.requireInt(0));
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            return null;
         });
     }
 
@@ -68,13 +74,6 @@ public class CogHashmap implements CogPropertyManager {
 
     @Override
     public boolean equalsTo(CogPropertyManager o) {
-        if (o instanceof CogHashmap other)
-            return other.value.equals(value);
         return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
     }
 }

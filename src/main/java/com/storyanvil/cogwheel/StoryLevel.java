@@ -116,6 +116,13 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
                 }
             });
         });
+        manager.reg("put", (name, args, script, o) -> {
+            script.getEnvironment().getData().put(args.getString(0), args.requirePrimal(1));
+            return null;
+        });
+        manager.reg("get", (name, args, script, o) -> {
+            return script.getEnvironment().getData().get(args.getString(0));
+        });
     }
 
     @Override
@@ -131,5 +138,9 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
     @Override
     public boolean equalsTo(CogPropertyManager o) {
         return o == this;
+    }
+
+    public ServerLevel getLevel() {
+        return level;
     }
 }
