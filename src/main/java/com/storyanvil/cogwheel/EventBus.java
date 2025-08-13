@@ -108,6 +108,8 @@ public class EventBus {
                                 }
                             }
                         }
+                        environment.dispose();
+                        environment = null;
                         ctx.getSource().sendSystemMessage(Component.literal("All tests completed!"));
                     });
                     return 0;
@@ -138,6 +140,8 @@ public class EventBus {
                                 }
                             }
                         }
+                        environment.dispose();
+                        environment = null;
                         ctx.getSource().sendSystemMessage(Component.literal("All tests completed!"));
                     });
                     return 0;

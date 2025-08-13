@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
 public class CogwheelExecutor {
@@ -143,12 +144,24 @@ public class CogwheelExecutor {
                     } catch (IOException e) {
                         throw new RuntimeException("Failed to unpack " + lib, e);
                     }
+                } else {
+                    log.info("File {} is not StoryAnvil Locomotive Car (aka Cogwheel Engine library)", lib);
                 }
             }
         }
         for (String library : libraryNames) {
             CogScriptEnvironment.LibraryEnvironment environment = new CogScriptEnvironment.LibraryEnvironment(library);
             libraryEnvironments.put(library, environment);
+        }
+
+        log.info("Environments will be notified of initialization");
+        defaultEnvironment.dispatchScript("init");
+        for (CogScriptEnvironment.LibraryEnvironment environment : libraryEnvironments.values()) {
+            if (!environment.init(new File(unpackedLibraries, environment.getUniqueIdentifier()))) {
+                libraryEnvironments.remove(environment.getUniqueIdentifier());
+                environment.dispose();
+            }
+            environment.dispatchScript("init");
         }
     }
     @SubscribeEvent
@@ -165,7 +178,7 @@ public class CogwheelExecutor {
         return defaultEnvironment;
     }
 
-    public static CogScriptEnvironment getLibraryEnvironment(String namespace) {
+    public static CogScriptEnvironment.LibraryEnvironment getLibraryEnvironment(String namespace) {
         return libraryEnvironments.get(namespace);
     }
     public static Collection<CogScriptEnvironment.LibraryEnvironment> getLibraryEnvironments() {

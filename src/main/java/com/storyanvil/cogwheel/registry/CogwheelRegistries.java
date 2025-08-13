@@ -218,6 +218,7 @@ public class CogwheelRegistries {
         });
 
         registerInternal("Cogwheel", script -> CogMaster.getInstance());
+        registerInternal("MANIFEST", script -> CogManifest.getInstance());
         registerInternal("true", script -> CogBool.TRUE);
         registerInternal("false", script -> CogBool.FALSE);
 

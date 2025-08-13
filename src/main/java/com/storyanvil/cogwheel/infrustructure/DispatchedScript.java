@@ -191,6 +191,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
      * Removes this script from its environment, clears and releases its storage and removes all lines for execution
      */
     public void haltExecution() {
+        log.info("Script {} is being forcefully stopped!", getScriptName());
         linesToExecute.clear();
         environment = null;
         storage.clear();

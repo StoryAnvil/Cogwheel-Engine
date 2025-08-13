@@ -152,14 +152,14 @@ public class CogMaster implements CogPropertyManager {
             if (args.size() == 1)
                 script.getEnvironment().dispatchScript(args.getString(0));
             else
-                script.getEnvironment().dispatchScript(args.getString(0), (HashMap<String, CogPropertyManager>) args.get(1));
+                script.getEnvironment().dispatchScript(args.getString(0), ((CogHashmap) args.get(1)).getValue());
             return null;
         });
         manager.reg("dispatchScriptGlobal", (name, args, script, o) -> {
             if (args.size() == 1)
                 CogScriptEnvironment.dispatchScriptGlobal(args.getString(0));
             else
-                CogScriptEnvironment.dispatchScriptGlobal(args.getString(0), (HashMap<String, CogPropertyManager>) args.get(1));
+                CogScriptEnvironment.dispatchScriptGlobal(args.getString(0), ((CogHashmap) args.get(1)).getValue());
             return null;
         });
         manager.reg("waitForLabel", (name, args, script, o) -> {

@@ -82,33 +82,33 @@ public class CogArray<T extends CogPropertyManager> implements CogPropertyManage
         return false;
     }
 
-    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(ArrayList<Q> t) {
-        return new CogArray<>(t);
+    public static CogArray<CogPropertyManager> getInstance(ArrayList<CogPropertyManager> t) {
+        return new CogArray<CogPropertyManager>(t);
     }
-    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(List<Q> t) {
-        return new CogArray<>(new ArrayList<>(t));
+    public static <Q extends CogPropertyManager> CogArray<CogPropertyManager> getInstance(List<Q> t) {
+        return new CogArray<CogPropertyManager>(new ArrayList<>(t));
     }
-    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(Iterable<Q> t) {
-        ArrayList<Q> list = new ArrayList<>();
+    public static <Q extends CogPropertyManager> CogArray<CogPropertyManager> getInstance(Iterable<Q> t) {
+        ArrayList<CogPropertyManager> list = new ArrayList<>();
         for (Q q : t) {
             list.add(q);
         }
-        return new CogArray<>(list);
+        return new CogArray<CogPropertyManager>(list);
     }
-    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(Q q) {
-        ArrayList<Q> list = new ArrayList<>();
+    public static <Q extends CogPropertyManager> CogArray<CogPropertyManager> getInstance(Q q) {
+        ArrayList<CogPropertyManager> list = new ArrayList<>();
         list.add(q);
-        return new CogArray<>(list);
+        return new CogArray<CogPropertyManager>(list);
     }
-    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(Class<Q> q) {
-        return new CogArray<>(new ArrayList<>());
+    public static <Q extends CogPropertyManager> CogArray<CogPropertyManager> getInstance(Class<Q> q) {
+        return new CogArray<CogPropertyManager>(new ArrayList<>());
     }
 
-    public static CogArray<CogString> convertInstance(Iterable<String> s) {
-        ArrayList<CogString> list = new ArrayList<>();
+    public static CogArray<CogPropertyManager> convertInstance(Iterable<String> s) {
+        ArrayList<CogPropertyManager> list = new ArrayList<>();
         for (String q : s) {
             list.add(new CogString(q));
         }
-        return new CogArray<>(list);
+        return new CogArray<CogPropertyManager>(list);
     }
 }
