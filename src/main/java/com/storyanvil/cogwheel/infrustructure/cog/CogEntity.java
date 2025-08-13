@@ -7,6 +7,7 @@ import com.storyanvil.cogwheel.util.DataStorage;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
@@ -15,106 +16,111 @@ import java.util.Objects;
 public class CogEntity implements CogPropertyManager {
     private static final EasyPropManager MANAGER = new EasyPropManager("entity", CogEntity::registerProps);
 
-    private static void registerProps(EasyPropManager manager) {
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("getEntityType", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return new CogString(ForgeRegistries.ENTITY_TYPES.getResourceKey(e.e.get().getType()).get().location().toString());
+            //noinspection OptionalGetWithoutIsPresent
+            return new CogString(ForgeRegistries.ENTITY_TYPES.getResourceKey(Objects.requireNonNull(e.e.get(), "entity got unloaded").getType()).get().location().toString());
         });
         manager.reg("getUUID", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return new CogString(e.e.get().getStringUUID());
+            return new CogString(Objects.requireNonNull(e.e.get(), "entity got unloaded").getStringUUID());
         });
         manager.reg("toEntity", (name, args, script, o) -> {
             return (CogEntity) o;
         });
         manager.reg("teleport", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            e.e.get().teleportToWithTicket(args.requireDoubleOrInt(0), args.requireDoubleOrInt(1), args.requireDoubleOrInt(2));
+            Objects.requireNonNull(e.e.get(), "entity got unloaded").teleportToWithTicket(args.requireDoubleOrInt(0), args.requireDoubleOrInt(1), args.requireDoubleOrInt(2));
             return e;
         });
         manager.reg("turn", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            e.e.get().turn(args.requireDoubleOrInt(0), args.requireDoubleOrInt(1));
+            Objects.requireNonNull(e.e.get(), "entity got unloaded").turn(args.requireDoubleOrInt(0), args.requireDoubleOrInt(1));
             return e;
         });
         manager.reg("teleport2", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            e.e.get().teleportToWithTicket(args.requireDoubleOrInt(0), args.requireDoubleOrInt(1), args.requireDoubleOrInt(2));
-            e.e.get().turn(args.requireDoubleOrInt(3), args.requireDoubleOrInt(4));
+            Objects.requireNonNull(e.e.get(), "entity got unloaded").teleportToWithTicket(args.requireDoubleOrInt(0), args.requireDoubleOrInt(1), args.requireDoubleOrInt(2));
+            Objects.requireNonNull(e.e.get(), "entity got unloaded").turn(args.requireDoubleOrInt(3), args.requireDoubleOrInt(4));
             return e;
         });
         manager.reg("getX", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return new CogDouble(e.e.get().getX());
+            return new CogDouble(Objects.requireNonNull(e.e.get(), "entity got unloaded").getX());
         });
         manager.reg("getY", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return new CogDouble(e.e.get().getY());
+            return new CogDouble(Objects.requireNonNull(e.e.get(), "entity got unloaded").getY());
         });
         manager.reg("getZ", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return new CogDouble(e.e.get().getZ());
+            return new CogDouble(Objects.requireNonNull(e.e.get(), "entity got unloaded").getZ());
         });
         manager.reg("getBlockX", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return new CogInteger(e.e.get().getBlockX());
+            return new CogInteger(Objects.requireNonNull(e.e.get(), "entity got unloaded").getBlockX());
         });
         manager.reg("getBlockY", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return new CogInteger(e.e.get().getBlockY());
+            return new CogInteger(Objects.requireNonNull(e.e.get(), "entity got unloaded").getBlockY());
         });
         manager.reg("getBlockZ", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return new CogInteger(e.e.get().getBlockZ());
+            return new CogInteger(Objects.requireNonNull(e.e.get(), "entity got unloaded").getBlockZ());
         });
         manager.reg("kill", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            e.e.get().kill();
+            Objects.requireNonNull(e.e.get(), "entity got unloaded").kill();
             e.e.clear();
             return null;
         });
         manager.reg("hasTag", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return CogBool.getInstance(e.e.get().getTags().contains(args.getString(0)));
+            return CogBool.getInstance(Objects.requireNonNull(e.e.get(), "entity got unloaded").getTags().contains(args.getString(0)));
         });
         manager.reg("addTag", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return CogBool.getInstance(e.e.get().getTags().add(args.getString(0)));
+            return CogBool.getInstance(Objects.requireNonNull(e.e.get(), "entity got unloaded").getTags().add(args.getString(0)));
         });
         manager.reg("removeTag", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return CogBool.getInstance(e.e.get().getTags().remove(args.getString(0)));
+            return CogBool.getInstance(Objects.requireNonNull(e.e.get(), "entity got unloaded").getTags().remove(args.getString(0)));
         });
         manager.reg("getTags", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return CogArray.convertInstance(e.e.get().getTags());
+            return CogArray.convertInstance(Objects.requireNonNull(e.e.get(), "entity got unloaded").getTags());
         });
         manager.reg("putInt", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            DataStorage.setInt(e.e.get(), args.getString(0), args.requireInt(1));
+            DataStorage.setInt(Objects.requireNonNull(e.e.get(), "entity got unloaded"), args.getString(0), args.requireInt(1));
             return e;
         });
         manager.reg("getInt", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return new CogInteger(DataStorage.getInt(e.e.get(), args.getString(0), 0));
+            return new CogInteger(DataStorage.getInt(Objects.requireNonNull(e.e.get(), "entity got unloaded"), args.getString(0), 0));
         });
         manager.reg("putString", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            DataStorage.setString(e.e.get(), args.getString(0), args.getString(1));
+            DataStorage.setString(Objects.requireNonNull(e.e.get(), "entity got unloaded"), args.getString(0), args.getString(1));
             return e;
         });
         manager.reg("getString", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return new CogString(DataStorage.getString(e.e.get(), args.getString(0), ""));
+            return new CogString(DataStorage.getString(Objects.requireNonNull(e.e.get(), "entity got unloaded"), args.getString(0), ""));
         });
         manager.reg("putBoolean", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            DataStorage.setBoolean(e.e.get(), args.getString(0), args.requireBoolean(1));
+            DataStorage.setBoolean(Objects.requireNonNull(e.e.get(), "entity got unloaded"), args.getString(0), args.requireBoolean(1));
             return e;
         });
         manager.reg("getBoolean", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
-            return CogBool.getInstance(DataStorage.getBoolean(e.e.get(), args.getString(0), false));
+            return CogBool.getInstance(DataStorage.getBoolean(Objects.requireNonNull(e.e.get(), "entity got unloaded"), args.getString(0), false));
+        });
+        manager.reg("getDisplayName", (name, args, script, o) -> {
+            CogEntity e = (CogEntity) o;
+            return new CogString(Objects.requireNonNull(Objects.requireNonNull(e.e.get(), "entity got unloaded"), "entity got unloaded").getDisplayName().getString());
         });
     }
 
@@ -139,7 +145,7 @@ public class CogEntity implements CogPropertyManager {
     @Override
     public boolean equalsTo(CogPropertyManager o) {
         if (o instanceof CogEntity other) {
-            return e.get().getUUID().equals(other.e.get().getUUID());
+            return e.get() == other.e.get();
         }
         return false;
     }

@@ -30,6 +30,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
@@ -88,7 +89,7 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
 
     private static final EasyPropManager MANAGER = new EasyPropManager("level", StoryLevel::registerProps);
 
-    private static void registerProps(EasyPropManager manager) {
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("runCommand", (name, args, script, o) -> {
             StoryLevel sl = (StoryLevel) o;
             return sl.addChained(new StoryAction.Instant<StoryLevel>() {

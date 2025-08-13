@@ -16,8 +16,9 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.ref.WeakReference;
 import java.util.*;
 
+@SuppressWarnings("unchecked")
 public class WeakList<T> implements List<T> {
-    private ArrayList<WeakReference<T>> list;
+    private final ArrayList<WeakReference<T>> list;
 
     public WeakList() {
         list = new ArrayList<>();
@@ -82,12 +83,12 @@ public class WeakList<T> implements List<T> {
     }
 
     @Override
-    public @NotNull Object[] toArray() {
+    public @NotNull Object @NotNull [] toArray() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public @NotNull <T1> T1[] toArray(@NotNull T1[] a) {
+    public @NotNull <T1> T1 @NotNull [] toArray(@NotNull T1 @NotNull[] a) {
         throw new UnsupportedOperationException();
     }
 

@@ -12,7 +12,7 @@
 package com.storyanvil.cogwheel.infrustructure.cog;
 
 public class PreventSubCalling extends RuntimeException {
-    private SubCallPostPrevention postPrevention;
+    private final SubCallPostPrevention postPrevention;
 
     public PreventSubCalling(SubCallPostPrevention postPrevention) {
         this.postPrevention = postPrevention;

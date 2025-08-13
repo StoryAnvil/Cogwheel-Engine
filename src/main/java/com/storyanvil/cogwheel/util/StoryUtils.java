@@ -15,6 +15,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -23,12 +24,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class StoryUtils {
-    public static void sendGlobalMessage(ServerLevel level, Component msg) {
+    public static void sendGlobalMessage(@NotNull ServerLevel level, Component msg) {
         for (ServerPlayer player : level.players()) {
             player.sendSystemMessage(msg);
         }
     }
-    public static void sendGlobalMessage(ServerLevel level, Component... msg) {
+    public static void sendGlobalMessage(@NotNull ServerLevel level, Component... msg) {
         for (ServerPlayer player : level.players()) {
             for (Component c : msg) {
                 player.sendSystemMessage(c);
@@ -40,6 +41,7 @@ public class StoryUtils {
         buf.writeInt(bytes.length);
         buf.writeBytes(bytes);
     }
+    @Contract("_ -> new")
     public static @NotNull String decodeString(@NotNull FriendlyByteBuf buf) {
         int length = buf.readInt();
         byte[] bytes = new byte[length];
@@ -49,7 +51,7 @@ public class StoryUtils {
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
-    public static void deleteDirectory(File dir) {
+    public static void deleteDirectory(@NotNull File dir) {
         if (!dir.exists()) return;
         if (dir.isDirectory()) {
             File[] childFiles = dir.listFiles();

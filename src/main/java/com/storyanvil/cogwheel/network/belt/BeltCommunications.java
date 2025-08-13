@@ -36,7 +36,7 @@ public class BeltCommunications {
     public static final Logger log = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/BELT");
 
     private String host;
-    private HttpClient client;
+    private final HttpClient client;
     private String remoteServerName;
     private String token = null;
 
@@ -130,7 +130,7 @@ public class BeltCommunications {
         return host + "/~auth/" + Base64.getUrlEncoder().encodeToString(player.getScoreboardName().getBytes(StandardCharsets.UTF_8));
     }
 
-    private ArrayList<BeltPacket> packets = new ArrayList<>();
+    private final ArrayList<BeltPacket> packets = new ArrayList<>();
     public static final Object SYNC = new Object();
     private String generateUpdateBody() {
         synchronized (SYNC) {

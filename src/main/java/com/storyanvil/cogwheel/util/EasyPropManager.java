@@ -11,21 +11,21 @@
 
 package com.storyanvil.cogwheel.util;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.cog.CogBool;
 import com.storyanvil.cogwheel.infrustructure.cog.PropertyHandler;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 
 import java.util.HashMap;
-import java.util.function.Function;
 
 @ApiStatus.Internal
 public class EasyPropManager {
-    private static HashMap<String, PropertyHandler> handlers = new HashMap<>();
+    private static final HashMap<String, PropertyHandler> handlers = new HashMap<>();
     private String manager;
-    private Registrar registrar;
+    private final Registrar registrar;
 
+    @Contract(pure = true)
     public EasyPropManager(String manager, Registrar registrar) {
         this.manager = ">" + manager;
         this.registrar = registrar;
@@ -34,10 +34,6 @@ public class EasyPropManager {
     public boolean hasOwnProperty(String name) {
         if (this.manager.charAt(0) != '<') {
             this.manager = "<" + this.manager;
-            this.reg("logMe", (__, args, script, o) -> {
-                CogwheelExecutor.log.info("{}: LogMe {} arguments: {} | {}", script.getScriptName(), manager, args, ((CogPropertyManager) o).convertToString());
-                return null;
-            });
             this.reg("toString", (__, args, script, o) -> {
                 return ((CogPropertyManager) o).convertToCogString();
             });
@@ -53,12 +49,6 @@ public class EasyPropManager {
     }
     public void reg(String name, PropertyHandler handler) {
         handlers.put(manager + name, handler);
-    }
-    public void logMe(Function<Object, String> function) {
-        this.reg("logMe", (__, args, script, o) -> {
-            CogwheelExecutor.log.info("{}: LogMe {} arguments: {} | {}", script.getScriptName(), manager, args, function.apply(o));
-            return null;
-        });
     }
 
     public interface Registrar {

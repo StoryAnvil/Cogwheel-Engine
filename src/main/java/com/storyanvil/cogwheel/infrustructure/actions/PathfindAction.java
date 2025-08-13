@@ -16,6 +16,7 @@ import com.storyanvil.cogwheel.infrustructure.abilities.StoryNavigator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.pathfinder.Path;
+import org.jetbrains.annotations.NotNull;
 
 public class PathfindAction extends StoryAction<StoryNavigator> {
     private final BlockPos target;
@@ -26,14 +27,14 @@ public class PathfindAction extends StoryAction<StoryNavigator> {
     }
 
     @Override
-    public void proceed(StoryNavigator myself) {
+    public void proceed(@NotNull StoryNavigator myself) {
         PathNavigation navigation = myself.getNavigation();
         Path path = navigation.createPath(target.getX(), target.getY(), target.getZ(), 0);
         myself.getNavigation().moveTo(path, 2);
     }
 
     @Override
-    public boolean freeToGo(StoryNavigator myself) {
+    public boolean freeToGo(@NotNull StoryNavigator myself) {
         boolean done = myself.getNavigation().isDone();
         if (done) hitLabel();
         return done;

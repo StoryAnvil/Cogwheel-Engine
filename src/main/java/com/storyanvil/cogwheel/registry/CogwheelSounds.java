@@ -17,12 +17,14 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import org.jetbrains.annotations.Contract;
 
 public class CogwheelSounds {
     private static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, CogwheelEngine.MODID);
 
 //    public static final RegistryObject<SoundEvent> LOBOTOMY_SOUND_EFFECT = register("lobotomy");
 
+    @Contract(pure = true)
     public static DeferredRegister<SoundEvent> getSoundEvents() {
         return SOUND_EVENTS;
     }

@@ -13,6 +13,8 @@
 
 package com.storyanvil.cogwheel.infrustructure.env;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
@@ -24,19 +26,30 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static com.storyanvil.cogwheel.CogwheelExecutor.log;
+
 public abstract class CogScriptEnvironment {
     private final HashMap<ResourceLocation, List<String>> eventSubscribers;
 
+    @Contract(pure = true)
     public CogScriptEnvironment() {
         this.eventSubscribers = new HashMap<>();
+    }
+
+    public static LibraryEnvironment getLibEnvironment(String string) {
+        return CogwheelExecutor.getLibraryEnvironment(string);
     }
 
     public void dispatchEvent(ResourceLocation event, HashMap<String, CogPropertyManager> storage) {
@@ -75,6 +88,7 @@ public abstract class CogScriptEnvironment {
      */
     @ApiStatus.Internal
     public void dispose() {
+        log.info("Environment {} is disposing...", getUniqueIdentifier());
         WeakList<DispatchedScript> scripts = DispatchedScript.MONITOR.getObjects();
         for (int i = 0; i < scripts.size(); i++) {
             DispatchedScript script = scripts.get(i);
@@ -139,6 +153,7 @@ public abstract class CogScriptEnvironment {
         public DefaultEnvironment() {
             super();
             dialogs = new HashMap<>();
+            log.info("Default Environment {} initialized!", getUniqueIdentifier());
         }
 
         @Override
@@ -169,16 +184,32 @@ public abstract class CogScriptEnvironment {
         public LibraryEnvironment(String name) {
             super();
             this.name = name;
+            log.info("Library Environment {} initialized!", getUniqueIdentifier());
+        }
+
+        @ApiStatus.Internal
+        public boolean init(File dotCog) {
+            try {
+                File manifest = new File(dotCog, "manifest.json");
+                JsonObject obj = JsonParser.parseReader(new FileReader(manifest)).getAsJsonObject();
+                String name = obj.get("name").getAsJsonPrimitive().getAsString();
+                if (!name.equals(this.name)) throw new IllegalStateException("Library names does not match!");
+            } catch (FileNotFoundException | IllegalStateException e) {
+                log.info("Library \"{}\" does not have manifest.json or its manifest.json is invalid. Library won't be loaded", name);
+                log.info("Exception for " + name, (Exception) e);
+                return false;
+            }
+            return true;
         }
 
         @Override
         public void dispatchScript(String name) {
-            CogScriptDispatcher.dispatch("cog-libs/" + this.name + "/" + name, this);
+            CogScriptDispatcher.dispatch("cog-libs/.cog/" + this.name + "/" + name, this);
         }
 
         @Override
         public void dispatchScript(String name, HashMap<String, CogPropertyManager> storage) {
-            CogScriptDispatcher.dispatch("cog-libs/" + this.name + "/" + name, storage, this);
+            CogScriptDispatcher.dispatch("cog-libs/.cog/" + this.name + "/" + name, storage, this);
         }
 
         @Override
@@ -210,7 +241,7 @@ public abstract class CogScriptEnvironment {
             super();
             data = new HashMap<>();
         }
-        private EnvironmentData(CompoundTag tag) {
+        private EnvironmentData(@NotNull CompoundTag tag) {
             super();
             data = new HashMap<>();
             for (String key : tag.getAllKeys()) {

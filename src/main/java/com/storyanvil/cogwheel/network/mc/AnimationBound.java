@@ -18,6 +18,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -26,6 +27,7 @@ public class AnimationBound {
     private @NotNull String animatorID;
     private @NotNull String animation;
 
+    @Contract(pure = true)
     public AnimationBound() {
         animatorID = "";
         animation = "";
@@ -39,6 +41,7 @@ public class AnimationBound {
         return animation;
     }
 
+    @Contract(pure = true)
     public AnimationBound(@NotNull String animatorID, @NotNull String animation) {
         this.animatorID = animatorID;
         this.animation = animation;
@@ -56,7 +59,7 @@ public class AnimationBound {
         return bound;
     }
 
-    public void handle(Supplier<NetworkEvent.Context> ctx) {
+    public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> CogwheelClientPacketHandler.animationBound(this, ctx));
         });

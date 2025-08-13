@@ -21,6 +21,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
@@ -34,13 +35,13 @@ public class ItemTags extends ItemTagsProvider {
     protected void addTags(HolderLookup.Provider pProvider) {
     }
 
-    public static TagKey<Item> t(String namespace, String path) {
+    public static @NotNull TagKey<Item> t(String namespace, String path) {
         return TagKey.create(ForgeRegistries.ITEMS.getRegistryKey(), ResourceLocation.fromNamespaceAndPath(namespace, path));
     }
-    public static TagKey<Item> t(String path) {
+    public static @NotNull TagKey<Item> t(String path) {
         return TagKey.create(ForgeRegistries.ITEMS.getRegistryKey(), ResourceLocation.fromNamespaceAndPath(CogwheelEngine.MODID, path));
     }
-    public static TagKey<Item> f(String path) {
+    public static @NotNull TagKey<Item> f(String path) {
         return TagKey.create(ForgeRegistries.ITEMS.getRegistryKey(), ResourceLocation.fromNamespaceAndPath("forge", path));
     }
 }

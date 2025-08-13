@@ -15,6 +15,7 @@ import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPropertyManager {
@@ -31,9 +32,8 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPro
         return actionLabel;
     }
 
-    public StoryAction<T> setActionLabel(String actionLabel) {
+    public void setActionLabel(String actionLabel) {
         this.actionLabel = actionLabel;
-        return this;
     }
 
     public void hitLabel() {
@@ -46,13 +46,13 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPro
     }
 
     @Override
-    public void reportState(StringBuilder sb) {
+    public void reportState(@NotNull StringBuilder sb) {
         sb.append(this);
     }
 
     private static final EasyPropManager MANAGER = new EasyPropManager("storyAction", StoryAction::registerProps);
 
-    private static void registerProps(EasyPropManager manager) {
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("setLabel", (name, args, script, o) -> {
             StoryAction<?> action = (StoryAction<?>) o;
             action.setActionLabel(args.getString(0));

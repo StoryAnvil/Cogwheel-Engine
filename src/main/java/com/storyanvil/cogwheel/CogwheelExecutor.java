@@ -12,7 +12,7 @@
 package com.storyanvil.cogwheel;
 
 import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
-import com.storyanvil.cogwheel.util.DoubleValue;
+import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.StoryUtils;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import net.minecraft.client.Minecraft;
@@ -75,25 +75,25 @@ public class CogwheelExecutor {
      * Schedules task to be executed as soon as possible on Minecraft's Server thread on nearest server-side level tick
      */
     public static void scheduleTickEvent(Consumer<TickEvent.LevelTickEvent> task) {
-        EventBus.queue.add(new DoubleValue<>(task, 0));
+        EventBus.queue.add(new Bi<>(task, 0));
     }
     /**
      * Schedules task to be executed after provided amount of ticks on Minecraft's Server thread on nearest server-side level tick
      */
     public static void scheduleTickEvent(Consumer<TickEvent.LevelTickEvent> task, int ticks) {
-        EventBus.queue.add(new DoubleValue<>(task, ticks));
+        EventBus.queue.add(new Bi<>(task, ticks));
     }
     /**
      * Schedules task to be executed as soon as possible on Minecraft's Render thread on nearest client-side level tick
      */
     public static void scheduleTickEventClientSide(Consumer<TickEvent.LevelTickEvent> task) {
-        EventBus.clientQueue.add(new DoubleValue<>(task, 0));
+        EventBus.clientQueue.add(new Bi<>(task, 0));
     }
     /**
      * Schedules task to be executed after provided amount of ticks on Minecraft's Render thread on nearest client-side level tick
      */
     public static void scheduleTickEventClientSide(Consumer<TickEvent.LevelTickEvent> task, int ticks) {
-        EventBus.clientQueue.add(new DoubleValue<>(task, ticks));
+        EventBus.clientQueue.add(new Bi<>(task, ticks));
     }
 
     /**
@@ -143,12 +143,24 @@ public class CogwheelExecutor {
                     } catch (IOException e) {
                         throw new RuntimeException("Failed to unpack " + lib, e);
                     }
+                } else {
+                    log.info("File {} is not StoryAnvil Locomotive Car (aka Cogwheel Engine library)", lib);
                 }
             }
         }
         for (String library : libraryNames) {
             CogScriptEnvironment.LibraryEnvironment environment = new CogScriptEnvironment.LibraryEnvironment(library);
             libraryEnvironments.put(library, environment);
+        }
+
+        log.info("Environments will be notified of initialization");
+        defaultEnvironment.dispatchScript("init");
+        for (CogScriptEnvironment.LibraryEnvironment environment : libraryEnvironments.values()) {
+            if (!environment.init(new File(unpackedLibraries, environment.getUniqueIdentifier()))) {
+                libraryEnvironments.remove(environment.getUniqueIdentifier());
+                environment.dispose();
+            }
+            environment.dispatchScript("init");
         }
     }
     @SubscribeEvent
@@ -165,7 +177,7 @@ public class CogwheelExecutor {
         return defaultEnvironment;
     }
 
-    public static CogScriptEnvironment getLibraryEnvironment(String namespace) {
+    public static CogScriptEnvironment.LibraryEnvironment getLibraryEnvironment(String namespace) {
         return libraryEnvironments.get(namespace);
     }
     public static Collection<CogScriptEnvironment.LibraryEnvironment> getLibraryEnvironments() {

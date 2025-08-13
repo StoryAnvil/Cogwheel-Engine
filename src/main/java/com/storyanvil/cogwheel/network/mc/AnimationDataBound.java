@@ -18,6 +18,8 @@ import com.storyanvil.cogwheel.entity.NPCModel;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -25,15 +27,17 @@ import java.util.function.Supplier;
 public class AnimationDataBound {
     private String sources;
 
+    @Contract(pure = true)
     public AnimationDataBound(String sources) {
         this.sources = sources;
     }
 
+    @Contract(pure = true)
     public AnimationDataBound() {
         sources = null;
     }
 
-    public void encode(FriendlyByteBuf friendlyByteBuf) {
+    public void encode(@NotNull FriendlyByteBuf friendlyByteBuf) {
         int length = sources.length();
         friendlyByteBuf.writeInt(length);
         for (int i = 0; i < length; i++) {
@@ -41,7 +45,7 @@ public class AnimationDataBound {
         }
     }
 
-    public static AnimationDataBound decode(FriendlyByteBuf friendlyByteBuf) {
+    public static @NotNull AnimationDataBound decode(@NotNull FriendlyByteBuf friendlyByteBuf) {
         AnimationDataBound dataBound = new AnimationDataBound();
         int length = friendlyByteBuf.readInt();
         byte[] str = new byte[length];

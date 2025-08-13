@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -31,7 +32,7 @@ public abstract class PlayerMixin extends LivingEntity {
 
     @Inject(at = @At(value = "TAIL", shift = At.Shift.BEFORE), locals = LocalCapture.CAPTURE_FAILHARD,
             method = "Lnet/minecraft/world/entity/player/Player;eat")
-    public void eat(Level pLevel, ItemStack pFood, CallbackInfoReturnable<?> callbackInfo) {
+    public void eat(@NotNull Level pLevel, ItemStack pFood, CallbackInfoReturnable<?> callbackInfo) {
         if (!pLevel.isClientSide()) {
             LivingEntity entity = this;
 

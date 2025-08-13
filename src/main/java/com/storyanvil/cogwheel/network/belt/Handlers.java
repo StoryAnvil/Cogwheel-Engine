@@ -24,15 +24,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
 import static com.storyanvil.cogwheel.ScriptEventBus.getEventLocation;
 
 public class Handlers {
-    public static void none(BeltPacket packet) {
-
-    }
+    @Contract(pure = true)
+    public static void none(BeltPacket packet) {}
 
     public static void cmd(BeltPacket packet) {
         CogwheelExecutor.scheduleTickEvent(tick -> {
@@ -43,11 +44,11 @@ public class Handlers {
         });
     }
 
-    public static void dispatchScript(BeltPacket packet) {
+    public static void dispatchScript(@NotNull BeltPacket packet) {
         CogScriptEnvironment.dispatchScriptGlobal(packet.getData()[0]);
     }
 
-    public static void scriptMessage(BeltPacket packet) {
+    public static void scriptMessage(@NotNull BeltPacket packet) {
         HashMap<String, CogPropertyManager> storage = new HashMap<>();
         storage.put("msg", new CogString(packet.getData()[0]));
         CogScriptEnvironment.dispatchEventGlobal(getEventLocation("belt/message"), storage);

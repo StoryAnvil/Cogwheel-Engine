@@ -13,12 +13,12 @@
 
 package com.storyanvil.cogwheel.infrustructure.actions;
 
-import com.storyanvil.cogwheel.entity.NPC;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryAnimator;
 import com.storyanvil.cogwheel.network.mc.AnimationBound;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import net.minecraftforge.network.PacketDistributor;
+import org.jetbrains.annotations.NotNull;
 
 public class AnimationAction extends StoryAction<StoryAnimator> {
     private final String animation;
@@ -30,7 +30,7 @@ public class AnimationAction extends StoryAction<StoryAnimator> {
     }
 
     @Override
-    public void proceed(StoryAnimator myself) {
+    public void proceed(@NotNull StoryAnimator myself) {
         CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(myself.getAnimatorID(), animation));
     }
 

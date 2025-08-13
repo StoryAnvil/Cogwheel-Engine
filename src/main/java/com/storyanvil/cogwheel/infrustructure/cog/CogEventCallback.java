@@ -4,12 +4,14 @@ import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CogEventCallback implements CogPropertyManager {
     private static final EasyPropManager MANAGER = new EasyPropManager("event", CogEventCallback::registerProps);
 
-    private static void registerProps(EasyPropManager manager) {
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("setCanceled", (name, args, script, o) -> {
             CogEventCallback callback = (CogEventCallback) o;
             callback.canceled = args.requireBoolean(0);
@@ -19,6 +21,7 @@ public class CogEventCallback implements CogPropertyManager {
 
     private boolean canceled = false;
 
+    @Contract(pure = true)
     public CogEventCallback() {
     }
 

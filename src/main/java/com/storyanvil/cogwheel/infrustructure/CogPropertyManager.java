@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel.infrustructure;
 import com.storyanvil.cogwheel.infrustructure.cog.CogLike;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
 import com.storyanvil.cogwheel.infrustructure.cog.PreventSubCalling;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +24,7 @@ public interface CogPropertyManager extends CogLike {
     boolean equalsTo(CogPropertyManager o);
 
     NullManager nullManager = new NullManager();
+    @Contract(value = "!null -> param1", pure = true)
     static @NotNull CogPropertyManager noNull(@Nullable CogPropertyManager manager) {
         if (manager == null) return nullManager;
         return manager;
@@ -39,6 +41,7 @@ public interface CogPropertyManager extends CogLike {
     }
 
     class NullManager implements CogPropertyManager {
+        @Contract(pure = true)
         private NullManager() {}
 
         @Override

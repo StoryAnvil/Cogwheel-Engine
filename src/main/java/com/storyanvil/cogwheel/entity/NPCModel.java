@@ -16,11 +16,10 @@ package com.storyanvil.cogwheel.entity;
 import com.storyanvil.cogwheel.CogwheelEngine;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.renderer.GeoRenderer;
-
-import java.util.ArrayList;
 
 public class NPCModel extends DefaultedEntityGeoModel<NPC> {
     public NPCModel(ResourceLocation assetSubpath) {
@@ -28,7 +27,7 @@ public class NPCModel extends DefaultedEntityGeoModel<NPC> {
     }
 
     @Override
-    public ResourceLocation getTextureResource(NPC animatable) {
+    public ResourceLocation getTextureResource(@NotNull NPC animatable) {
         return ResourceLocation.fromNamespaceAndPath(CogwheelEngine.MODID, "textures/entity/npc/" + animatable.getSkin() + ".png");
     }
 

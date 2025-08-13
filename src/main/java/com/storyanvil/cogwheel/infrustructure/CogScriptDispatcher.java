@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel.infrustructure;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileReader;
@@ -38,7 +39,7 @@ public class CogScriptDispatcher {
     public static void dispatch(String scriptName, HashMap<String, CogPropertyManager> storage, Consumer<DispatchedScript> s, CogScriptEnvironment environment) {
         CogwheelExecutor.schedule(() -> s.accept(dispatcher(scriptName, storage, environment)));
     }
-    private static DispatchedScript dispatcher(String scriptName, HashMap<String, CogPropertyManager> storage, CogScriptEnvironment environment) {
+    private static @Nullable DispatchedScript dispatcher(String scriptName, HashMap<String, CogPropertyManager> storage, CogScriptEnvironment environment) {
         File script = new File(Minecraft.getInstance().gameDirectory, "config/" + scriptName);
         if (!script.exists()) {
             log.error("Script {} does not exist. Dispatch ignored!", script);
@@ -46,27 +47,24 @@ public class CogScriptDispatcher {
         }
         if (scriptName.endsWith(".sa") /* storyanvil */) {
             log.info("Script: {} dispatched", scriptName);
-            try (FileReader fr = new FileReader(script); Scanner sc = new Scanner(fr)) {
-                ArrayList<String> lines = new ArrayList<>();
-                while (sc.hasNextLine()) {
-                    lines.add(sc.nextLine().trim());
-                }
-                DispatchedScript s = new DispatchedScript(lines, storage, environment);
-                CogwheelExecutor.schedule(s.setScriptName(scriptName)::lineDispatcher);
-                return s;
-            } catch (IOException e) {
-                log.error("Script dispatch failed while file reading", e);
-            }
-        } else if (scriptName.endsWith(".sam" /* storyanvil manifest */)) {
-            try (FileReader fr = new FileReader(script); Scanner sc = new Scanner(fr)) {
-                while (sc.hasNextLine()) {
-                    String line = sc.nextLine();
-                }
-            } catch (IOException e) {
-                log.error("Script dispatch failed while file reading", e);
-            }
+            return readAndDispatch(scriptName, storage, environment, script);
         } else {
             log.error("Script {} does not end with any known extension (known extensions are: \".sa\", \".sam\" ). Dispatch ignored!", script);
+        }
+        return null;
+    }
+
+    private static @Nullable DispatchedScript readAndDispatch(String scriptName, HashMap<String, CogPropertyManager> storage, CogScriptEnvironment environment, File script) {
+        try (FileReader fr = new FileReader(script); Scanner sc = new Scanner(fr)) {
+            ArrayList<String> lines = new ArrayList<>();
+            while (sc.hasNextLine()) {
+                lines.add(sc.nextLine().trim());
+            }
+            DispatchedScript s = new DispatchedScript(lines, storage, environment);
+            CogwheelExecutor.schedule(s.setScriptName(scriptName)::lineDispatcher);
+            return s;
+        } catch (IOException e) {
+            log.error("Script dispatch failed while file reading", e);
         }
         return null;
     }

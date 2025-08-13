@@ -15,6 +15,8 @@ import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -25,11 +27,12 @@ public class CogArray<T extends CogPropertyManager> implements CogPropertyManage
 
     private ArrayList<T> list;
 
+    @Contract(pure = true)
     private CogArray(ArrayList<T> list) {
         this.list = list;
     }
 
-    private static void registerProps(EasyPropManager manager) {
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("get", (name, args, script, o) -> {
             CogArray<CogPropertyManager> array = (CogArray<CogPropertyManager>) o;
             return array.list.get(args.requireInt(0));
@@ -51,7 +54,7 @@ public class CogArray<T extends CogPropertyManager> implements CogPropertyManage
     }
 
     @Override
-    public boolean hasOwnProperty(String name) {
+    public boolean hasOwnProperty(@NotNull String name) {
         if (name.startsWith("$")) {
             return true;
         }
@@ -59,7 +62,7 @@ public class CogArray<T extends CogPropertyManager> implements CogPropertyManage
     }
 
     @Override
-    public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
+    public @Nullable CogPropertyManager getProperty(@NotNull String name, ArgumentData args, DispatchedScript script) {
         if (name.startsWith("$")) {
             String sub = name.substring(1);
             for (T t : list) {
@@ -82,33 +85,39 @@ public class CogArray<T extends CogPropertyManager> implements CogPropertyManage
         return false;
     }
 
-    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(ArrayList<Q> t) {
-        return new CogArray<>(t);
+    @Contract(value = "_ -> new", pure = true)
+    public static @NotNull CogArray<CogPropertyManager> getInstance(ArrayList<CogPropertyManager> t) {
+        return new CogArray<CogPropertyManager>(t);
     }
-    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(List<Q> t) {
-        return new CogArray<>(new ArrayList<>(t));
+    @Contract("_ -> new")
+    public static <Q extends CogPropertyManager> @NotNull CogArray<CogPropertyManager> getInstance(List<Q> t) {
+        return new CogArray<CogPropertyManager>(new ArrayList<>(t));
     }
-    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(Iterable<Q> t) {
-        ArrayList<Q> list = new ArrayList<>();
+    @Contract("_ -> new")
+    public static <Q extends CogPropertyManager> @NotNull CogArray<CogPropertyManager> getInstance(@NotNull Iterable<Q> t) {
+        ArrayList<CogPropertyManager> list = new ArrayList<>();
         for (Q q : t) {
             list.add(q);
         }
-        return new CogArray<>(list);
+        return new CogArray<CogPropertyManager>(list);
     }
-    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(Q q) {
-        ArrayList<Q> list = new ArrayList<>();
+    @Contract("_ -> new")
+    public static <Q extends CogPropertyManager> @NotNull CogArray<CogPropertyManager> getInstance(Q q) {
+        ArrayList<CogPropertyManager> list = new ArrayList<>();
         list.add(q);
-        return new CogArray<>(list);
+        return new CogArray<CogPropertyManager>(list);
     }
-    public static <Q extends CogPropertyManager> CogArray<Q> getInstance(Class<Q> q) {
-        return new CogArray<>(new ArrayList<>());
+    @Contract("_ -> new")
+    public static <Q extends CogPropertyManager> @NotNull CogArray<CogPropertyManager> getInstance(Class<Q> q) {
+        return new CogArray<CogPropertyManager>(new ArrayList<>());
     }
 
-    public static CogArray<CogString> convertInstance(Iterable<String> s) {
-        ArrayList<CogString> list = new ArrayList<>();
+    @Contract("_ -> new")
+    public static @NotNull CogArray<CogPropertyManager> convertInstance(@NotNull Iterable<String> s) {
+        ArrayList<CogPropertyManager> list = new ArrayList<>();
         for (String q : s) {
             list.add(new CogString(q));
         }
-        return new CogArray<>(list);
+        return new CogArray<CogPropertyManager>(list);
     }
 }

@@ -16,47 +16,44 @@ package com.storyanvil.cogwheel.infrustructure.cog;
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.util.CogExpressionFailure;
 import com.storyanvil.cogwheel.util.EasyPropManager;
-import org.jetbrains.annotations.Contract;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
+public class CogManifest implements CogPropertyManager {
+    private static final EasyPropManager MANAGER = new EasyPropManager("manifest", CogManifest::registerProps);
 
-public class CogHashmap implements CogPropertyManager {
-    private static final EasyPropManager MANAGER = new EasyPropManager("hashmap", CogHashmap::registerProps);
+    private static CogManifest instance = null;
 
-    @Contract(pure = true)
-    public CogHashmap(HashMap<String, CogPropertyManager> value) {
-        this.value = value;
-    }
-    @Contract(pure = true)
-    public CogHashmap() {
-        this.value = new HashMap<>();
+    public static CogManifest getInstance() {
+        if (instance == null) {
+            instance = new CogManifest();
+        }
+        return instance;
     }
 
-    public HashMap<String, CogPropertyManager> getValue() {
-        return value;
-    }
-
-    private final HashMap<String, CogPropertyManager> value;
     private static void registerProps(@NotNull EasyPropManager manager) {
-        manager.reg("get", (name, args, script, o) -> {
-            CogHashmap hashmap = (CogHashmap) o;
-            return hashmap.value.get(args.get(0).convertToString());
+        manager.reg("subscribeEvent", (name, args, script, o) -> {
+            script.getEnvironment().subscribeForEvent(ResourceLocation.parse(args.getString(0)), args.getString(1));
+            return null;
         });
-        manager.reg("put", (name, args, script, o) -> {
-            CogHashmap hashmap = (CogHashmap) o;
-            return hashmap.value.put(args.get(0).convertToString(), args.get(1));
+        manager.reg("unsubscribeEvent", (name, args, script, o) -> {
+            script.getEnvironment().unsubscribeFromEvent(ResourceLocation.parse(args.getString(0)), args.getString(1));
+            return null;
         });
-        manager.reg("clear", (name, args, script, o) -> {
-            CogHashmap hashmap = (CogHashmap) o;
-            hashmap.value.clear();
-            return hashmap;
+        manager.reg("clearEvent", (name, args, script, o) -> {
+            script.getEnvironment().unsubscribeAllFromEvent(ResourceLocation.parse(args.getString(0)));
+            return null;
         });
-        manager.reg("containsKey", (name, args, script, o) -> {
-            CogHashmap hashmap = (CogHashmap) o;
-            return CogBool.getInstance(hashmap.value.containsKey(args.get(0).convertToString()));
+        manager.reg("requireLibrary", (name, args, script, o) -> {
+            CogScriptEnvironment.LibraryEnvironment env = CogScriptEnvironment.getLibEnvironment(args.getString(0));
+            if (env == null) {
+                throw new CogExpressionFailure("Library \"" + args.getString(0) + "\" required by " + script.getEnvironment().getUniqueIdentifier() + " environment but it does not present!");
+            }
+            return null;
         });
     }
 
@@ -72,13 +69,6 @@ public class CogHashmap implements CogPropertyManager {
 
     @Override
     public boolean equalsTo(CogPropertyManager o) {
-        if (o instanceof CogHashmap other)
-            return other.value.equals(value);
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
+        return o == this;
     }
 }

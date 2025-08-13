@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import org.jetbrains.annotations.Contract;
 
 import java.util.function.Supplier;
 
@@ -30,6 +31,7 @@ public class CogwheelBlocks {
         return r;
     }
 
+    @Contract(pure = true)
     public static DeferredRegister<Block> getBLOCKS() {
         return BLOCKS;
     }

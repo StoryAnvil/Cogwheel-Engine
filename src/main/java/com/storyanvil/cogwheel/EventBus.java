@@ -14,7 +14,6 @@ package com.storyanvil.cogwheel;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.cog.CogTestCallback;
 import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
@@ -42,6 +41,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -51,13 +51,14 @@ import java.util.function.Consumer;
 @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
 public class EventBus {
 
+    @Contract(pure = true)
     @SubscribeEvent
     public static void dataInjector(AddPackFindersEvent event) {
         // TODO: Inject datapacks and resourcepacks
     }
 
     @SubscribeEvent
-    public static void registerCommands(RegisterCommandsEvent event) {
+    public static void registerCommands(@NotNull RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("@storyanvil").requires(css -> css.hasPermission(1))
                 .then(Commands.literal("dispatch-script")
                         .then(Commands.argument("name", ResourceLocationArgument.id())
@@ -108,6 +109,7 @@ public class EventBus {
                                 }
                             }
                         }
+                        environment.dispose();
                         ctx.getSource().sendSystemMessage(Component.literal("All tests completed!"));
                     });
                     return 0;
@@ -138,6 +140,7 @@ public class EventBus {
                                 }
                             }
                         }
+                        environment.dispose();
                         ctx.getSource().sendSystemMessage(Component.literal("All tests completed!"));
                     });
                     return 0;
@@ -159,7 +162,7 @@ public class EventBus {
                                         ));
                                         return 1;
                                     }
-                                    String link = beltCommunications.getUserLink(ctx.getSource().getPlayerOrException());;
+                                    String link = beltCommunications.getUserLink(ctx.getSource().getPlayerOrException());
                                     ctx.getSource().getPlayerOrException().sendSystemMessage(Component.literal(
                                             "Click to open " + link + " | This will authorize you on " + beltCommunications.getRemoteServerName()
                                     ).withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link))));
@@ -217,21 +220,21 @@ public class EventBus {
         return modded;
     }
 
-    protected static List<DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
-    protected static List<DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer>> clientQueue = new ArrayList<>();
+    protected static List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
+    protected static List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> clientQueue = new ArrayList<>();
 
-    private static StoryLevel level = new StoryLevel();
+    private static final StoryLevel level = new StoryLevel();
     @ApiStatus.Internal
     public static BeltCommunications beltCommunications = null;
     @SubscribeEvent
-    public static void tick(TickEvent.LevelTickEvent event) {
+    public static void tick(TickEvent.@NotNull LevelTickEvent event) {
         if (!event.level.dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) return;
         if (event.level.isClientSide()) {
             if (event.phase != TickEvent.Phase.END) return;
             try {
                 int size = clientQueue.size();
                 for (int i = 0; i < size; i++) {
-                    DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer> e = clientQueue.get(i);
+                    Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = clientQueue.get(i);
                     if (e.getB() < 2) {
                         e.getA().accept(event);
                         clientQueue.remove(i);
@@ -252,7 +255,7 @@ public class EventBus {
         try {
             int size = queue.size();
             for (int i = 0; i < size; i++) {
-                DoubleValue<Consumer<TickEvent.LevelTickEvent>, Integer> e = queue.get(i);
+                Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = queue.get(i);
                 if (e.getB() < 2) {
                     try {
                         e.getA().accept(event);
@@ -271,7 +274,7 @@ public class EventBus {
     }
 
     @SubscribeEvent
-    public static void boundEvent(PlayerEvent.PlayerLoggedInEvent event) {
+    public static void boundEvent(PlayerEvent.@NotNull PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             StringBuilder sb = new StringBuilder();
             boolean a = true;
@@ -289,10 +292,11 @@ public class EventBus {
 
     @ApiStatus.Internal
     public static ArrayList<ResourceLocation> serverSideAnimations = new ArrayList<>();
-    private static HashMap<String, WeakList<LabelCloseable>> labelListeners = new HashMap<>();
+    private static final HashMap<String, WeakList<LabelCloseable>> labelListeners = new HashMap<>();
     public static void hitLabel(String label, StoryAction<?> action) {
         if (labelListeners.containsKey(label)) {
             WeakList<LabelCloseable> c = labelListeners.get(label);
+            //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < c.size(); i++) {
                 LabelCloseable closeable = c.get(i);
                 if (closeable != null)
@@ -308,6 +312,7 @@ public class EventBus {
         }
     }
 
+    @Contract(pure = true)
     public static StoryLevel getStoryLevel() {
         return level;
     }
