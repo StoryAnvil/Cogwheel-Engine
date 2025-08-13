@@ -13,6 +13,7 @@ package com.storyanvil.cogwheel.infrustructure.actions;
 
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryChatter;
+import org.jetbrains.annotations.NotNull;
 
 public class ChatAction extends StoryAction<StoryChatter> {
     private final String text;
@@ -23,7 +24,7 @@ public class ChatAction extends StoryAction<StoryChatter> {
     }
 
     @Override
-    public void proceed(StoryChatter myself) {
+    public void proceed(@NotNull StoryChatter myself) {
         myself.chat(text);
     }
 

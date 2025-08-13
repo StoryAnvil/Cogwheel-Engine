@@ -13,22 +13,19 @@ package com.storyanvil.cogwheel.infrustructure.cog;
 
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.CogStringGen;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.nbt.CompoundTag;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class CogDouble implements CogPropertyManager, CogStringGen<CogDouble>, CogPrimalType {
+public final class CogDouble implements CogPropertyManager, CogPrimalType {
     private static final EasyPropManager MANAGER = new EasyPropManager("double", CogDouble::registerProps);
 
-    private static void registerProps(EasyPropManager manager) {
-        manager.logMe(o -> {
-            return String.valueOf(((CogDouble) o).value);
-        });
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("add", (name, args, script, o) -> {
             CogDouble i = (CogDouble) o;
             i.value += args.requireDouble(0);
@@ -77,6 +74,7 @@ public final class CogDouble implements CogPropertyManager, CogStringGen<CogDoub
     }
 
     private double value;
+    @Contract(pure = true)
     public CogDouble(double value) {
         this.value = value;
     }
@@ -94,6 +92,7 @@ public final class CogDouble implements CogPropertyManager, CogStringGen<CogDoub
         return MANAGER.get(name).handle(name, args, script, this);
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
     public boolean equalsTo(CogPropertyManager o) {
         if (o instanceof CogDouble other) {
@@ -102,21 +101,15 @@ public final class CogDouble implements CogPropertyManager, CogStringGen<CogDoub
         return false;
     }
 
+    @Contract(pure = true)
     public double getValue() {
         return value;
     }
 
+    @Contract(pure = true)
     @Override
-    public String convertToString() {
+    public @NotNull String convertToString() {
         return String.valueOf(value);
-    }
-
-    @Override
-    public @Nullable CogDouble fromString(@NotNull String s) {
-        if (s.charAt(0) == ':') {
-            return new CogDouble(s.substring(1));
-        }
-        return null;
     }
 
     @Override
@@ -124,13 +117,14 @@ public final class CogDouble implements CogPropertyManager, CogStringGen<CogDoub
         return Objects.hashCode(value);
     }
 
+    @Contract(pure = true)
     @Override
     public byte getPrimalID() {
         return (byte) -216;
     }
 
     @Override
-    public void putPrimal(CompoundTag tag, String key) {
+    public void putPrimal(@NotNull CompoundTag tag, String key) {
         tag.putDouble(key, value);
     }
 }

@@ -41,7 +41,7 @@ public abstract class MethodLikeLineHandler {
         return ResourceLocation.fromNamespaceAndPath(namespace, "method/" + methodName.toLowerCase());
     }
 
-    public abstract DoubleValue<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception;
+    public abstract Bi<Boolean, Boolean> methodHandler(@NotNull String args, @Nullable String label, @NotNull DispatchedScript script) throws Exception;
 
     public void labelUnsupported(@Nullable String label) {
         if (label != null) throw new IllegalArgumentException("Label unsupported for method: " + getResourceLocation());

@@ -17,6 +17,7 @@ import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
@@ -24,10 +25,7 @@ import java.lang.ref.WeakReference;
 public class CogPlayer extends CogEntity implements CogPropertyManager {
     private static final EasyPropManager MANAGER = new EasyPropManager("player", CogPlayer::registerProps);
 
-    private static void registerProps(EasyPropManager manager) {
-        manager.logMe(o -> {
-            return String.valueOf(((CogPlayer) o).player.get());
-        });
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("sendMessage", (name, args, script, o) -> {
             CogPlayer p = (CogPlayer) o;
             if (p.player.refersTo(null)) throw new RuntimeException("Player got unloaded");
@@ -41,7 +39,7 @@ public class CogPlayer extends CogEntity implements CogPropertyManager {
 
     private WeakReference<ServerPlayer> player;
 
-    public CogPlayer(WeakReference<ServerPlayer> player) {
+    public CogPlayer(@NotNull WeakReference<ServerPlayer> player) {
         super(player.get());
         this.player = player;
     }

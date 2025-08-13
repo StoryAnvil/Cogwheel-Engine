@@ -13,26 +13,23 @@ package com.storyanvil.cogwheel.infrustructure.cog;
 
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.CogStringGen;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.nbt.CompoundTag;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class CogString implements CogPropertyManager, CogStringGen<CogString>, CogPrimalType {
+public final class CogString implements CogPropertyManager, CogPrimalType {
     private static final EasyPropManager MANAGER = new EasyPropManager("string", CogString::registerProps);
 
     public CogString(char c) {
         this(String.valueOf(c));
     }
 
-    private static void registerProps(EasyPropManager manager) {
-        manager.logMe(o -> {
-            return ((CogString) o).value;
-        });
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("append", (name, args, script, o) -> {
             CogString str = (CogString) o;
             for (int i = 0; i < args.size(); i++) {
@@ -83,6 +80,7 @@ public final class CogString implements CogPropertyManager, CogStringGen<CogStri
     }
 
     private String value;
+    @Contract(pure = true)
     public CogString(String value) {
         this.value = value;
     }
@@ -97,10 +95,12 @@ public final class CogString implements CogPropertyManager, CogStringGen<CogStri
         return MANAGER.get(name).handle(name, args, script, this);
     }
 
+    @Contract(pure = true)
     public String getValue() {
         return value;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
     public boolean equalsTo(CogPropertyManager o) {
         if (o instanceof CogString other) {
@@ -109,32 +109,25 @@ public final class CogString implements CogPropertyManager, CogStringGen<CogStri
         return false;
     }
 
+    @Contract(pure = true)
     @Override
     public String convertToString() {
         return value;
     }
 
     @Override
-    public @Nullable CogString fromString(@NotNull String s) {
-        char head = s.charAt(0);
-        char tail = s.charAt(s.length() - 1);
-        if (head == '"' && tail == '"') {
-            return new CogString(s.substring(1, s.length() - 1));
-        }
-        return null;
-    }
-    @Override
     public int hashCode() {
         return Objects.hashCode(value);
     }
 
+    @Contract(pure = true)
     @Override
     public byte getPrimalID() {
         return (byte) -215;
     }
 
     @Override
-    public void putPrimal(CompoundTag tag, String key) {
+    public void putPrimal(@NotNull CompoundTag tag, String key) {
         tag.putString(key, value);
     }
 }

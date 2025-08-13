@@ -15,6 +15,8 @@ package com.storyanvil.cogwheel.network.belt;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
@@ -28,14 +30,16 @@ public class BeltPacket {
 
         public final Consumer<BeltPacket> handler;
 
+        @Contract(pure = true)
         Type(Consumer<BeltPacket> handler) {
             this.handler = handler;
         }
     }
 
-    private Type type;
-    private String[] data;
+    private final Type type;
+    private final String[] data;
 
+    @Contract(pure = true)
     private BeltPacket(Type type, String[] data) {
         this.type = type;
         this.data = data;
@@ -49,17 +53,16 @@ public class BeltPacket {
         return data;
     }
 
-    public static BeltPacket createAuthCode(String authCode, String playerName) {
+    public static void createAuthCode(String authCode, String playerName) {
         BeltPacket packet = new BeltPacket(Type.AUTH_CODE, new String[]{authCode, playerName});
         BeltCommunications.pushPacket(packet);
-        return packet;
     }
-    public static BeltPacket createBeltMessage(String message) {
+    public static void createBeltMessage(String message) {
         BeltPacket packet = new BeltPacket(Type.SCRIPT_MESSAGE, new String[]{message});
         BeltCommunications.pushPacket(packet);
-        return packet;
     }
-    public static BeltPacket parse(JsonObject o) {
+    @Contract("_ -> new")
+    public static @NotNull BeltPacket parse(@NotNull JsonObject o) {
         JsonArray a = o.get("data").getAsJsonArray();
         String[] array = new String[a.size()];
         for (int i = 0; i < array.length; i++) {

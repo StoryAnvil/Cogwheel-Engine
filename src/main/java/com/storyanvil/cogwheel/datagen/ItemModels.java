@@ -20,6 +20,7 @@ import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
+import org.jetbrains.annotations.NotNull;
 
 public class ItemModels extends ItemModelProvider {
     public ItemModels(PackOutput output, ExistingFileHelper existingFileHelper) {
@@ -30,12 +31,12 @@ public class ItemModels extends ItemModelProvider {
     protected void registerModels() {
     }
 
-    private ItemModelBuilder simpleItem(RegistryObject<Item> item) {
+    private ItemModelBuilder simpleItem(@NotNull RegistryObject<Item> item) {
         return withExistingParent(item.getId().getPath(),
                 ResourceLocation.fromNamespaceAndPath("minecraft", "item/generated")).texture("layer0",
                 ResourceLocation.fromNamespaceAndPath(modid, "item/" + item.getId().getPath()));
     }
-    private void bruh(RegistryObject<? extends Block> block) {
+    private void bruh(@NotNull RegistryObject<? extends Block> block) {
         this.withExistingParent(CogwheelEngine.MODID + ":" + block.getId().getPath(),
                 modLoc("block/" + block.getId().getPath()));
     }

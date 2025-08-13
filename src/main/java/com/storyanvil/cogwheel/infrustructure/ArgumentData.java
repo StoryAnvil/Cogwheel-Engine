@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class ArgumentData {
     private final CogPropertyManager[] args;
     private final DispatchedScript script;
+    @Contract(pure = true)
     private ArgumentData(CogPropertyManager[] args, DispatchedScript script) {
         this.args = args;
         this.script = script;

@@ -17,6 +17,8 @@ import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -24,9 +26,11 @@ import java.util.HashMap;
 public class CogHashmap implements CogPropertyManager {
     private static final EasyPropManager MANAGER = new EasyPropManager("hashmap", CogHashmap::registerProps);
 
+    @Contract(pure = true)
     public CogHashmap(HashMap<String, CogPropertyManager> value) {
         this.value = value;
     }
+    @Contract(pure = true)
     public CogHashmap() {
         this.value = new HashMap<>();
     }
@@ -36,7 +40,7 @@ public class CogHashmap implements CogPropertyManager {
     }
 
     private final HashMap<String, CogPropertyManager> value;
-    private static void registerProps(EasyPropManager manager) {
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("get", (name, args, script, o) -> {
             CogHashmap hashmap = (CogHashmap) o;
             return hashmap.value.get(args.get(0).convertToString());

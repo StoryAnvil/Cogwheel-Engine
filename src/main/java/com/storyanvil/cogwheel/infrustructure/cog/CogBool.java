@@ -13,22 +13,23 @@ package com.storyanvil.cogwheel.infrustructure.cog;
 
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.CogStringGen;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.nbt.CompoundTag;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class CogBool implements CogPropertyManager, CogStringGen<CogBool>, CogPrimalType {
+public final class CogBool implements CogPropertyManager, CogPrimalType {
     private static final EasyPropManager MANAGER = new EasyPropManager("bool", CogBool::registerProps);
     public static final CogBool TRUE = new CogBool(true);
     public static final CogBool FALSE = new CogBool(false);
+    @Contract(pure = true)
     public static CogBool getInstance(boolean value) {
         return value ? TRUE : FALSE;
     }
 
-    private static void registerProps(EasyPropManager manager) {
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("not", (name, args, script, o) -> {
             CogBool bool = (CogBool) o;
             if (bool.value) return FALSE;
@@ -46,12 +47,10 @@ public final class CogBool implements CogPropertyManager, CogStringGen<CogBool>,
             CogBool bool = (CogBool) o;
             return getInstance(args.requireBoolean(0) != bool.value);
         });
-        manager.logMe(o -> {
-            return ((CogBool) o).value ? "TRUE" : "FALSE";
-        });
     }
 
     private boolean value;
+    @Contract(pure = true)
     private CogBool(boolean value) {
         this.value = value;
     }
@@ -66,15 +65,18 @@ public final class CogBool implements CogPropertyManager, CogStringGen<CogBool>,
         return MANAGER.get(name).handle(name, args, script, this);
     }
 
+    @Contract(pure = true)
     @Override
-    public String convertToString() {
+    public @NotNull String convertToString() {
         return value ? "TRUE" : "FALSE";
     }
 
+    @Contract(pure = true)
     public boolean getValue() {
         return value;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
     public boolean equalsTo(CogPropertyManager o) {
         if (o instanceof CogBool other) {
@@ -83,25 +85,20 @@ public final class CogBool implements CogPropertyManager, CogStringGen<CogBool>,
         return false;
     }
 
-    @Override
-    public @Nullable CogBool fromString(@NotNull String s) {
-        if (s.equals("TRUE")) return TRUE;
-        if (s.equals("FALSE")) return FALSE;
-        return null;
-    }
-
+    @Contract(pure = true)
     @Override
     public int hashCode() {
         return value ? 0 : 1;
     }
 
+    @Contract(pure = true)
     @Override
     public byte getPrimalID() {
         return (byte) -218;
     }
 
     @Override
-    public void putPrimal(CompoundTag tag, String key) {
+    public void putPrimal(@NotNull CompoundTag tag, String key) {
         tag.putBoolean(key, value);
     }
 }

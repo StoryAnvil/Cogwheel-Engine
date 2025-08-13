@@ -12,7 +12,6 @@
 package com.storyanvil.cogwheel.entity;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
@@ -42,6 +41,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -57,6 +57,7 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class NPC extends Animal implements
         StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder,
         StoryNavigator, ObjectMonitor.IMonitored, CogPropertyManager,
@@ -72,20 +73,18 @@ public class NPC extends Animal implements
         }
     }
 
-    private Queue<StoryAction<? extends NPC>> actionQueue = new ArrayDeque<>();
+    private final Queue<StoryAction<? extends NPC>> actionQueue = new ArrayDeque<>();
     private StoryAction current;
     private CogEntity me;
 
-    private static EntityDataAccessor<String> SKIN = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
-    private static EntityDataAccessor<String> NAME = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<String> SKIN = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
 
     @Override
     public void tick() {
         super.tick();
 
-        if (this.level().isClientSide) {
-//            setupState();
-        } else {
+        if (!this.level().isClientSide) {
             if (current != null) {
                 if (current.freeToGo(this)) {
                     current = null;
@@ -158,7 +157,7 @@ public class NPC extends Animal implements
     }
 
     @Nullable @Override
-    public AgeableMob getBreedOffspring(ServerLevel pLevel, AgeableMob pOtherParent) {
+    public AgeableMob getBreedOffspring(@NotNull ServerLevel pLevel, @NotNull AgeableMob pOtherParent) {
         return null;
     }
 

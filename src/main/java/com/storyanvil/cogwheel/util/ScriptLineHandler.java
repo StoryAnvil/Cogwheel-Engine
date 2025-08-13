@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel.util;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,7 @@ public interface ScriptLineHandler {
      * @param script script executing line
      * @return DoubleValue provided by one of static ScriptLineHandler methods
      */
-    @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception;
+    @NotNull Bi<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception;
 
     /**
      * @return resource location for this ScriptLineHandler. Return value of this method must be constant!
@@ -35,30 +36,32 @@ public interface ScriptLineHandler {
      * Use ScriptLineHandler#ignore method instead
      */
     @ApiStatus.Internal
-    DoubleValue<Boolean, Boolean> ignore = new DoubleValue<>(false, true);
+    Bi<Boolean, Boolean> ignore = new Bi<>(false, true);
     /**
      * Use ScriptLineHandler#continueReading method instead
      */
     @ApiStatus.Internal
-    DoubleValue<Boolean, Boolean> continueReading = new DoubleValue<>(true, true);
+    Bi<Boolean, Boolean> continueReading = new Bi<>(true, true);
     /**
      * Use ScriptLineHandler#blocking method instead
      */
     @ApiStatus.Internal
-    DoubleValue<Boolean, Boolean> blocking = new DoubleValue<>(true, false);
+    Bi<Boolean, Boolean> blocking = new Bi<>(true, false);
 
     /**
      * Use this method if your ScriptLineHandler is not applicable for provided line of CogScript code
      * @return DoubleValue for returning in ScriptLineHandler#handle.
      */
-    static DoubleValue<Boolean, Boolean> ignore() {
+    @Contract(pure = true)
+    static Bi<Boolean, Boolean> ignore() {
         return ignore;
     }
     /**
      * Use this method if your ScriptLineHandler is applicable for provided line of CogScript code and line was in fact handled so dispatched script can continue executing lines
      * @return DoubleValue for returning in ScriptLineHandler#handle.
      */
-    static DoubleValue<Boolean, Boolean> continueReading() {
+    @Contract(pure = true)
+    static Bi<Boolean, Boolean> continueReading() {
         return continueReading;
     }
     /**
@@ -66,7 +69,8 @@ public interface ScriptLineHandler {
      * <br>If you are using this make sure to schedule DispatchedScript#lineDispatcher somehow so script will be able to continue execution
      * @return DoubleValue for returning in ScriptLineHandler#handle.
      */
-    static DoubleValue<Boolean, Boolean> blocking() {
+    @Contract(pure = true)
+    static Bi<Boolean, Boolean> blocking() {
         return blocking;
     }
 }

@@ -12,7 +12,7 @@
 package com.storyanvil.cogwheel;
 
 import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
-import com.storyanvil.cogwheel.util.DoubleValue;
+import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.StoryUtils;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import net.minecraft.client.Minecraft;
@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
 public class CogwheelExecutor {
@@ -76,25 +75,25 @@ public class CogwheelExecutor {
      * Schedules task to be executed as soon as possible on Minecraft's Server thread on nearest server-side level tick
      */
     public static void scheduleTickEvent(Consumer<TickEvent.LevelTickEvent> task) {
-        EventBus.queue.add(new DoubleValue<>(task, 0));
+        EventBus.queue.add(new Bi<>(task, 0));
     }
     /**
      * Schedules task to be executed after provided amount of ticks on Minecraft's Server thread on nearest server-side level tick
      */
     public static void scheduleTickEvent(Consumer<TickEvent.LevelTickEvent> task, int ticks) {
-        EventBus.queue.add(new DoubleValue<>(task, ticks));
+        EventBus.queue.add(new Bi<>(task, ticks));
     }
     /**
      * Schedules task to be executed as soon as possible on Minecraft's Render thread on nearest client-side level tick
      */
     public static void scheduleTickEventClientSide(Consumer<TickEvent.LevelTickEvent> task) {
-        EventBus.clientQueue.add(new DoubleValue<>(task, 0));
+        EventBus.clientQueue.add(new Bi<>(task, 0));
     }
     /**
      * Schedules task to be executed after provided amount of ticks on Minecraft's Render thread on nearest client-side level tick
      */
     public static void scheduleTickEventClientSide(Consumer<TickEvent.LevelTickEvent> task, int ticks) {
-        EventBus.clientQueue.add(new DoubleValue<>(task, ticks));
+        EventBus.clientQueue.add(new Bi<>(task, ticks));
     }
 
     /**

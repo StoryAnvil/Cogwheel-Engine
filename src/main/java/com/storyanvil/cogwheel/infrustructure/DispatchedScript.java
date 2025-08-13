@@ -13,10 +13,12 @@ package com.storyanvil.cogwheel.infrustructure;
 
 import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
-import com.storyanvil.cogwheel.util.DoubleValue;
+import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
 import com.storyanvil.cogwheel.util.ScriptLineHandler;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,7 +61,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         return scriptName;
     }
 
-    private boolean executeLine(String line) {
+    private boolean executeLine(@NotNull String line) {
         int labelEnd = line.indexOf(":::");
         String label = null;
         if (labelEnd != -1) {
@@ -68,7 +70,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         }
         for (ScriptLineHandler handler : CogwheelRegistries.getLineHandlers()) {
             try {
-                DoubleValue<Boolean, Boolean> result = handler.handle(line, label, this);
+                Bi<Boolean, Boolean> result = handler.handle(line, label, this);
                 if (result.getA()) {
                     return result.getB();
                 }
@@ -99,7 +101,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         if (o == null) return;
         storage.put(key, o);
     }
-    public CogPropertyManager get(String key) {
+    public @Nullable CogPropertyManager get(String key) {
         return storage.get(key);
     }
     public boolean hasKey(String key) {
@@ -115,7 +117,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     }
 
     @Override
-    public void reportState(StringBuilder sb) {
+    public void reportState(@NotNull StringBuilder sb) {
         sb.append(scriptName).append(">");
         for (String line : linesToExecute) {
             sb.append('"').append(line).append("\" ");

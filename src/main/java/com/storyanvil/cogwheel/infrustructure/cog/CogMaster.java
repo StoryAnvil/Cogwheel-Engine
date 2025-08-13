@@ -66,7 +66,7 @@ public class CogMaster implements CogPropertyManager {
     }
 
     @SuppressWarnings("CodeBlock2Expr")
-    private static void register(EasyPropManager manager) {
+    private static void register(@NotNull EasyPropManager manager) {
         manager.reg("log", (name, args, script, o) -> {
             CogwheelExecutor.log.info("{}: {}", script.getScriptName(), args.getString(0));
             return null;
@@ -79,7 +79,7 @@ public class CogMaster implements CogPropertyManager {
                         getNPCByTag((ServerLevel) event.level, variable, args.getString(0), script);
                     });
                 }
-                public static void getNPCByTag(ServerLevel level, String variable, String tag, DispatchedScript notify) {
+                public static void getNPCByTag(@NotNull ServerLevel level, String variable, String tag, @NotNull DispatchedScript notify) {
                     final NPC[] npc = {null};
                     level.getEntities().get(new EntityTypeTest<Entity, NPC>() {
                         @Override

@@ -20,6 +20,7 @@ import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.util.CogExpressionFailure;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CogManifest implements CogPropertyManager {
@@ -34,7 +35,7 @@ public class CogManifest implements CogPropertyManager {
         return instance;
     }
 
-    private static void registerProps(EasyPropManager manager) {
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("subscribeEvent", (name, args, script, o) -> {
             script.getEnvironment().subscribeForEvent(ResourceLocation.parse(args.getString(0)), args.getString(1));
             return null;

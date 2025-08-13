@@ -34,10 +34,10 @@ public class BlocksTags extends BlockTagsProvider {
     protected void addTags(HolderLookup.@NotNull Provider provider) {
     }
 
-    public static TagKey<Block> t(String namespace, String path) {
+    public static @NotNull TagKey<Block> t(String namespace, String path) {
         return TagKey.create(ForgeRegistries.BLOCKS.getRegistryKey(), ResourceLocation.fromNamespaceAndPath(namespace, path));
     }
-    public static TagKey<Block> t(String path) {
+    public static @NotNull TagKey<Block> t(String path) {
         return TagKey.create(ForgeRegistries.BLOCKS.getRegistryKey(), ResourceLocation.fromNamespaceAndPath(CogwheelEngine.MODID, path));
     }
 }

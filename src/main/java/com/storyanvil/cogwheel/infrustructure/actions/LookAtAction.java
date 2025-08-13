@@ -18,9 +18,10 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 public class LookAtAction extends StoryAction<Entity> {
-    private Vec3 target;
+    private final Vec3 target;
     private float xRot;
     private float yRot;
     private float yHeadRot;
@@ -44,7 +45,7 @@ public class LookAtAction extends StoryAction<Entity> {
     }
 
     @Override
-    public boolean freeToGo(Entity myself) {
+    public boolean freeToGo(@NotNull Entity myself) {
         delta += 0.1f;
         delta = Math.min(delta, 1f);
         myself.setXRot(Mth.rotLerp(delta, myself.getXRot(), xRot));

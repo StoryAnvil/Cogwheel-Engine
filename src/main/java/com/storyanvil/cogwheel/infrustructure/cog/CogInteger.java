@@ -13,22 +13,19 @@ package com.storyanvil.cogwheel.infrustructure.cog;
 
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.CogStringGen;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.nbt.CompoundTag;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class CogInteger implements CogPropertyManager, CogStringGen<CogInteger>, CogPrimalType {
+public final class CogInteger implements CogPropertyManager, CogPrimalType {
     private static final EasyPropManager MANAGER = new EasyPropManager("int", CogInteger::registerProps);
 
-    private static void registerProps(EasyPropManager manager) {
-        manager.logMe(o -> {
-            return String.valueOf(((CogInteger) o).value);
-        });
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("add", (name, args, script, o) -> {
             CogInteger i = (CogInteger) o;
             i.value += args.requireInt(0);
@@ -77,6 +74,7 @@ public final class CogInteger implements CogPropertyManager, CogStringGen<CogInt
     }
 
     private int value;
+    @Contract(pure = true)
     public CogInteger(int value) {
         this.value = value;
     }
@@ -94,6 +92,7 @@ public final class CogInteger implements CogPropertyManager, CogStringGen<CogInt
         return MANAGER.get(name).handle(name, args, script, this);
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
     public boolean equalsTo(CogPropertyManager o) {
         if (o instanceof CogInteger other) {
@@ -102,34 +101,30 @@ public final class CogInteger implements CogPropertyManager, CogStringGen<CogInt
         return false;
     }
 
+    @Contract(pure = true)
     public int getValue() {
         return value;
     }
 
+    @Contract(pure = true)
     @Override
-    public String convertToString() {
+    public @NotNull String convertToString() {
         return String.valueOf(value);
     }
 
-    @Override
-    public @Nullable CogInteger fromString(@NotNull String s) {
-        if (s.charAt(0) == '^') {
-            return new CogInteger(s.substring(1));
-        }
-        return null;
-    }
     @Override
     public int hashCode() {
         return Objects.hashCode(value);
     }
 
+    @Contract(pure = true)
     @Override
     public byte getPrimalID() {
         return (byte) -217;
     }
 
     @Override
-    public void putPrimal(CompoundTag tag, String key) {
+    public void putPrimal(@NotNull CompoundTag tag, String key) {
         tag.putInt(key, value);
     }
 }

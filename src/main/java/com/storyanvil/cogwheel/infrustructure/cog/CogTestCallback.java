@@ -18,6 +18,7 @@ import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CogTestCallback implements CogPropertyManager {
@@ -34,7 +35,7 @@ public class CogTestCallback implements CogPropertyManager {
         return successful;
     }
 
-    private static void registerProps(EasyPropManager manager) {
+    private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("done", (name, args, script, o) -> {
             CogTestCallback callback = (CogTestCallback) o;
             callback.complete = true;

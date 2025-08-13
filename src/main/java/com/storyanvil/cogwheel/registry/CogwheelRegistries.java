@@ -11,24 +11,22 @@
 
 package com.storyanvil.cogwheel.registry;
 
-import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.infrustructure.*;
 import com.storyanvil.cogwheel.infrustructure.cog.*;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import static com.storyanvil.cogwheel.CogwheelEngine.LOGGER;
 import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
 
 public class CogwheelRegistries {
-    private static final List<DoubleValue<String, Function<DispatchedScript, CogPropertyManager>>> defaultVariables = new ArrayList<>();
+    private static final List<Bi<String, Function<DispatchedScript, CogPropertyManager>>> defaultVariables = new ArrayList<>();
     private static final ArrayList<ScriptLineHandler> lineHandlers = new ArrayList<>();
     /**
      * Registries ScriptLineHandler
@@ -57,17 +55,18 @@ public class CogwheelRegistries {
     public static void register(@NotNull String name, @NotNull Function<DispatchedScript, CogPropertyManager> f) {
         synchronized (defaultVariables) {
             if (name.equalsIgnoreCase("storyanvil") || name.equalsIgnoreCase("cogwheel")) throw new IllegalArgumentException("Name not permitted");
-            defaultVariables.add(new DoubleValue<>(name, f));
+            defaultVariables.add(new Bi<>(name, f));
         }
     }
 
     @ApiStatus.Internal
     protected static void registerInternal(@NotNull String name, @NotNull Function<DispatchedScript, CogPropertyManager> f) {
         synchronized (defaultVariables) {
-            defaultVariables.add(new DoubleValue<>(name, f));
+            defaultVariables.add(new Bi<>(name, f));
         }
     }
 
+    @Contract(pure = true)
     @ApiStatus.Internal
     public static List<ScriptLineHandler> getLineHandlers() {
         return lineHandlers;
@@ -77,7 +76,7 @@ public class CogwheelRegistries {
     public static void registerDefaultObjects() {
         registerInternal(new ScriptLineHandler() {
             @Override
-            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+            public @NotNull Bi<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) {
                 if (line.startsWith("#") || line.isEmpty()) return ScriptLineHandler.continueReading();
                 return ScriptLineHandler.ignore();
             }
@@ -87,31 +86,13 @@ public class CogwheelRegistries {
                 return ResourceLocation.fromNamespaceAndPath(MODID, "comment");
             }
         });
-//        registerInternal(new ScriptLineHandler() {
-//            @Override
-//            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String _line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-//                if (!_line.startsWith("*")) return ScriptLineHandler.ignore();
-//                String line = _line.substring(1);
-//                int bracket = line.indexOf('(');
-//                if (bracket == -1) return ScriptLineHandler.ignore();
-//                String sub = line.substring(0, bracket + 1);
-//                if (!methodLikes.containsKey(sub)) return ScriptLineHandler.ignore();
-//                MethodLikeLineHandler handler = methodLikes.get(sub);
-//                return handler.methodHandler(line.substring(sub.length(), line.length() - 1), label, script);
-//            }
-//
-//            @Override
-//            public @NotNull ResourceLocation getResourceLocation() {
-//                return ResourceLocation.fromNamespaceAndPath(MODID, "method_like");
-//            }
-//        });
         registerInternal(new ScriptLineHandler() {
             @Override
-            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+            public @NotNull Bi<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) {
                 if (line.startsWith("if (") && line.endsWith("{")) {
                     int endBracket = line.lastIndexOf(')');
                     String expression = line.substring(4, endBracket);
-                    DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> out = expressionHandler(expression, script, false);
+                    Bi<Bi<Boolean, Boolean>, CogPropertyManager> out = expressionHandler(expression, script, false);
                     if (out.getB() instanceof CogBool bool) {
                         if (bool.getValue()) {
                             // Remove closing bracket of this IF
@@ -155,8 +136,8 @@ public class CogwheelRegistries {
         });
         registerInternal(new ScriptLineHandler() {
             @Override
-            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String _line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> parseOutput = expressionHandler(_line, script, true);
+            public @NotNull Bi<Boolean, Boolean> handle(@NotNull String _line, @Nullable String label, @NotNull DispatchedScript script) {
+                Bi<Bi<Boolean, Boolean>, CogPropertyManager> parseOutput = expressionHandler(_line, script, true);
                 return parseOutput.getA();
             }
 
@@ -167,42 +148,7 @@ public class CogwheelRegistries {
         });
         registerInternal(new ScriptLineHandler() {
             @Override
-            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
-                if (line.startsWith("*switch ")) {
-                    CogPropertyManager var = script.get(line.substring(8));
-                    if (var instanceof CogStringGen<?> gen) {
-                        while (true) {
-                            String l = script.peekLine();
-                            int arrow = l.indexOf("->");
-                            if (arrow == -1) break;
-                            script.removeLine();
-                            String left = l.substring(0, arrow).trim();
-                            String right = l.substring(arrow + 2).trim();
-                            if (left.equals("*")) {
-                                skip("@marker " + right, script);
-                                return ScriptLineHandler.continueReading();
-                            }
-                            CogStringGen<?> compareTo = gen.fromString(left);
-                            if (compareTo == null) throw new RuntimeException("Unexpected switch left hand");
-                            if (compareTo.equalsTo(gen)) {
-                                skip("@marker " + right, script);
-                                return ScriptLineHandler.continueReading();
-                            }
-                        }
-                        return ScriptLineHandler.continueReading();
-                    } else throw new RuntimeException("Switch variable");
-                }
-                return ScriptLineHandler.ignore();
-            }
-
-            @Override
-            public @NotNull ResourceLocation getResourceLocation() {
-                return ResourceLocation.fromNamespaceAndPath(MODID, "switch_case");
-            }
-        });
-        registerInternal(new ScriptLineHandler() {
-            @Override
-            public @NotNull DoubleValue<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+            public @NotNull Bi<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) {
                 if (line.startsWith("@skipTo ")) {
                     skip("@marker " + line.substring(8), script);
                 } else if (line.startsWith("@stop")) {
@@ -256,30 +202,32 @@ public class CogwheelRegistries {
     }
 
     public static void putDefaults(HashMap<String, CogPropertyManager> storage, DispatchedScript script) {
-        for (DoubleValue<String, Function<DispatchedScript, CogPropertyManager>> pair : defaultVariables) {
+        for (Bi<String, Function<DispatchedScript, CogPropertyManager>> pair : defaultVariables) {
             storage.put(pair.getA(), pair.getB().apply(script));
         }
     }
-    public static DoubleValue<DoubleValue<Boolean, Boolean>, CogPropertyManager> expressionHandler(String line, DispatchedScript script, boolean allowBlocking) {
+    @Contract("_, _, _ -> new")
+    @SuppressWarnings("ExtractMethodRecommender")
+    public static @NotNull Bi<Bi<Boolean, Boolean>, CogPropertyManager> expressionHandler(String line, DispatchedScript script, boolean allowBlocking) {
         // Return: DoubleValue<ScriptLineHandler.*(), ExpressionReturn>
         line = line.trim();
         int currentStart = 0;
 
         // Variable search
-        String variable = "";
+        StringBuilder variable = new StringBuilder();
         boolean hasVariable = false;
         for (int i = currentStart; i < line.length(); i++) {
             char c = line.charAt(i);
             if (c == '=') {
                 hasVariable = true;
-                variable = variable.trim();
+                variable = new StringBuilder(variable.toString().trim());
                 currentStart = i + 1;
                 break;
             } else if (c == '.') {
                 variable = null;
                 break;
             } else {
-                variable += c;
+                variable.append(c);
             }
         }
         if (!hasVariable) {
@@ -297,9 +245,9 @@ public class CogwheelRegistries {
 
         if (cm != null) {
             if (variable != null) {
-                script.put(variable, cm);
+                script.put(variable.toString(), cm);
             }
-            return new DoubleValue<>(ScriptLineHandler.continueReading(), cm);
+            return new Bi<>(ScriptLineHandler.continueReading(), cm);
         }
 
         // Chain call search
@@ -329,7 +277,6 @@ public class CogwheelRegistries {
         } else {
             throw new CogExpressionFailure("Tail closing bracket mismatch! \"" + line + "\"");
         }
-        currentName = null;
 
         if (chainCalls.get(0).endsWith(")")) {
             throw new CogExpressionFailure("Expression does not have first step! \"" + line + "\"");
@@ -337,11 +284,11 @@ public class CogwheelRegistries {
         if (chainCalls.size() == 1) {
             cm = script.get(chainCalls.get(0));
             if (variable != null) {
-                script.put(variable, cm);
+                script.put(variable.toString(), cm);
             }
-            return new DoubleValue<>(ScriptLineHandler.continueReading(), cm);
+            return new Bi<>(ScriptLineHandler.continueReading(), cm);
         }
-        CogPropertyManager manager = script.get(chainCalls.get(0).stripLeading());
+        @NotNull CogPropertyManager manager = CogPropertyManager.noNull(script.get(chainCalls.get(0).stripLeading()));
         for (int i = 1 /* do not take first step */; i < chainCalls.size(); i++) {
             String step = chainCalls.get(i);
             if (!step.endsWith(")")) {
@@ -350,30 +297,27 @@ public class CogwheelRegistries {
             int firstBracket = step.indexOf('(');
             String propName = step.substring(0, firstBracket);
             ArgumentData argumentData = ArgumentData.createFromString(step.substring(firstBracket + 1, step.length() - 1), script);
-            if (manager == null) {
-                throw new CogExpressionFailure("Calling \"" + propName + "\" property is not possible as current object is NULL \"" + line + "\"");
-            }
             if (!manager.hasOwnProperty(propName)) {
                 throw new CogExpressionFailure(manager.getClass().getCanonicalName() + " object does not have property \"" + propName + "\"! \"" + line + "\"");
             }
             try {
-                manager = manager.getProperty(propName, argumentData, script);
+                manager = CogPropertyManager.noNull(manager.getProperty(propName, argumentData, script));
             } catch (PreventSubCalling preventSubCalling) {
                 if (!allowBlocking) {
                     throw new CogExpressionFailure("SubCalling Prevention is not allowed in this context! \"" + line + "\"");
                 }
-                preventSubCalling.getPostPrevention().prevent(variable);
-                return new DoubleValue<>(ScriptLineHandler.blocking(), manager);
+                preventSubCalling.getPostPrevention().prevent(variable != null ? variable.toString() : null);
+                return new Bi<>(ScriptLineHandler.blocking(), manager);
             } catch (RuntimeException e) {
                 throw new RuntimeException("Expression handler caught while getting property. ArgData: " + argumentData, e);
             }
         }
         if (variable != null) {
-            script.put(variable, manager);
+            script.put(variable.toString(), manager);
         }
-        return new DoubleValue<>(ScriptLineHandler.continueReading(), manager);
+        return new Bi<>(ScriptLineHandler.continueReading(), manager);
     }
-    public static void skip(String label, DispatchedScript script) {
+    public static void skip(String label, @NotNull DispatchedScript script) {
         String line = script.pullLine();
         while (!line.equals(label)) {
             line = script.pullLine();

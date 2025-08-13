@@ -12,8 +12,6 @@
 package com.storyanvil.cogwheel.infrustructure;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.infrustructure.cog.CogHashmap;
-import com.storyanvil.cogwheel.infrustructure.cog.CogManifest;
 import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +39,7 @@ public class CogScriptDispatcher {
     public static void dispatch(String scriptName, HashMap<String, CogPropertyManager> storage, Consumer<DispatchedScript> s, CogScriptEnvironment environment) {
         CogwheelExecutor.schedule(() -> s.accept(dispatcher(scriptName, storage, environment)));
     }
-    private static DispatchedScript dispatcher(String scriptName, HashMap<String, CogPropertyManager> storage, CogScriptEnvironment environment) {
+    private static @Nullable DispatchedScript dispatcher(String scriptName, HashMap<String, CogPropertyManager> storage, CogScriptEnvironment environment) {
         File script = new File(Minecraft.getInstance().gameDirectory, "config/" + scriptName);
         if (!script.exists()) {
             log.error("Script {} does not exist. Dispatch ignored!", script);

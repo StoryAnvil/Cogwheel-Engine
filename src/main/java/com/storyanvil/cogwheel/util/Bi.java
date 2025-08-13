@@ -9,15 +9,39 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel;
+package com.storyanvil.cogwheel.util;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.Contract;
 
-@Mod.EventBusSubscriber(modid = CogwheelEngine.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class ClientModEventBus {
-//    @SubscribeEvent
-//    public static void registerLayer(EntityRenderersEvent.RegisterLayerDefinitions event) {
-//        event.registerLayerDefinition(NPCRenderer.NPC_LAYER, NPCModel::createBodyLayer);
-//    }
+public class Bi<A,B> {
+    private A a;
+    private B b;
+
+    @Contract(pure = true)
+    public Bi(A a, B b) {
+        this.a = a;
+        this.b = b;
+    }
+
+    @Contract(pure = true)
+    public Bi() {
+        a = null;
+        b = null;
+    }
+
+    public A getA() {
+        return a;
+    }
+
+    public void setA(A a) {
+        this.a = a;
+    }
+
+    public B getB() {
+        return b;
+    }
+
+    public void setB(B b) {
+        this.b = b;
+    }
 }

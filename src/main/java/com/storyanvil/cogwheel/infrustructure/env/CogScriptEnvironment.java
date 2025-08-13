@@ -26,6 +26,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -42,6 +43,7 @@ import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 public abstract class CogScriptEnvironment {
     private final HashMap<ResourceLocation, List<String>> eventSubscribers;
 
+    @Contract(pure = true)
     public CogScriptEnvironment() {
         this.eventSubscribers = new HashMap<>();
     }
@@ -239,7 +241,7 @@ public abstract class CogScriptEnvironment {
             super();
             data = new HashMap<>();
         }
-        private EnvironmentData(CompoundTag tag) {
+        private EnvironmentData(@NotNull CompoundTag tag) {
             super();
             data = new HashMap<>();
             for (String key : tag.getAllKeys()) {
