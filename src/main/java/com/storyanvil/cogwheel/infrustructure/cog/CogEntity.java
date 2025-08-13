@@ -116,6 +116,10 @@ public class CogEntity implements CogPropertyManager {
             CogEntity e = (CogEntity) o;
             return CogBool.getInstance(DataStorage.getBoolean(e.e.get(), args.getString(0), false));
         });
+        manager.reg("getDisplayName", (name, args, script, o) -> {
+            CogEntity e = (CogEntity) o;
+            return new CogString(e.e.get().getDisplayName().getString());
+        });
     }
 
     private final WeakReference<Entity> e;

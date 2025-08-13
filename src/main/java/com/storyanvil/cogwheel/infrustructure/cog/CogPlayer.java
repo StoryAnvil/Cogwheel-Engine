@@ -34,6 +34,9 @@ public class CogPlayer extends CogEntity implements CogPropertyManager {
             p.player.get().sendSystemMessage(Component.literal(args.getString(0)));
             return null;
         });
+        manager.reg("toEntity", (name, args, script, o) -> {
+            return new CogEntity(((CogPlayer) o).player.get());
+        });
     }
 
     private WeakReference<ServerPlayer> player;
