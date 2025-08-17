@@ -155,6 +155,20 @@ public class CogMaster implements CogPropertyManager {
                 script.getEnvironment().dispatchScript(args.getString(0), ((CogHashmap) args.get(1)).getValue());
             return null;
         });
+        manager.reg("scheduleScript", (name, args, script, o) -> {
+            CogwheelExecutor.schedule(() -> {
+                script.getEnvironment().dispatchScript(args.getString(0));
+            }, args.requireInt(1));
+            return null;
+        });
+        manager.reg("scheduleThis", (name, args, script, o) -> {
+            throw new PreventSubCalling(new SubCallPostPrevention() {
+                @Override
+                public void prevent(String variable) {
+                    CogwheelExecutor.schedule(script::lineDispatcher, args.requireInt(0));
+                }
+            });
+        });
         manager.reg("dispatchScriptGlobal", (name, args, script, o) -> {
             if (args.size() == 1)
                 CogScriptEnvironment.dispatchScriptGlobal(args.getString(0));
@@ -251,6 +265,9 @@ public class CogMaster implements CogPropertyManager {
         });
         manager.reg("createHashmap", (name, args, script, o) -> {
             return new CogHashmap();
+        });
+        manager.reg("time", (name, args, script, o) -> {
+            return new CogLong(System.currentTimeMillis() - script.getEnvironment().getCreationTime());
         });
     }
 

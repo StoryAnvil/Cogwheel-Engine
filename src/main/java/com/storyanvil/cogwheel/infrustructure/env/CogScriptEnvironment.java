@@ -42,10 +42,12 @@ import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public abstract class CogScriptEnvironment {
     private final HashMap<ResourceLocation, List<String>> eventSubscribers;
+    private final long creationTime;
 
     @Contract(pure = true)
     public CogScriptEnvironment() {
         this.eventSubscribers = new HashMap<>();
+        this.creationTime = System.currentTimeMillis();
     }
 
     public static LibraryEnvironment getLibEnvironment(String string) {
@@ -141,6 +143,10 @@ public abstract class CogScriptEnvironment {
     }
 
     public abstract String getUniqueIdentifier();
+
+    public long getCreationTime() {
+        return creationTime;
+    }
 
     @Override
     public String toString() {

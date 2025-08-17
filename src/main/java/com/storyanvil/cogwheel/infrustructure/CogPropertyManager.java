@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel.infrustructure;
 import com.storyanvil.cogwheel.infrustructure.cog.CogLike;
 import com.storyanvil.cogwheel.infrustructure.cog.CogString;
 import com.storyanvil.cogwheel.infrustructure.cog.PreventSubCalling;
+import com.storyanvil.cogwheel.util.EasyPropManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,17 +42,22 @@ public interface CogPropertyManager extends CogLike {
     }
 
     class NullManager implements CogPropertyManager {
+        private static final EasyPropManager MANAGER = new EasyPropManager("nil", NullManager::registerProps);
+
+        private static void registerProps(EasyPropManager manager) {
+        }
+
         @Contract(pure = true)
         private NullManager() {}
 
         @Override
         public boolean hasOwnProperty(String name) {
-            return false;
+            return MANAGER.hasOwnProperty(name);
         }
 
         @Override
         public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
-            return null;
+            return MANAGER.get(name).handle(name, args, script, this);
         }
 
         @Override

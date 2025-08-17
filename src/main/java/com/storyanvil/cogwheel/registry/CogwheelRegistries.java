@@ -240,7 +240,11 @@ public class CogwheelRegistries {
         if (leftLine.startsWith("\"") && leftLine.endsWith("\"")) {
             cm = new CogString(leftLine.substring(1, leftLine.length() - 1));
         } else if (leftLine.startsWith("^")) {
-            cm = new CogInteger(leftLine.substring(1));
+            if (!leftLine.endsWith("L")) {
+                cm = new CogInteger(leftLine.substring(1));
+            } else {
+                cm = new CogLong(leftLine.substring(1, leftLine.length() - 1));
+            }
         }
 
         if (cm != null) {

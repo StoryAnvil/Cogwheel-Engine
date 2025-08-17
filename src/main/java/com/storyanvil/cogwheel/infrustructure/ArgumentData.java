@@ -23,8 +23,10 @@ import java.util.stream.Collectors;
 public class ArgumentData {
     private final CogPropertyManager[] args;
     private final DispatchedScript script;
+    private final String full;
     @Contract(pure = true)
-    private ArgumentData(CogPropertyManager[] args, DispatchedScript script) {
+    private ArgumentData(CogPropertyManager[] args, String full, DispatchedScript script) {
+        this.full = full;
         this.args = args;
         this.script = script;
     }
@@ -45,6 +47,13 @@ public class ArgumentData {
             return i.getValue();
         }
         throw new RuntimeException("Argument #" + argument + " is not CogInteger");
+    }
+    public long requireLong(int argument) {
+        CogPropertyManager m = get(argument);
+        if (m instanceof CogLong i) {
+            return i.getValue();
+        }
+        throw new RuntimeException("Argument #" + argument + " is not CogLong");
     }
     public boolean requireBoolean(int argument) {
         CogPropertyManager m = get(argument);
@@ -88,6 +97,10 @@ public class ArgumentData {
         return args;
     }
 
+    public String getFull() {
+        return full;
+    }
+
     public int size() {
         return args.length;
     }
@@ -119,7 +132,7 @@ public class ArgumentData {
         for (int i = 0; i < managers.length; i++) {
             managers[i] = CogwheelRegistries.expressionHandler(expressions.get(i), script, false).getB();
         }
-        return new ArgumentData(managers, script);
+        return new ArgumentData(managers, str, script);
     }
 
     @Override

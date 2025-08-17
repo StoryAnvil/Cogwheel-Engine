@@ -15,12 +15,15 @@ import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.Objects;
 
 public class CogPlayer extends CogEntity implements CogPropertyManager {
     private static final EasyPropManager MANAGER = new EasyPropManager("player", CogPlayer::registerProps);
@@ -34,6 +37,20 @@ public class CogPlayer extends CogEntity implements CogPropertyManager {
         });
         manager.reg("toEntity", (name, args, script, o) -> {
             return new CogEntity(((CogPlayer) o).player.get());
+        });
+        manager.reg("takeItem", (name, args, script, o) -> {
+            CogPlayer pll = (CogPlayer) o;
+            ServerPlayer p = Objects.requireNonNull(pll.player.get(), "player got unloaded");
+            p.getItemInHand(InteractionHand.MAIN_HAND).shrink(1);
+            return null;
+        });
+        manager.reg("getStoryTag", (name, args, script, o) -> {
+            CogPlayer pll = (CogPlayer) o;
+            ServerPlayer p = Objects.requireNonNull(pll.player.get(), "player got unloaded");
+            CompoundTag shareTag = p.getItemInHand(InteractionHand.MAIN_HAND).getShareTag();
+            if (shareTag == null) return null;
+            String s = shareTag.getString("story");
+            return new CogString(s);
         });
     }
 
