@@ -16,7 +16,7 @@ package com.storyanvil.cogwheel.infrustructure.cog;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import net.minecraft.nbt.CompoundTag;
 
-public sealed interface CogPrimalType extends CogPropertyManager, CogLike permits CogBool, CogString, CogInteger, CogDouble {
+public sealed interface CogPrimalType extends CogPropertyManager, CogLike permits CogBool, CogString, CogInteger, CogDouble, CogLong {
     byte getPrimalID();
     void putPrimal(CompoundTag tag, String key);
 }

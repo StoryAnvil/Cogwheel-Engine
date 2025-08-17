@@ -13,6 +13,8 @@ package com.storyanvil.cogwheel.util;
 
 import org.jetbrains.annotations.Contract;
 
+import java.util.Objects;
+
 public class Bi<A,B> {
     private A a;
     private B b;
@@ -43,5 +45,18 @@ public class Bi<A,B> {
 
     public void setB(B b) {
         this.b = b;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(a, b);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Bi<?,?> other) {
+            return Objects.equals(other.a, a) && Objects.equals(other.b, b);
+        }
+        return false;
     }
 }

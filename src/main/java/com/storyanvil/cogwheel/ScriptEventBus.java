@@ -3,6 +3,7 @@ package com.storyanvil.cogwheel;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.cog.*;
 import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.util.DataStorage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.ServerChatEvent;
@@ -11,6 +12,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Contract;
@@ -79,7 +81,14 @@ public class ScriptEventBus {
 
     @SubscribeEvent
     public static void blockRightClick(PlayerInteractEvent.@NotNull RightClickBlock event) {
+        if (event.getSide() == LogicalSide.CLIENT) return;
         if (event.getEntity() instanceof ServerPlayer player) {
+            long ct = System.currentTimeMillis();
+            long li = Long.parseLong(DataStorage.getString(player, "li", "0"));
+            if (ct - li <= 1000) {
+                return;
+            }
+            DataStorage.setString(player, "li", String.valueOf(ct));
             HashMap<String, CogPropertyManager> storage = new HashMap<>();
             CogEventCallback callback = new CogEventCallback();
             storage.put("internal_callback", callback);
@@ -94,6 +103,7 @@ public class ScriptEventBus {
 
     @SubscribeEvent
     public static void entityRightClick(PlayerInteractEvent.@NotNull EntityInteract event) {
+        if (event.getSide() == LogicalSide.CLIENT) return;
         if (event.getEntity() instanceof ServerPlayer player) {
             HashMap<String, CogPropertyManager> storage = new HashMap<>();
             CogEventCallback callback = new CogEventCallback();

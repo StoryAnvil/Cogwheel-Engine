@@ -154,13 +154,13 @@ public class CogwheelExecutor {
         }
 
         log.info("Environments will be notified of initialization");
-        defaultEnvironment.dispatchScript("init");
+        defaultEnvironment.dispatchScript("init.sa");
         for (CogScriptEnvironment.LibraryEnvironment environment : libraryEnvironments.values()) {
             if (!environment.init(new File(unpackedLibraries, environment.getUniqueIdentifier()))) {
                 libraryEnvironments.remove(environment.getUniqueIdentifier());
                 environment.dispose();
             }
-            environment.dispatchScript("init");
+            environment.dispatchScript("init.sa");
         }
     }
     @SubscribeEvent

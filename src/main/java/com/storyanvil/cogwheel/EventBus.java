@@ -16,6 +16,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.cog.CogTestCallback;
+import com.storyanvil.cogwheel.infrustructure.cog.StoryLevel;
 import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.network.belt.BeltCommunications;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
@@ -243,7 +244,7 @@ public class EventBus {
                         e.setB(e.getB() - 1);
                     }
                 }
-            } catch (IndexOutOfBoundsException e) {
+            } catch (Exception e) {
                 CogwheelEngine.LOGGER.warn("Client Queue bound error");
             }
             return;
@@ -268,7 +269,7 @@ public class EventBus {
                     e.setB(e.getB() - 1);
                 }
             }
-        } catch (IndexOutOfBoundsException e) {
+        } catch (Exception e) {
             CogwheelEngine.LOGGER.warn("Queue bound error");
         }
     }

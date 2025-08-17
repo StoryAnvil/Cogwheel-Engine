@@ -1,26 +1,25 @@
 /*
- * StoryAnvil CogWheel Engine
- * Copyright (C) 2025 StoryAnvil
  *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *  * StoryAnvil CogWheel Engine
+ *  * Copyright (C) 2025 StoryAnvil
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel;
+package com.storyanvil.cogwheel.infrustructure.cog;
 
+import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrustructure.ArgumentData;
 import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrustructure.StoryAction;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryActionQueue;
 import com.storyanvil.cogwheel.infrustructure.abilities.StoryChatter;
-import com.storyanvil.cogwheel.infrustructure.cog.CogArray;
-import com.storyanvil.cogwheel.infrustructure.cog.CogPlayer;
-import com.storyanvil.cogwheel.infrustructure.cog.PreventSubCalling;
-import com.storyanvil.cogwheel.infrustructure.cog.SubCallPostPrevention;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
 import net.minecraft.commands.CommandSource;

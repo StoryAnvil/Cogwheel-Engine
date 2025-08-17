@@ -22,34 +22,34 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class CogInteger implements CogPropertyManager, CogPrimalType {
-    private static final EasyPropManager MANAGER = new EasyPropManager("int", CogInteger::registerProps);
+public final class CogLong implements CogPropertyManager, CogPrimalType {
+    private static final EasyPropManager MANAGER = new EasyPropManager("long", CogLong::registerProps);
 
     private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("add", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            i.value += args.requireInt(0);
+            CogLong i = (CogLong) o;
+            i.value += args.requireLong(0);
             return i;
         });
         manager.reg("subtract", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            i.value -= args.requireInt(0);
+            CogLong i = (CogLong) o;
+            i.value -= args.requireLong(0);
             return i;
         });
         manager.reg("multiply", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            i.value *= args.requireInt(0);
+            CogLong i = (CogLong) o;
+            i.value *= args.requireLong(0);
             return i;
         });
         manager.reg("divide", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            i.value /= args.requireInt(0);
+            CogLong i = (CogLong) o;
+            i.value /= args.requireLong(0);
             return i;
         });
         manager.reg("clamp", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
-            int min = args.requireInt(0);
-            int max = args.requireInt(1);
+            CogLong i = (CogLong) o;
+            long min = args.requireLong(0);
+            long max = args.requireLong(1);
             if (i.value < min) {
                 i.value = min;
             }
@@ -59,35 +59,35 @@ public final class CogInteger implements CogPropertyManager, CogPrimalType {
             return i;
         });
         manager.reg("abs", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
+            CogLong i = (CogLong) o;
             i.value = Math.abs(i.value);
             return i;
         });
         manager.reg("toDouble", (name, args, script, o) -> {
-            CogInteger i = (CogInteger) o;
+            CogLong i = (CogLong) o;
             return new CogDouble(i.value);
         });
         manager.reg("clone", (name, args, script, o) -> {
-            CogInteger str = (CogInteger) o;
-            return new CogInteger(str.value);
+            CogLong str = (CogLong) o;
+            return new CogLong(str.value);
         });
         manager.reg("smaller", (name, args, script, o) -> {
-            CogInteger str = (CogInteger) o;
-            return CogBool.getInstance(str.value < args.requireInt(0));
+            CogLong str = (CogLong) o;
+            return CogBool.getInstance(str.value < args.requireLong(0));
         });
         manager.reg("bigger", (name, args, script, o) -> {
-            CogInteger str = (CogInteger) o;
-            return CogBool.getInstance(str.value > args.requireInt(0));
+            CogLong str = (CogLong) o;
+            return CogBool.getInstance(str.value > args.requireLong(0));
         });
     }
 
-    private int value;
+    private long value;
     @Contract(pure = true)
-    public CogInteger(int value) {
+    public CogLong(long value) {
         this.value = value;
     }
-    public CogInteger(String value) {
-        this(Integer.parseInt(value));
+    public CogLong(String value) {
+        this(Long.parseLong(value));
     }
 
     @Override
@@ -103,14 +103,14 @@ public final class CogInteger implements CogPropertyManager, CogPrimalType {
     @Contract(value = "null -> false", pure = true)
     @Override
     public boolean equalsTo(CogPropertyManager o) {
-        if (o instanceof CogInteger other) {
+        if (o instanceof CogLong other) {
             return other.value == this.value;
         }
         return false;
     }
 
     @Contract(pure = true)
-    public int getValue() {
+    public long getValue() {
         return value;
     }
 
@@ -128,11 +128,11 @@ public final class CogInteger implements CogPropertyManager, CogPrimalType {
     @Contract(pure = true)
     @Override
     public byte getPrimalID() {
-        return (byte) -217;
+        return (byte) 0;
     }
 
     @Override
     public void putPrimal(@NotNull CompoundTag tag, String key) {
-        tag.putInt(key, value);
+        tag.putLong(key, value);
     }
 }

@@ -118,6 +118,15 @@ public class CogEntity implements CogPropertyManager {
             CogEntity e = (CogEntity) o;
             return CogBool.getInstance(DataStorage.getBoolean(Objects.requireNonNull(e.e.get(), "entity got unloaded"), args.getString(0), false));
         });
+        manager.reg("putLong", (name, args, script, o) -> {
+            CogEntity e = (CogEntity) o;
+            DataStorage.setString(Objects.requireNonNull(e.e.get(), "entity got unloaded"), args.getString(0), String.valueOf(args.requireLong(1)));
+            return e;
+        });
+        manager.reg("getLong", (name, args, script, o) -> {
+            CogEntity e = (CogEntity) o;
+            return new CogLong(DataStorage.getString(Objects.requireNonNull(e.e.get(), "entity got unloaded"), args.getString(0), "0"));
+        });
         manager.reg("getDisplayName", (name, args, script, o) -> {
             CogEntity e = (CogEntity) o;
             return new CogString(Objects.requireNonNull(Objects.requireNonNull(e.e.get(), "entity got unloaded"), "entity got unloaded").getDisplayName().getString());
