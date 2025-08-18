@@ -76,7 +76,7 @@ public class CogwheelRegistries {
     public static void registerDefaultObjects() {
         registerInternal(new ScriptLineHandler() {
             @Override
-            public @NotNull Bi<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) {
+            public byte handle(@NotNull String line, @NotNull DispatchedScript script) {
                 if (line.startsWith("#") || line.isEmpty()) return ScriptLineHandler.continueReading();
                 return ScriptLineHandler.ignore();
             }
@@ -88,11 +88,11 @@ public class CogwheelRegistries {
         });
         registerInternal(new ScriptLineHandler() {
             @Override
-            public @NotNull Bi<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) {
+            public byte handle(@NotNull String line, @NotNull DispatchedScript script) {
                 if (line.startsWith("if (") && line.endsWith("{")) {
                     int endBracket = line.lastIndexOf(')');
                     String expression = line.substring(4, endBracket);
-                    Bi<Bi<Boolean, Boolean>, CogPropertyManager> out = expressionHandler(expression, script, false);
+                    Bi<Byte, CogPropertyManager> out = expressionHandler(expression, script, false);
                     if (out.getB() instanceof CogBool bool) {
                         if (bool.getValue()) {
                             // Remove closing bracket of this IF
@@ -136,8 +136,8 @@ public class CogwheelRegistries {
         });
         registerInternal(new ScriptLineHandler() {
             @Override
-            public @NotNull Bi<Boolean, Boolean> handle(@NotNull String _line, @Nullable String label, @NotNull DispatchedScript script) {
-                Bi<Bi<Boolean, Boolean>, CogPropertyManager> parseOutput = expressionHandler(_line, script, true);
+            public byte handle(@NotNull String _line, @NotNull DispatchedScript script) {
+                Bi<Byte, CogPropertyManager> parseOutput = expressionHandler(_line, script, true);
                 return parseOutput.getA();
             }
 
@@ -148,7 +148,7 @@ public class CogwheelRegistries {
         });
         registerInternal(new ScriptLineHandler() {
             @Override
-            public @NotNull Bi<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) {
+            public byte handle(@NotNull String line, @NotNull DispatchedScript script) {
                 if (line.startsWith("@skipTo ")) {
                     skip("@marker " + line.substring(8), script);
                 } else if (line.startsWith("@stop")) {
@@ -208,7 +208,7 @@ public class CogwheelRegistries {
     }
     @Contract("_, _, _ -> new")
     @SuppressWarnings("ExtractMethodRecommender")
-    public static @NotNull Bi<Bi<Boolean, Boolean>, CogPropertyManager> expressionHandler(String line, DispatchedScript script, boolean allowBlocking) {
+    public static @NotNull Bi<Byte, CogPropertyManager> expressionHandler(String line, DispatchedScript script, boolean allowBlocking) {
         // Return: DoubleValue<ScriptLineHandler.*(), ExpressionReturn>
         line = line.trim();
         int currentStart = 0;

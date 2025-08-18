@@ -21,11 +21,26 @@ import org.jetbrains.annotations.Nullable;
 public interface ScriptLineHandler {
     /**
      * Method for handler script's line
-     * @param line line that needs to be executed
+     *
+     * @param line   line that needs to be executed
      * @param script script executing line
      * @return DoubleValue provided by one of static ScriptLineHandler methods
      */
-    @NotNull Bi<Boolean, Boolean> handle(@NotNull String line, @Nullable String label, @NotNull DispatchedScript script) throws Exception;
+    default byte handle(@NotNull String line, @NotNull DispatchedScript script) throws Exception {
+        return handle(line, null, script);
+    }
+
+    /**
+     * Method for handler script's line
+     * @param line line that needs to be executed
+     * @param script script executing line
+     * @return DoubleValue provided by one of static ScriptLineHandler methods
+     * @deprecated param label will be removed! Consider removing this argument!
+     */
+    @Deprecated(forRemoval = true)
+    default byte handle(@NotNull String line, @Deprecated(forRemoval = true) @Nullable String label, @NotNull DispatchedScript script) throws Exception {
+        return ignore();
+    };
 
     /**
      * @return resource location for this ScriptLineHandler. Return value of this method must be constant!
@@ -36,24 +51,24 @@ public interface ScriptLineHandler {
      * Use ScriptLineHandler#ignore method instead
      */
     @ApiStatus.Internal
-    Bi<Boolean, Boolean> ignore = new Bi<>(false, true);
+    byte ignore = 0x00;
     /**
      * Use ScriptLineHandler#continueReading method instead
      */
     @ApiStatus.Internal
-    Bi<Boolean, Boolean> continueReading = new Bi<>(true, true);
+    byte continueReading = 0x01;
     /**
      * Use ScriptLineHandler#blocking method instead
      */
     @ApiStatus.Internal
-    Bi<Boolean, Boolean> blocking = new Bi<>(true, false);
+    byte blocking = 0x02;
 
     /**
      * Use this method if your ScriptLineHandler is not applicable for provided line of CogScript code
      * @return DoubleValue for returning in ScriptLineHandler#handle.
      */
     @Contract(pure = true)
-    static Bi<Boolean, Boolean> ignore() {
+    static byte ignore() {
         return ignore;
     }
     /**
@@ -61,7 +76,7 @@ public interface ScriptLineHandler {
      * @return DoubleValue for returning in ScriptLineHandler#handle.
      */
     @Contract(pure = true)
-    static Bi<Boolean, Boolean> continueReading() {
+    static byte continueReading() {
         return continueReading;
     }
     /**
@@ -70,7 +85,7 @@ public interface ScriptLineHandler {
      * @return DoubleValue for returning in ScriptLineHandler#handle.
      */
     @Contract(pure = true)
-    static Bi<Boolean, Boolean> blocking() {
+    static byte blocking() {
         return blocking;
     }
 }

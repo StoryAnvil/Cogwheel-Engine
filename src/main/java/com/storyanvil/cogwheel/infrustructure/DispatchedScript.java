@@ -13,7 +13,6 @@ package com.storyanvil.cogwheel.infrustructure;
 
 import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
-import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
 import com.storyanvil.cogwheel.util.ScriptLineHandler;
 import org.jetbrains.annotations.ApiStatus;
@@ -22,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
@@ -30,11 +30,13 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     public static final ObjectMonitor<DispatchedScript> MONITOR = new ObjectMonitor<>();
 
     private final ArrayList<String> linesToExecute;
-    private int executionDepth = 0;
-    private boolean skipCurrentDepth = false;
     private HashMap<String, CogPropertyManager> storage;
+    private HashMap<Integer, ScriptLineHandler> additionalLineHandlers;
     private String scriptName = "unknown-script";
     private CogScriptEnvironment environment;
+    private boolean doNotRemoveLines = false;
+    private int lineSkipped = 0;
+    private int executionLine = 0;
 
     public DispatchedScript(ArrayList<String> linesToExecute, CogScriptEnvironment environment) {
         MONITOR.register(this);
@@ -62,18 +64,17 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     }
 
     private boolean executeLine(@NotNull String line) {
-        int labelEnd = line.indexOf(":::");
-        String label = null;
-        if (labelEnd != -1) {
-            label = line.substring(0, labelEnd);
-            line = line.substring(labelEnd + 3);
-        }
+//        int labelEnd = line.indexOf(":::");
+//        String label = null;
+//        if (labelEnd != -1) {
+//            label = line.substring(0, labelEnd);
+//            line = line.substring(labelEnd + 3);
+//        }
         for (ScriptLineHandler handler : CogwheelRegistries.getLineHandlers()) {
             try {
-                Bi<Boolean, Boolean> result = handler.handle(line, label, this);
-                if (result.getA()) {
-                    return result.getB();
-                }
+                byte result = handler.handle(line, this);
+                if (result == ScriptLineHandler.ignore()) continue;
+                return result != ScriptLineHandler.continueReading();
             } catch (Throwable e) {
                 log.warn("{}: LineHandler {} failed with exception. Line: \"{}\"", getScriptName(), handler.getResourceLocation(), line, e);
             }
@@ -84,17 +85,48 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     }
 
     public void lineDispatcher() {
-        if (!Thread.currentThread().getName().contains("cogwheel-executor"))
-            throw new RuntimeException("Line dispatcher can only be run in cogwheel executor thread");
+        if (!Thread.currentThread().getName().contains("cogwheel-executor")) {
+            RuntimeException e = new RuntimeException("Line dispatcher can only be run in cogwheel executor thread");
+            e.printStackTrace();
+            log.error("[!CRITICAL!] LINE DISPATCHER WAS CALLED FROM NON-EXECUTOR THREAD! THIS WILL CAUSE MEMORY LEAKS AND PREVENT SCRIPTS FOR PROPER EXECUTION! THIS CALL WAS DISMISSED, PROBABLY CAUSING A MEMORY LEAK!");
+            throw e;
+        }
         lineDispatcherInternal();
     }
     private void lineDispatcherInternal() {
-        if (linesToExecute.isEmpty()) return;
-        String line = linesToExecute.get(0).trim();
-        linesToExecute.remove(0);
-        if (executeLine(line)) {
-            lineDispatcherInternal();
+        while (!linesToExecute.isEmpty()) {
+            String line;
+            if (doNotRemoveLines) {
+                line = linesToExecute.get(lineSkipped);
+                lineSkipped++;
+            } else {
+                line = linesToExecute.get(0).trim();
+                linesToExecute.remove(0);
+            }
+            executionLine++;
+            if (!executeLine(line)) {
+                break;
+            }
+            if (additionalLineHandlers.containsKey(executionLine)) {
+                try {
+                    additionalLineHandlers.get(executionLine).handle(line, this);
+                    additionalLineHandlers.remove(executionLine);
+                } catch (Throwable e) {
+                    log.warn("{}: Planned LineHandler {} failed with exception. Line: \"{}\"", getScriptName(), additionalLineHandlers.get(executionLine).getResourceLocation(), line, e);
+                }
+            }
         }
+    }
+
+    public void stopLineUnloading() {
+        doNotRemoveLines = true;
+        lineSkipped = 0;
+    }
+    public void continueUnloadingLines() {
+        doNotRemoveLines = false;
+    }
+    public void plantHandler(ScriptLineHandler handler, int lineAhead) {
+        additionalLineHandlers.put(executionLine + lineAhead, handler);
     }
 
     public void put(String key, CogPropertyManager o) {
@@ -126,34 +158,6 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
 //        for (Map.Entry<String, Object> d : storage.entrySet()) {
 //            sb.append('"').append(d.getKey()).append("\"=\"").append(d.getValue()).append("\";");
 //        }
-    }
-
-    public int getExecutionDepth() {
-        return executionDepth;
-    }
-
-    public void setExecutionDepth(int executionDepth) {
-        this.executionDepth = executionDepth;
-    }
-
-    public int pushDepth(boolean skip) {
-        executionDepth++;
-        skipCurrentDepth = skip;
-        return executionDepth;
-    }
-
-    public int pullDepth(boolean skip) {
-        executionDepth--;
-        skipCurrentDepth = skip;
-        return executionDepth;
-    }
-
-    public boolean isSkippingCurrentDepth() {
-        return skipCurrentDepth;
-    }
-
-    public void setSkipCurrentDepth(boolean skipCurrentDepth) {
-        this.skipCurrentDepth = skipCurrentDepth;
     }
 
     public String pullLine() {
