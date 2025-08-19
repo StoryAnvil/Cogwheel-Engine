@@ -14,7 +14,7 @@
 package com.storyanvil.cogwheel.network.mc;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.infrustructure.abilities.StoryAnimator;
+import com.storyanvil.cogwheel.infrastructure.abilities.StoryAnimator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;

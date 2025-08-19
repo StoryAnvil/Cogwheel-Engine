@@ -1,9 +1,10 @@
 package com.storyanvil.cogwheel;
 
-import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.cog.*;
-import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.cog.*;
+import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.util.DataStorage;
+import com.storyanvil.cogwheel.util.ScriptStorage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.ServerChatEvent;
@@ -15,19 +16,20 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.Objects;
 
-@Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
+@Mod.EventBusSubscriber(modid = CogwheelEngine.MODID) @Api.Internal @ApiStatus.Internal
 public class ScriptEventBus {
-    @SubscribeEvent
+
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void blockPlaced(BlockEvent.@NotNull EntityPlaceEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            HashMap<String, CogPropertyManager> storage = new HashMap<>();
+            ScriptStorage storage = new ScriptStorage();
             CogEventCallback callback = new CogEventCallback();
             storage.put("internal_callback", callback);
             storage.put("event_player", new CogPlayer(new WeakReference<>(player)));
@@ -43,15 +45,15 @@ public class ScriptEventBus {
         }
     }
 
-    @Contract("_ -> new")
+    @Contract("_ -> new") @Api.Internal @ApiStatus.Internal
     public static @NotNull ResourceLocation getEventLocation(String loc) {
         return ResourceLocation.fromNamespaceAndPath(CogwheelEngine.MODID, loc);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void blockBroken(BlockEvent.@NotNull BreakEvent event) {
         if (event.getPlayer() instanceof ServerPlayer player) {
-            HashMap<String, CogPropertyManager> storage = new HashMap<>();
+            ScriptStorage storage = new ScriptStorage();
             CogEventCallback callback = new CogEventCallback();
             storage.put("internal_callback", callback);
             storage.put("event_player", new CogPlayer(new WeakReference<>(player)));
@@ -67,9 +69,9 @@ public class ScriptEventBus {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void chatMessage(@NotNull ServerChatEvent event) {
-        HashMap<String, CogPropertyManager> storage = new HashMap<>();
+        ScriptStorage storage = new ScriptStorage();
         CogEventCallback callback = new CogEventCallback();
         storage.put("internal_callback", callback);
         storage.put("event_player", new CogPlayer(new WeakReference<>(event.getPlayer())));
@@ -79,7 +81,7 @@ public class ScriptEventBus {
         if (callback.isCanceled()) event.setCanceled(true);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void blockRightClick(PlayerInteractEvent.@NotNull RightClickBlock event) {
         if (event.getSide() == LogicalSide.CLIENT) return;
         if (event.getEntity() instanceof ServerPlayer player) {
@@ -89,7 +91,7 @@ public class ScriptEventBus {
                 return;
             }
             DataStorage.setString(player, "li", String.valueOf(ct));
-            HashMap<String, CogPropertyManager> storage = new HashMap<>();
+            ScriptStorage storage = new ScriptStorage();
             CogEventCallback callback = new CogEventCallback();
             storage.put("internal_callback", callback);
             storage.put("event_player", new CogPlayer(new WeakReference<>(player)));
@@ -101,11 +103,11 @@ public class ScriptEventBus {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void entityRightClick(PlayerInteractEvent.@NotNull EntityInteract event) {
         if (event.getSide() == LogicalSide.CLIENT) return;
         if (event.getEntity() instanceof ServerPlayer player) {
-            HashMap<String, CogPropertyManager> storage = new HashMap<>();
+            ScriptStorage storage = new ScriptStorage();
             CogEventCallback callback = new CogEventCallback();
             storage.put("internal_callback", callback);
             storage.put("event_player", new CogPlayer(new WeakReference<>(player)));
@@ -118,10 +120,10 @@ public class ScriptEventBus {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void playerRespawn(PlayerEvent.@NotNull PlayerRespawnEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            HashMap<String, CogPropertyManager> storage = new HashMap<>();
+            ScriptStorage storage = new ScriptStorage();
             CogEventCallback callback = new CogEventCallback();
             storage.put("internal_callback", callback);
             storage.put("event_player", new CogPlayer(new WeakReference<>(player)));
@@ -131,10 +133,10 @@ public class ScriptEventBus {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void entityAttacked(@NotNull AttackEntityEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            HashMap<String, CogPropertyManager> storage = new HashMap<>();
+            ScriptStorage storage = new ScriptStorage();
             CogEventCallback callback = new CogEventCallback();
             storage.put("internal_callback", callback);
             storage.put("event_player", new CogPlayer(new WeakReference<>(player)));

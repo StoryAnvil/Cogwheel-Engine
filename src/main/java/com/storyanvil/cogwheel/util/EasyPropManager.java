@@ -11,26 +11,28 @@
 
 package com.storyanvil.cogwheel.util;
 
-import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.cog.CogBool;
-import com.storyanvil.cogwheel.infrustructure.cog.PropertyHandler;
+import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrastructure.cog.CogBool;
+import com.storyanvil.cogwheel.infrastructure.cog.PropertyHandler;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 
 import java.util.HashMap;
 
-@ApiStatus.Internal
+@Api.Internal @ApiStatus.Internal
 public class EasyPropManager {
     private static final HashMap<String, PropertyHandler> handlers = new HashMap<>();
     private String manager;
     private final Registrar registrar;
 
-    @Contract(pure = true)
+    @Contract(pure = true) @Api.Internal @ApiStatus.Internal
     public EasyPropManager(String manager, Registrar registrar) {
         this.manager = ">" + manager;
         this.registrar = registrar;
     }
 
+    @Api.Internal @ApiStatus.Internal
     public boolean hasOwnProperty(String name) {
         if (this.manager.charAt(0) != '<') {
             this.manager = "<" + this.manager;
@@ -44,14 +46,20 @@ public class EasyPropManager {
         }
         return handlers.containsKey(manager + name);
     }
+
+    @Api.Internal @ApiStatus.Internal
     public PropertyHandler get(String name) {
         return handlers.get(manager + name);
     }
+
+    @Api.Internal @ApiStatus.Internal
     public void reg(String name, PropertyHandler handler) {
         handlers.put(manager + name, handler);
     }
 
+    @Api.Internal @ApiStatus.Internal
     public interface Registrar {
+        @Api.Internal @ApiStatus.Internal
         void register(EasyPropManager manager);
     }
 }

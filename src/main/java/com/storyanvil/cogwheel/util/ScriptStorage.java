@@ -14,30 +14,10 @@
 package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+
+import java.util.HashMap;
 
 @Api.Stable(since = "2.0.0")
-public class CogExpressionFailure extends RuntimeException {
-    @Api.Stable(since = "2.0.0")
-    public CogExpressionFailure() {
-    }
-
-    @Api.Stable(since = "2.0.0")
-    public CogExpressionFailure(String message) {
-        super(message);
-    }
-
-    @Api.Stable(since = "2.0.0")
-    public CogExpressionFailure(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    @Api.Stable(since = "2.0.0")
-    public CogExpressionFailure(Throwable cause) {
-        super(cause);
-    }
-
-    @Api.Stable(since = "2.0.0")
-    public CogExpressionFailure(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+public class ScriptStorage extends HashMap<String, CogPropertyManager> {
 }

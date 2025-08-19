@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.util;
 
+import com.storyanvil.cogwheel.api.Api;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -24,11 +25,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class StoryUtils {
+    @Api.Stable(since = "2.0.0")
     public static void sendGlobalMessage(@NotNull ServerLevel level, Component msg) {
         for (ServerPlayer player : level.players()) {
             player.sendSystemMessage(msg);
         }
     }
+
+    @Api.Stable(since = "2.0.0")
     public static void sendGlobalMessage(@NotNull ServerLevel level, Component... msg) {
         for (ServerPlayer player : level.players()) {
             for (Component c : msg) {
@@ -36,12 +40,15 @@ public class StoryUtils {
             }
         }
     }
+
+    @Api.Stable(since = "2.0.0")
     public static void encodeString(@NotNull FriendlyByteBuf buf, @NotNull String str) {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
         buf.writeInt(bytes.length);
         buf.writeBytes(bytes);
     }
-    @Contract("_ -> new")
+
+    @Contract("_ -> new") @Api.Stable(since = "2.0.0")
     public static @NotNull String decodeString(@NotNull FriendlyByteBuf buf) {
         int length = buf.readInt();
         byte[] bytes = new byte[length];
@@ -51,6 +58,7 @@ public class StoryUtils {
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
+    @Api.Stable(since = "2.0.0")
     public static void deleteDirectory(@NotNull File dir) {
         if (!dir.exists()) return;
         if (dir.isDirectory()) {
@@ -63,6 +71,8 @@ public class StoryUtils {
         }
         if (!dir.delete()) throw new RuntimeException("Failed to delete: " + dir);
     }
+
+    @Api.Experimental(since = "2.0.0")
     public static void unpackZip(File zip, File directory) throws IOException {
         byte[] buffer = new byte[1024];
         ZipInputStream zis = new ZipInputStream(new FileInputStream(zip));

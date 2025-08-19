@@ -9,13 +9,27 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.util;
+package com.storyanvil.cogwheel.infrastructure.actions;
 
-import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
+import com.storyanvil.cogwheel.infrastructure.abilities.StoryChatter;
+import org.jetbrains.annotations.NotNull;
 
-@Api.Stable(since = "2.0.0")
-public interface LabelCloseable {
-    @Api.Stable(since = "2.0.0")
-    void close(String label, StoryAction<?> host);
+public class ChatAction extends StoryAction<StoryChatter> {
+    private final String text;
+
+    public ChatAction(String text) {
+        super();
+        this.text = text;
+    }
+
+    @Override
+    public void proceed(@NotNull StoryChatter myself) {
+        myself.chat(text);
+    }
+
+    @Override
+    public boolean freeToGo(StoryChatter myself) {
+        return true;
+    }
 }

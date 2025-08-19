@@ -13,11 +13,11 @@ package com.storyanvil.cogwheel;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.StoryAction;
-import com.storyanvil.cogwheel.infrustructure.cog.CogTestCallback;
-import com.storyanvil.cogwheel.infrustructure.cog.StoryLevel;
-import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.StoryAction;
+import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
+import com.storyanvil.cogwheel.infrastructure.cog.StoryLevel;
+import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.network.belt.BeltCommunications;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
@@ -49,16 +49,15 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
-@Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
+@Mod.EventBusSubscriber(modid = CogwheelEngine.MODID) @Api.Internal @ApiStatus.Internal
 public class EventBus {
 
-    @Contract(pure = true)
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void dataInjector(AddPackFindersEvent event) {
         // TODO: Inject datapacks and resourcepacks
     }
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void registerCommands(@NotNull RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("@storyanvil").requires(css -> css.hasPermission(1))
                 .then(Commands.literal("dispatch-script")
@@ -91,7 +90,7 @@ public class EventBus {
                         for (File f : Objects.requireNonNull(scripts.listFiles(), "No scripts available")) {
                             String name = f.getName();
                             if (name.startsWith("test.") && !name.startsWith("test..")) {
-                                HashMap<String, CogPropertyManager> s = new HashMap<>();
+                                ScriptStorage s = new ScriptStorage();
                                 CogTestCallback callback = new CogTestCallback();
                                 s.put("TEST", callback);
                                 environment.dispatchScript(name.substring(5), s);
@@ -122,7 +121,7 @@ public class EventBus {
                         for (File f : Objects.requireNonNull(scripts.listFiles(), "No scripts available")) {
                             String name = f.getName();
                             if (name.startsWith("test.")) {
-                                HashMap<String, CogPropertyManager> s = new HashMap<>();
+                                ScriptStorage s = new ScriptStorage();
                                 CogTestCallback callback = new CogTestCallback();
                                 s.put("TEST", callback);
                                 environment.dispatchScript(name.substring(5), s);
@@ -221,60 +220,65 @@ public class EventBus {
         return modded;
     }
 
-    protected static List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
-    protected static List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> clientQueue = new ArrayList<>();
+    @Api.Internal @ApiStatus.Internal
+    protected static final List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
+    @Api.Internal @ApiStatus.Internal
+    protected static final List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> clientQueue = new ArrayList<>();
 
     private static final StoryLevel level = new StoryLevel();
-    @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal
     public static BeltCommunications beltCommunications = null;
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void tick(TickEvent.@NotNull LevelTickEvent event) {
         if (!event.level.dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) return;
         if (event.level.isClientSide()) {
             if (event.phase != TickEvent.Phase.END) return;
+            synchronized (clientQueue) {
+                try {
+                    int size = clientQueue.size();
+                    for (int i = 0; i < size; i++) {
+                        Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = clientQueue.get(i);
+                        if (e.getB() < 2) {
+                            e.getA().accept(event);
+                            clientQueue.remove(i);
+                            i--;
+                        } else {
+                            e.setB(e.getB() - 1);
+                        }
+                    }
+                } catch (Exception e) {
+                    CogwheelEngine.LOGGER.warn("Client Queue bound error", e);
+                }
+                return;
+            }
+        }
+        if (event.phase == TickEvent.Phase.END) {
+            level.tick((ServerLevel) event.level);
+            return;
+        }
+        synchronized (queue) {
             try {
-                int size = clientQueue.size();
-                for (int i = 0; i < size; i++) {
-                    Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = clientQueue.get(i);
+                for (int i = 0; i < queue.size(); i++) {
+                    Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = queue.get(i);
                     if (e.getB() < 2) {
-                        e.getA().accept(event);
-                        clientQueue.remove(i);
+                        try {
+                            e.getA().accept(event);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        queue.remove(i);
                         i--;
                     } else {
                         e.setB(e.getB() - 1);
                     }
                 }
             } catch (Exception e) {
-                CogwheelEngine.LOGGER.warn("Client Queue bound error");
+                CogwheelEngine.LOGGER.warn("Queue bound error", e);
             }
-            return;
-        }
-        if (event.phase == TickEvent.Phase.END) {
-            level.tick((ServerLevel) event.level);
-            return;
-        }
-        try {
-            int size = queue.size();
-            for (int i = 0; i < size; i++) {
-                Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = queue.get(i);
-                if (e.getB() < 2) {
-                    try {
-                        e.getA().accept(event);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                    queue.remove(i);
-                    i--;
-                } else {
-                    e.setB(e.getB() - 1);
-                }
-            }
-        } catch (Exception e) {
-            CogwheelEngine.LOGGER.warn("Queue bound error");
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void boundEvent(PlayerEvent.@NotNull PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             StringBuilder sb = new StringBuilder();
@@ -291,7 +295,7 @@ public class EventBus {
         }
     }
 
-    @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal
     public static ArrayList<ResourceLocation> serverSideAnimations = new ArrayList<>();
     private static final HashMap<String, WeakList<LabelCloseable>> labelListeners = new HashMap<>();
     public static void hitLabel(String label, StoryAction<?> action) {
