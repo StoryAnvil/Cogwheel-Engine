@@ -18,7 +18,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -126,13 +125,14 @@ public class CogwheelRegistries {
         });
         registerInternal(new ScriptLineHandler() {
             @Override
-            public byte handle(@NotNull String line, @NotNull DispatchedScript script) throws Exception {
+            public byte handle(@NotNull String line, @NotNull DispatchedScript script) {
                 if (!line.startsWith("for (") || !line.endsWith(") {"))
                     return ScriptLineHandler.ignore();
-                int in = indexOfKeyword(line, "in");
                 line = line.substring(5, line.length() - 3);
+                int in = indexOfKeyword(line, "in");
                 String left = line.substring(0, in).trim();
-                String right = line.substring(in + 1).trim();
+                String right = line.substring(in + 2).trim();
+//                CogwheelExecutor.log.warn("{} >|{}|<  = {}:{}", line, in, left, right);
                 CogPropertyManager arr = expressionHandler(right, script, false).getB();
                 if (arr instanceof ForEachManager manager) {
                     Object track = manager.createForEach(script);
@@ -162,7 +162,7 @@ public class CogwheelRegistries {
                     if (endLine == -1) throw new CogExpressionFailure("Foreach tail bracket mismatch!");
                     script.stopLineUnloading();
                     script.plantHandler(new ForEachInternal(track, manager, left, endLine), endLine);
-                }
+                } else throw new CogExpressionFailure("Foreach argument is not a ForEachManager!");
                 return ScriptLineHandler.continueReading();
             }
 
@@ -354,10 +354,10 @@ public class CogwheelRegistries {
 
     @ApiStatus.Internal
     public static class ForEachInternal implements ScriptLineHandler {
-        private Object track;
-        private ForEachManager manager;
-        private String varName;
-        private int planningSchedule;
+        private final Object track;
+        private final ForEachManager manager;
+        private final String varName;
+        private final int planningSchedule;
 
         @Contract(pure = true)
         public ForEachInternal(Object track, ForEachManager manager, String varName, int planningSchedule) {
