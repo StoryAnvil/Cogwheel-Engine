@@ -11,8 +11,9 @@
 
 package com.storyanvil.cogwheel.registry;
 
-import com.storyanvil.cogwheel.infrustructure.*;
-import com.storyanvil.cogwheel.infrustructure.cog.*;
+import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.*;
+import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
@@ -32,6 +33,7 @@ public class CogwheelRegistries {
      * @apiNote Namespaces <code>storyanvil</code> and <code>storyanvil_cogwheel</code> reserved for internal purposes and cannot be used
      * @param factory factory that will be registered
      */
+    @Api.Stable(since = "2.0.0")
     public static void register(@NotNull ScriptLineHandler factory) {
         synchronized (lineHandlers) {
             ResourceLocation id = factory.getResourceLocation();
@@ -41,7 +43,7 @@ public class CogwheelRegistries {
         }
     }
 
-    @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal
     protected static void registerInternal(@NotNull ScriptLineHandler factory) {
         synchronized (lineHandlers) {
             lineHandlers.add(Objects.requireNonNull(factory));
@@ -51,6 +53,7 @@ public class CogwheelRegistries {
      * Registries Default Variable
      * @apiNote Name must not be "StoryAnvil" or "CogWheel"
      */
+    @Api.Stable(since = "2.0.0")
     public static void register(@NotNull String name, @NotNull Function<DispatchedScript, CogPropertyManager> f) {
         synchronized (defaultVariables) {
             if (name.equalsIgnoreCase("storyanvil") || name.equalsIgnoreCase("cogwheel")) throw new IllegalArgumentException("Name not permitted");
@@ -58,7 +61,7 @@ public class CogwheelRegistries {
         }
     }
 
-    @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal
     protected static void registerInternal(@NotNull String name, @NotNull Function<DispatchedScript, CogPropertyManager> f) {
         synchronized (defaultVariables) {
             defaultVariables.add(new Bi<>(name, f));
@@ -66,12 +69,12 @@ public class CogwheelRegistries {
     }
 
     @Contract(pure = true)
-    @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal
     public static List<ScriptLineHandler> getLineHandlers() {
         return lineHandlers;
     }
 
-    @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal
     public static void registerDefaultObjects() {
         registerInternal(new ScriptLineHandler() {
             @Override
@@ -204,7 +207,7 @@ public class CogwheelRegistries {
         }
     }
 
-    public static void putDefaults(HashMap<String, CogPropertyManager> storage, DispatchedScript script) {
+    public static void putDefaults(ScriptStorage storage, DispatchedScript script) {
         for (Bi<String, Function<DispatchedScript, CogPropertyManager>> pair : defaultVariables) {
             storage.put(pair.getA(), pair.getB().apply(script));
         }

@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel;
 
+import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.entity.NPCRenderer;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.registry.*;
@@ -21,13 +22,16 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Mod(CogwheelEngine.MODID)
 public class CogwheelEngine
 {
+    @Api.Internal @ApiStatus.Internal
     public static final String MODID = "storyanvil_cogwheel";
+    @Api.Internal @ApiStatus.Internal
     public static final Logger LOGGER = LoggerFactory.getLogger("STORYANVIL/COGWHEEL");
 
     public CogwheelEngine(FMLJavaModLoadingContext context)
@@ -45,7 +49,7 @@ public class CogwheelEngine
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents
     {
-        @SubscribeEvent
+        @SubscribeEvent @Api.Internal @ApiStatus.Internal
         public static void onClientSetup(FMLClientSetupEvent event)
         {
             EntityRenderers.register(CogwheelEntities.NPC.get(), NPCRenderer::new);

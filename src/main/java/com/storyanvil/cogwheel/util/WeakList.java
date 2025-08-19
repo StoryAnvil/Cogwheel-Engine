@@ -11,29 +11,32 @@
 
 package com.storyanvil.cogwheel.util;
 
+import com.storyanvil.cogwheel.api.Api;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked") @Api.Stable(since = "2.0.0")
 public class WeakList<T> implements List<T> {
     private final ArrayList<WeakReference<T>> list;
 
+    @Api.Stable(since = "2.0.0")
     public WeakList() {
         list = new ArrayList<>();
     }
+    @Api.Stable(since = "2.0.0")
     public WeakList(T value) {
         this();
         add(value);
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public int size() {
         return list.size();
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public boolean isEmpty() {
         return list.isEmpty();
     }
@@ -41,6 +44,7 @@ public class WeakList<T> implements List<T> {
     /**
      * Removes unlinked elements
      */
+    @Api.Stable(since = "2.0.0")
     public void cleanUp() {
         for (int i = 0; i < list.size(); i++) {
             WeakReference<T> ref = list.get(i);
@@ -51,7 +55,7 @@ public class WeakList<T> implements List<T> {
         }
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public boolean contains(Object o) {
         for (int i = 0; i < list.size(); i++) {
             WeakReference<T> ref = list.get(i);
@@ -92,12 +96,12 @@ public class WeakList<T> implements List<T> {
         throw new UnsupportedOperationException();
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public boolean add(T t) {
         return list.add(new WeakReference<>(t));
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public boolean remove(Object o) {
         for (int i = 0; i < list.size(); i++) {
             WeakReference<T> t = list.get(i);
@@ -138,31 +142,32 @@ public class WeakList<T> implements List<T> {
         throw new UnsupportedOperationException();
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public void clear() {
         list.clear();
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public T get(int index) {
         return list.get(index).get();
     }
 
+    @Api.Stable(since = "2.0.0")
     public WeakReference<T> getRef(int index) {
         return list.get(index);
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public T set(int index, T element) {
         return list.set(index, new WeakReference<>(element)).get();
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public void add(int index, T element) {
         list.add(index, new WeakReference<>(element));
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public T remove(int index) {
         return list.remove(index).get();
     }

@@ -9,20 +9,20 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel;
+package com.storyanvil.cogwheel.infrastructure.abilities;
 
 import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.entity.NPC;
-import com.storyanvil.cogwheel.registry.CogwheelEntities;
-import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import org.jetbrains.annotations.ApiStatus;
+import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrastructure.StoryAction;
 
-@Mod.EventBusSubscriber(modid = CogwheelEngine.MODID, bus = Mod.EventBusSubscriber.Bus.MOD) @Api.Internal @ApiStatus.Internal
-public class ModEventBus {
-    @SubscribeEvent @Api.Internal @ApiStatus.Internal
-    public static void registerAttributes(EntityAttributeCreationEvent event) {
-        event.put(CogwheelEntities.NPC.get(), NPC.createAttributes().build());
-    }
+@Api.Stable(since = "2.0.0")
+public interface StoryActionQueue<T> extends CogPropertyManager {
+    @Api.Stable(since = "2.0.0")
+    <R> void addStoryAction(StoryAction<R> action);
+
+    @Api.Stable(since = "2.0.0")
+    default <R> StoryAction<?> addChained(StoryAction<R> action) {
+        addStoryAction(action);
+        return action;
+    };
 }

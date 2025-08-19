@@ -12,15 +12,16 @@
 package com.storyanvil.cogwheel.entity;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.infrustructure.ArgumentData;
-import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.DispatchedScript;
-import com.storyanvil.cogwheel.infrustructure.StoryAction;
-import com.storyanvil.cogwheel.infrustructure.abilities.*;
-import com.storyanvil.cogwheel.infrustructure.actions.AnimationAction;
-import com.storyanvil.cogwheel.infrustructure.actions.PathfindAction;
-import com.storyanvil.cogwheel.infrustructure.actions.WaitForLabelAction;
-import com.storyanvil.cogwheel.infrustructure.cog.*;
+import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.ArgumentData;
+import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.StoryAction;
+import com.storyanvil.cogwheel.infrastructure.abilities.*;
+import com.storyanvil.cogwheel.infrastructure.actions.AnimationAction;
+import com.storyanvil.cogwheel.infrastructure.actions.PathfindAction;
+import com.storyanvil.cogwheel.infrastructure.actions.WaitForLabelAction;
+import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.util.DataStorage;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
@@ -40,6 +41,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,16 +112,16 @@ public class NPC extends Animal implements
 //        this.walkAnimation.update(f, 0.2f);
 //    }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public @Nullable Component getCustomName() {
         return Component.literal(this.entityData.get(NAME));
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public String getCogName() {
         return this.entityData.get(NAME);
     }
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public void setCogName(String name) {
         this.entityData.set(NAME, name, true);
         if (!level().isClientSide) {
@@ -127,10 +129,11 @@ public class NPC extends Animal implements
         }
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public void setCustomName(@Nullable Component pName) {
         this.entityData.set(NAME, pName == null ? "NPC" : pName.getString(), true);
     }
+    @Api.Stable(since = "2.0.0")
     public void setCustomName(@Nullable String pName) {
         this.entityData.set(NAME, pName == null ? "NPC" : pName, true);
     }
@@ -144,6 +147,7 @@ public class NPC extends Animal implements
 //        }
 //    }
 
+    @Api.Internal @ApiStatus.Internal
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 20)
@@ -151,12 +155,12 @@ public class NPC extends Animal implements
                 .add(Attributes.MOVEMENT_SPEED, 0.10000000149011612);
     }
 
-    @Override
+    @Override @ApiStatus.Internal @Api.Internal
     protected void registerGoals() {
         //this.goalSelector.addGoal(0, new LookAtPlayerGoal(this, Player.class, 5f));
     }
 
-    @Nullable @Override
+    @Nullable @Override @Api.Internal @ApiStatus.Internal
     public AgeableMob getBreedOffspring(@NotNull ServerLevel pLevel, @NotNull AgeableMob pOtherParent) {
         return null;
     }
@@ -173,9 +177,12 @@ public class NPC extends Animal implements
         // NPC will never despawn
     }
 
+    @Api.Stable(since = "2.0.0")
     public String getSkin() {
         return this.entityData.get(SKIN);
     }
+
+    @Api.Stable(since = "2.0.0")
     public void setSkin(String skin) {
         this.entityData.set(SKIN, skin, true);
         if (!level().isClientSide) {
@@ -183,7 +190,7 @@ public class NPC extends Animal implements
         }
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public void chat(String text) {
         if (!this.level().isClientSide) {
             Component c = Component.literal("[" + getCogName() + "] " + text);
@@ -193,11 +200,12 @@ public class NPC extends Animal implements
         }
     }
 
+    @Api.Stable(since = "2.0.0")
     public <R> void addStoryAction(StoryAction<R> action) {
         actionQueue.add((StoryAction<? extends NPC>) action);
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public void reportState(StringBuilder sb) {
         for (StoryAction<?> action : actionQueue) {
             sb.append(action.toString());
@@ -298,13 +306,13 @@ public class NPC extends Animal implements
         });
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public boolean hasOwnProperty(String name) {
         if (me.hasOwnProperty(name)) return true;
         return MANAGER.hasOwnProperty(name);
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) {
         if (me.hasOwnProperty(name)) {
             return me.getProperty(name, args, script);
@@ -312,7 +320,7 @@ public class NPC extends Animal implements
         return MANAGER.get(name).handle(name, args, script, me());
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.0.0")
     public boolean equalsTo(CogPropertyManager o) {
         return false;
     }
@@ -352,7 +360,8 @@ public class NPC extends Animal implements
     }
 
     private RawAnimation customAnimation = null;
-    @Override
+
+    @Override @Api.Stable(since = "2.0.0")
     public void pushAnimation(String name) {
         if (name.equals("null")) {
             customAnimation = null;

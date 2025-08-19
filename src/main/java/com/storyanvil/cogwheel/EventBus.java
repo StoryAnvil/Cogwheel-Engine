@@ -13,11 +13,11 @@ package com.storyanvil.cogwheel;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.StoryAction;
-import com.storyanvil.cogwheel.infrustructure.cog.CogTestCallback;
-import com.storyanvil.cogwheel.infrustructure.cog.StoryLevel;
-import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.StoryAction;
+import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
+import com.storyanvil.cogwheel.infrastructure.cog.StoryLevel;
+import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.network.belt.BeltCommunications;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
@@ -49,16 +49,15 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
-@Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
+@Mod.EventBusSubscriber(modid = CogwheelEngine.MODID) @Api.Internal @ApiStatus.Internal
 public class EventBus {
 
-    @Contract(pure = true)
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void dataInjector(AddPackFindersEvent event) {
         // TODO: Inject datapacks and resourcepacks
     }
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void registerCommands(@NotNull RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("@storyanvil").requires(css -> css.hasPermission(1))
                 .then(Commands.literal("dispatch-script")
@@ -91,7 +90,7 @@ public class EventBus {
                         for (File f : Objects.requireNonNull(scripts.listFiles(), "No scripts available")) {
                             String name = f.getName();
                             if (name.startsWith("test.") && !name.startsWith("test..")) {
-                                HashMap<String, CogPropertyManager> s = new HashMap<>();
+                                ScriptStorage s = new ScriptStorage();
                                 CogTestCallback callback = new CogTestCallback();
                                 s.put("TEST", callback);
                                 environment.dispatchScript(name.substring(5), s);
@@ -122,7 +121,7 @@ public class EventBus {
                         for (File f : Objects.requireNonNull(scripts.listFiles(), "No scripts available")) {
                             String name = f.getName();
                             if (name.startsWith("test.")) {
-                                HashMap<String, CogPropertyManager> s = new HashMap<>();
+                                ScriptStorage s = new ScriptStorage();
                                 CogTestCallback callback = new CogTestCallback();
                                 s.put("TEST", callback);
                                 environment.dispatchScript(name.substring(5), s);
@@ -221,13 +220,15 @@ public class EventBus {
         return modded;
     }
 
+    @Api.Internal @ApiStatus.Internal
     protected static final List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
+    @Api.Internal @ApiStatus.Internal
     protected static final List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> clientQueue = new ArrayList<>();
 
     private static final StoryLevel level = new StoryLevel();
-    @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal
     public static BeltCommunications beltCommunications = null;
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void tick(TickEvent.@NotNull LevelTickEvent event) {
         if (!event.level.dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) return;
         if (event.level.isClientSide()) {
@@ -277,7 +278,7 @@ public class EventBus {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void boundEvent(PlayerEvent.@NotNull PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             StringBuilder sb = new StringBuilder();
@@ -294,7 +295,7 @@ public class EventBus {
         }
     }
 
-    @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal
     public static ArrayList<ResourceLocation> serverSideAnimations = new ArrayList<>();
     private static final HashMap<String, WeakList<LabelCloseable>> labelListeners = new HashMap<>();
     public static void hitLabel(String label, StoryAction<?> action) {

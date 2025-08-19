@@ -11,7 +11,8 @@
 
 package com.storyanvil.cogwheel;
 
-import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.StoryUtils;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -36,11 +37,12 @@ import java.util.function.Consumer;
 
 @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID)
 public class CogwheelExecutor {
+    @Api.Internal @ApiStatus.Internal
     public static final Logger log = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/EXECUTOR");
     private static final ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(2, new DefaultThreadFactory("cogwheel-executor"));
     private static final ScheduledThreadPoolExecutor beltThread = new ScheduledThreadPoolExecutor(1, new DefaultThreadFactory("cogwheel-belt-protocol"));
 
-    @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal
     protected static void init() {
         poolExecutor.setMaximumPoolSize(2);
         beltThread.setMaximumPoolSize(1);
@@ -49,31 +51,22 @@ public class CogwheelExecutor {
     /**
      * Schedules task to be executed as soon as possible on CogwheelExecutor thread
      */
+    @Api.Stable(since = "2.0.0")
     public static void schedule(Runnable task) {
         poolExecutor.execute(task);
     }
     /**
      * Schedules task to be executed as soon as possible after specified amount of milliseconds on CogwheelExecutor thread
      */
+    @Api.Stable(since = "2.0.0")
     public static void schedule(Runnable task, int ms) {
         poolExecutor.schedule(task, ms, TimeUnit.MILLISECONDS);
-    }
-    /**
-     * Schedules task to be executed as soon as possible on CogwheelExecutor thread. CogwheelExecutor logger will be provided
-     */
-    public static void schedule(Consumer<Logger> task) {
-        poolExecutor.execute(() -> task.accept(log));
-    }
-    /**
-     * Schedules task to be executed as soon as possible after specified amount of milliseconds on CogwheelExecutor thread. CogwheelExecutor logger will be provided
-     */
-    public static void schedule(Consumer<Logger> task, int ms) {
-        poolExecutor.schedule(() -> task.accept(log), ms, TimeUnit.MILLISECONDS);
     }
 
     /**
      * Schedules task to be executed as soon as possible on Minecraft's Server thread on nearest server-side level tick
      */
+    @Api.Stable(since = "2.0.0")
     public static void scheduleTickEvent(Consumer<TickEvent.LevelTickEvent> task) {
         synchronized (EventBus.queue) {
             EventBus.queue.add(new Bi<>(task, 0));
@@ -82,6 +75,7 @@ public class CogwheelExecutor {
     /**
      * Schedules task to be executed after provided amount of ticks on Minecraft's Server thread on nearest server-side level tick
      */
+    @Api.Stable(since = "2.0.0")
     public static void scheduleTickEvent(Consumer<TickEvent.LevelTickEvent> task, int ticks) {
         synchronized (EventBus.queue) {
             EventBus.queue.add(new Bi<>(task, ticks));
@@ -90,6 +84,7 @@ public class CogwheelExecutor {
     /**
      * Schedules task to be executed as soon as possible on Minecraft's Render thread on nearest client-side level tick
      */
+    @Api.Stable(since = "2.0.0")
     public static void scheduleTickEventClientSide(Consumer<TickEvent.LevelTickEvent> task) {
         synchronized (EventBus.clientQueue) {
             EventBus.clientQueue.add(new Bi<>(task, 0));
@@ -98,6 +93,7 @@ public class CogwheelExecutor {
     /**
      * Schedules task to be executed after provided amount of ticks on Minecraft's Render thread on nearest client-side level tick
      */
+    @Api.Stable(since = "2.0.0")
     public static void scheduleTickEventClientSide(Consumer<TickEvent.LevelTickEvent> task, int ticks) {
         synchronized (EventBus.clientQueue) {
             EventBus.clientQueue.add(new Bi<>(task, ticks));
@@ -107,12 +103,14 @@ public class CogwheelExecutor {
     /**
      * Schedules task to be executed as soon as possible on Belt Protocol thread
      */
+    @Api.Internal @ApiStatus.Internal
     public static void scheduleBelt(Runnable task) {
         beltThread.execute(task);
     }
     /**
      * Schedules task to be executed as soon as possible after specified amount of milliseconds on Belt Protocol thread
      */
+    @Api.Internal @ApiStatus.Internal
     public static void scheduleBelt(Runnable task, int ms) {
         beltThread.schedule(task, ms, TimeUnit.MILLISECONDS);
     }
@@ -120,7 +118,7 @@ public class CogwheelExecutor {
     private static CogScriptEnvironment.DefaultEnvironment defaultEnvironment;
     private static HashMap<String, CogScriptEnvironment.LibraryEnvironment> libraryEnvironments;
 
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void serverStart(ServerStartingEvent event) {
         log.info("Creating CogScript default environment...");
         defaultEnvironment = new CogScriptEnvironment.DefaultEnvironment();
@@ -171,7 +169,7 @@ public class CogwheelExecutor {
             environment.dispatchScript("init.sa");
         }
     }
-    @SubscribeEvent
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void serverStop(ServerStoppingEvent event) {
         log.info("Disposing all CogScript environments...");
         defaultEnvironment.dispose();
@@ -181,13 +179,18 @@ public class CogwheelExecutor {
         }
         libraryEnvironments = null;
     }
+
+    @Api.Stable(since = "2.0.0")
     public static CogScriptEnvironment.DefaultEnvironment getDefaultEnvironment() {
         return defaultEnvironment;
     }
 
+    @Api.Stable(since = "2.0.0")
     public static CogScriptEnvironment.LibraryEnvironment getLibraryEnvironment(String namespace) {
         return libraryEnvironments.get(namespace);
     }
+
+    @Api.Experimental(since = "2.0.0")
     public static Collection<CogScriptEnvironment.LibraryEnvironment> getLibraryEnvironments() {
         return libraryEnvironments.values();
     }

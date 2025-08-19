@@ -1,10 +1,10 @@
 package com.storyanvil.cogwheel.mixin;
 
-import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.cog.CogEventCallback;
-import com.storyanvil.cogwheel.infrustructure.cog.CogPlayer;
-import com.storyanvil.cogwheel.infrustructure.cog.CogString;
-import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.infrastructure.cog.CogEventCallback;
+import com.storyanvil.cogwheel.infrastructure.cog.CogPlayer;
+import com.storyanvil.cogwheel.infrastructure.cog.CogString;
+import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.util.ScriptStorage;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -20,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 
 import static com.storyanvil.cogwheel.ScriptEventBus.getEventLocation;
 
@@ -39,7 +38,7 @@ public abstract class PlayerMixin extends LivingEntity {
             // IDE will report this as false positive for constantValue. PlayerMixin will transform into Player class at runtime
             //noinspection ConstantValue
             if (entity instanceof ServerPlayer player) {
-                HashMap<String, CogPropertyManager> storage = new HashMap<>();
+                ScriptStorage storage = new ScriptStorage();
                 CogEventCallback callback = new CogEventCallback();
                 storage.put("internal_callback", callback);
                 storage.put("event_player", new CogPlayer(new WeakReference<>(player)));

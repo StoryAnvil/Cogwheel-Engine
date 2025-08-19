@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.util;
 
+import com.storyanvil.cogwheel.api.Api;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.ref.Reference;
@@ -18,6 +19,7 @@ import java.lang.ref.Reference;
 /**
  * ObjectMonitor used for debugging purposes and finding memory leaks
  */
+@Api.Internal @ApiStatus.Internal
 public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
     private final static WeakList<ObjectMonitor<?>> MONITOR_REGISTRY = new WeakList<>();
     private final static boolean ENABLED = true;
@@ -28,6 +30,7 @@ public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
         MONITOR_REGISTRY.add(monitor);
         return id;
     }
+    @Api.Internal @ApiStatus.Internal
     public static synchronized void dumpAll(StringBuilder sb) {
         if (!ENABLED) return;
         try {
@@ -46,22 +49,28 @@ public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
     private final WeakList<T> objects;
     private final int id;
 
+    @Api.Internal @ApiStatus.Internal
     public ObjectMonitor() {
         if (!ENABLED) return;
         objects = new WeakList<>();
         id = register(this);
     }
 
+    @Api.Internal @ApiStatus.Internal
     public void register(T object) {
         if (!ENABLED) return;
         if (objects.contains(object)) return;
         objects.add(object);
     }
+
+    @Api.Internal @ApiStatus.Internal
     public String dump() {
         StringBuilder sb = new StringBuilder();
         dump(sb);
         return sb.toString();
     }
+
+    @Api.Internal @ApiStatus.Internal
     public void dump(StringBuilder sb) {
         if (!ENABLED) return;
         sb.append("=== === === OBJECT MONITOR REPORT === === ===\n");
@@ -83,7 +92,7 @@ public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
         }
     }
 
-    @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal
     public WeakList<T> getObjects() {
         return objects;
     }

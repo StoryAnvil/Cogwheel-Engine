@@ -11,33 +11,15 @@
  *
  */
 
-package com.storyanvil.cogwheel.util;
+package com.storyanvil.cogwheel.infrastructure.abilities;
 
 import com.storyanvil.cogwheel.api.Api;
 
 @Api.Stable(since = "2.0.0")
-public class CogExpressionFailure extends RuntimeException {
+public interface StoryAnimator {
     @Api.Stable(since = "2.0.0")
-    public CogExpressionFailure() {
-    }
+    String getAnimatorID();
 
     @Api.Stable(since = "2.0.0")
-    public CogExpressionFailure(String message) {
-        super(message);
-    }
-
-    @Api.Stable(since = "2.0.0")
-    public CogExpressionFailure(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    @Api.Stable(since = "2.0.0")
-    public CogExpressionFailure(Throwable cause) {
-        super(cause);
-    }
-
-    @Api.Stable(since = "2.0.0")
-    public CogExpressionFailure(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+    void pushAnimation(String name);
 }

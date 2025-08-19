@@ -14,10 +14,9 @@
 package com.storyanvil.cogwheel.network.belt;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.infrustructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrustructure.CogScriptDispatcher;
-import com.storyanvil.cogwheel.infrustructure.cog.CogString;
-import com.storyanvil.cogwheel.infrustructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.infrastructure.cog.CogString;
+import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.util.ScriptStorage;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
@@ -26,8 +25,6 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
 
 import static com.storyanvil.cogwheel.ScriptEventBus.getEventLocation;
 
@@ -49,7 +46,7 @@ public class Handlers {
     }
 
     public static void scriptMessage(@NotNull BeltPacket packet) {
-        HashMap<String, CogPropertyManager> storage = new HashMap<>();
+        ScriptStorage storage = new ScriptStorage();
         storage.put("msg", new CogString(packet.getData()[0]));
         CogScriptEnvironment.dispatchEventGlobal(getEventLocation("belt/message"), storage);
     }
