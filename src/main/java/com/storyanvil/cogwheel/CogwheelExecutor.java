@@ -75,25 +75,33 @@ public class CogwheelExecutor {
      * Schedules task to be executed as soon as possible on Minecraft's Server thread on nearest server-side level tick
      */
     public static void scheduleTickEvent(Consumer<TickEvent.LevelTickEvent> task) {
-        EventBus.queue.add(new Bi<>(task, 0));
+        synchronized (EventBus.queue) {
+            EventBus.queue.add(new Bi<>(task, 0));
+        }
     }
     /**
      * Schedules task to be executed after provided amount of ticks on Minecraft's Server thread on nearest server-side level tick
      */
     public static void scheduleTickEvent(Consumer<TickEvent.LevelTickEvent> task, int ticks) {
-        EventBus.queue.add(new Bi<>(task, ticks));
+        synchronized (EventBus.queue) {
+            EventBus.queue.add(new Bi<>(task, ticks));
+        }
     }
     /**
      * Schedules task to be executed as soon as possible on Minecraft's Render thread on nearest client-side level tick
      */
     public static void scheduleTickEventClientSide(Consumer<TickEvent.LevelTickEvent> task) {
-        EventBus.clientQueue.add(new Bi<>(task, 0));
+        synchronized (EventBus.clientQueue) {
+            EventBus.clientQueue.add(new Bi<>(task, 0));
+        }
     }
     /**
      * Schedules task to be executed after provided amount of ticks on Minecraft's Render thread on nearest client-side level tick
      */
     public static void scheduleTickEventClientSide(Consumer<TickEvent.LevelTickEvent> task, int ticks) {
-        EventBus.clientQueue.add(new Bi<>(task, ticks));
+        synchronized (EventBus.clientQueue) {
+            EventBus.clientQueue.add(new Bi<>(task, ticks));
+        }
     }
 
     /**

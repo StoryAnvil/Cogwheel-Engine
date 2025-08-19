@@ -221,8 +221,8 @@ public class EventBus {
         return modded;
     }
 
-    protected static List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
-    protected static List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> clientQueue = new ArrayList<>();
+    protected static final List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> queue = new ArrayList<>();
+    protected static final List<Bi<Consumer<TickEvent.LevelTickEvent>, Integer>> clientQueue = new ArrayList<>();
 
     private static final StoryLevel level = new StoryLevel();
     @ApiStatus.Internal
@@ -232,45 +232,48 @@ public class EventBus {
         if (!event.level.dimension().location().equals(ResourceLocation.fromNamespaceAndPath("minecraft", "overworld"))) return;
         if (event.level.isClientSide()) {
             if (event.phase != TickEvent.Phase.END) return;
+            synchronized (clientQueue) {
+                try {
+                    int size = clientQueue.size();
+                    for (int i = 0; i < size; i++) {
+                        Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = clientQueue.get(i);
+                        if (e.getB() < 2) {
+                            e.getA().accept(event);
+                            clientQueue.remove(i);
+                            i--;
+                        } else {
+                            e.setB(e.getB() - 1);
+                        }
+                    }
+                } catch (Exception e) {
+                    CogwheelEngine.LOGGER.warn("Client Queue bound error", e);
+                }
+                return;
+            }
+        }
+        if (event.phase == TickEvent.Phase.END) {
+            level.tick((ServerLevel) event.level);
+            return;
+        }
+        synchronized (queue) {
             try {
-                int size = clientQueue.size();
-                for (int i = 0; i < size; i++) {
-                    Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = clientQueue.get(i);
+                for (int i = 0; i < queue.size(); i++) {
+                    Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = queue.get(i);
                     if (e.getB() < 2) {
-                        e.getA().accept(event);
-                        clientQueue.remove(i);
+                        try {
+                            e.getA().accept(event);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        queue.remove(i);
                         i--;
                     } else {
                         e.setB(e.getB() - 1);
                     }
                 }
             } catch (Exception e) {
-                CogwheelEngine.LOGGER.warn("Client Queue bound error");
+                CogwheelEngine.LOGGER.warn("Queue bound error", e);
             }
-            return;
-        }
-        if (event.phase == TickEvent.Phase.END) {
-            level.tick((ServerLevel) event.level);
-            return;
-        }
-        try {
-            int size = queue.size();
-            for (int i = 0; i < size; i++) {
-                Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = queue.get(i);
-                if (e.getB() < 2) {
-                    try {
-                        e.getA().accept(event);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                    queue.remove(i);
-                    i--;
-                } else {
-                    e.setB(e.getB() - 1);
-                }
-            }
-        } catch (Exception e) {
-            CogwheelEngine.LOGGER.warn("Queue bound error");
         }
     }
 

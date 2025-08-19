@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
@@ -268,6 +269,12 @@ public class CogMaster implements CogPropertyManager {
         });
         manager.reg("time", (name, args, script, o) -> {
             return new CogLong(System.currentTimeMillis() - script.getEnvironment().getCreationTime());
+        });
+        manager.reg("dump", (name, args, script, o) -> {
+            for (Map.Entry<String, CogPropertyManager> entry : script.getStorage().entrySet()) {
+                log.info("{}: >{}< = {}", script.getScriptName(), entry.getKey(), entry.getValue().convertToString());
+            }
+            return null;
         });
     }
 

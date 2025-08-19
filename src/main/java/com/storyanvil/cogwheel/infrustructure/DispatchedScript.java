@@ -43,6 +43,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         this.linesToExecute = linesToExecute;
         this.storage = new HashMap<>();
         this.environment = environment;
+        this.additionalLineHandlers = new HashMap<>();
         CogwheelRegistries.putDefaults(storage, this);
     }
     public DispatchedScript(ArrayList<String> linesToExecute, HashMap<String, CogPropertyManager> storage, CogScriptEnvironment environment) {
@@ -50,6 +51,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         this.linesToExecute = linesToExecute;
         this.storage = storage;
         this.environment = environment;
+        this.additionalLineHandlers = new HashMap<>();
         CogwheelRegistries.putDefaults(this.storage, this);
     }
 
@@ -74,7 +76,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
             try {
                 byte result = handler.handle(line, this);
                 if (result == ScriptLineHandler.ignore()) continue;
-                return result != ScriptLineHandler.continueReading();
+                return result == ScriptLineHandler.continueReading();
             } catch (Throwable e) {
                 log.warn("{}: LineHandler {} failed with exception. Line: \"{}\"", getScriptName(), handler.getResourceLocation(), line, e);
             }
@@ -94,27 +96,34 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         lineDispatcherInternal();
     }
     private void lineDispatcherInternal() {
-        while (!linesToExecute.isEmpty()) {
-            String line;
-            if (doNotRemoveLines) {
-                line = linesToExecute.get(lineSkipped);
-                lineSkipped++;
-            } else {
-                line = linesToExecute.get(0).trim();
-                linesToExecute.remove(0);
-            }
-            executionLine++;
-            if (!executeLine(line)) {
-                break;
-            }
-            if (additionalLineHandlers.containsKey(executionLine)) {
-                try {
-                    additionalLineHandlers.get(executionLine).handle(line, this);
-                    additionalLineHandlers.remove(executionLine);
-                } catch (Throwable e) {
-                    log.warn("{}: Planned LineHandler {} failed with exception. Line: \"{}\"", getScriptName(), additionalLineHandlers.get(executionLine).getResourceLocation(), line, e);
+        try {
+            while (!linesToExecute.isEmpty()) {
+                String line;
+                if (doNotRemoveLines) {
+                    line = linesToExecute.get(lineSkipped);
+                    lineSkipped++;
+                } else {
+                    line = linesToExecute.get(0).trim();
+                    linesToExecute.remove(0);
+                }
+                executionLine++;
+                if (!executeLine(line)) {
+                    break;
+                }
+                if (additionalLineHandlers.containsKey(executionLine)) {
+                    try {
+                        byte res = additionalLineHandlers.get(executionLine).handle(line, this);
+                        additionalLineHandlers.remove(executionLine);
+                        if (res == ScriptLineHandler.blocking()) break;
+                    } catch (Throwable e) {
+                        log.warn("{}: Planned LineHandler {} failed with exception. Line: \"{}\"", getScriptName(), additionalLineHandlers.get(executionLine).getResourceLocation(), line, e);
+                    }
                 }
             }
+        } catch (Throwable e) {
+            RuntimeException a = new RuntimeException("Exception in lineDispatcher reflected:", e);
+            log.error("FATAL LINE DISPATCHER FAILURE!", a);
+            throw a;
         }
     }
 
@@ -124,6 +133,10 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     }
     public void continueUnloadingLines() {
         doNotRemoveLines = false;
+    }
+    public void removeUnloadedLines() {
+        for (int i = 0; i < lineSkipped; i++)
+            this.removeLine(0);
     }
     public void plantHandler(ScriptLineHandler handler, int lineAhead) {
         additionalLineHandlers.put(executionLine + lineAhead, handler);
@@ -137,15 +150,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         return storage.get(key);
     }
     public boolean hasKey(String key) {
-//        log.warn(storage.keySet().toString());
         return storage.containsKey(key);
-    }
-
-    public void dataDump() {
-        log.info("Data dump: {}", scriptName);
-//        for (Map.Entry<String, Object> d: storage.entrySet()) {
-//            log.info("{} = {}", d.getKey(), d.getValue());
-//        }
     }
 
     @Override
@@ -154,10 +159,6 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         for (String line : linesToExecute) {
             sb.append('"').append(line).append("\" ");
         }
-//        sb.append("| STORAGE>>");
-//        for (Map.Entry<String, Object> d : storage.entrySet()) {
-//            sb.append('"').append(d.getKey()).append("\"=\"").append(d.getValue()).append("\";");
-//        }
     }
 
     public String pullLine() {
