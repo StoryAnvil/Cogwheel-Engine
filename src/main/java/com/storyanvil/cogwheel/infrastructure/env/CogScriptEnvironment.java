@@ -127,13 +127,21 @@ public abstract class CogScriptEnvironment {
     @Api.Experimental(since = "2.0.0")
     public static void dispatchScriptGlobal(ResourceLocation loc) {
         CogScriptEnvironment environment = null;
+        environment = getEnvironment(loc);
+        if (environment == null) throw new RuntimeException("Dispatch Failure! No environment found");
+        environment.dispatchScript(loc.getPath());
+    }
+
+    private static CogScriptEnvironment getEnvironment(ResourceLocation loc) {
+        CogScriptEnvironment environment;
         if (loc.getNamespace().equals("def") || loc.getNamespace().equals("minecraft")) {
             environment = CogwheelExecutor.getDefaultEnvironment();
+        } else if (loc.getNamespace().equals("wrld")) {
+            environment = CogwheelExecutor.getWorldEnvironment();
         } else {
             environment = CogwheelExecutor.getLibraryEnvironment(loc.getNamespace());
         }
-        if (environment == null) throw new RuntimeException("Dispatch Failure! No environment found");
-        environment.dispatchScript(loc.getPath());
+        return environment;
     }
 
     /**
@@ -148,12 +156,7 @@ public abstract class CogScriptEnvironment {
 
     @Api.Experimental(since = "2.0.0")
     public static void dispatchScriptGlobal(ResourceLocation loc, ScriptStorage storage) {
-        CogScriptEnvironment environment = null;
-        if (loc.getNamespace().equalsIgnoreCase("DEF")) {
-            environment = CogwheelExecutor.getDefaultEnvironment();
-        } else {
-            environment = CogwheelExecutor.getLibraryEnvironment(loc.getNamespace());
-        }
+        CogScriptEnvironment environment = getEnvironment(loc);
         if (environment == null) throw new RuntimeException("Dispatch Failure! No environment found");
         environment.dispatchScript(loc.getPath(), storage);
     }
@@ -260,6 +263,22 @@ public abstract class CogScriptEnvironment {
         @Override
         public void dispatchScript(String name, ScriptStorage storage) {
             CogScriptDispatcher.dispatch("cog/test." + name, storage, this);
+        }
+    }
+    public static class WorldEnvironment extends CogScriptEnvironment {
+        @Override
+        public void dispatchScript(String name) {
+
+        }
+
+        @Override
+        public void dispatchScript(String name, ScriptStorage storage) {
+
+        }
+
+        @Override
+        public String getUniqueIdentifier() {
+            return "world.environment";
         }
     }
     public static class EnvironmentData extends SavedData {

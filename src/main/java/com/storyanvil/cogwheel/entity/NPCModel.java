@@ -41,6 +41,16 @@ public class NPCModel extends DefaultedEntityGeoModel<NPC> {
         return animationSources;
     }
 
+    @Override
+    public ResourceLocation getModelResource(NPC animatable) {
+        return ResourceLocation.fromNamespaceAndPath(CogwheelEngine.MODID, "geo/entity/" + animatable.getStoryModelID() + ".geo.json");
+    }
+
+    @Override
+    public ResourceLocation getModelResource(NPC animatable, @Nullable GeoRenderer<NPC> renderer) {
+        return this.getModelResource(animatable);
+    }
+
     @ApiStatus.Internal
     public static ResourceLocation[] animationSources = new ResourceLocation[0];
 }

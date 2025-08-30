@@ -53,6 +53,7 @@ public class CogManifest implements CogPropertyManager {
         manager.reg("requireLibrary", (name, args, script, o) -> {
             CogScriptEnvironment.LibraryEnvironment env = CogScriptEnvironment.getLibEnvironment(args.getString(0));
             if (env == null) {
+                script.haltExecution();
                 throw new CogExpressionFailure("Library \"" + args.getString(0) + "\" required by " + script.getEnvironment().getUniqueIdentifier() + " environment but it does not present!");
             }
             return null;

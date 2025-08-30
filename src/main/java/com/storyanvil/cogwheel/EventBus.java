@@ -55,6 +55,13 @@ public class EventBus {
     @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void dataInjector(AddPackFindersEvent event) {
         // TODO: Inject datapacks and resourcepacks
+        switch (event.getPackType()) {
+            case SERVER_DATA -> {}
+            case CLIENT_RESOURCES -> {}
+            default -> {
+                CogwheelEngine.LOGGER.warn("DATA-INJECTOR FAILURE: UNKNOWN PACK TYPE \"{}\" RECEIVED", event.getPackType().name());
+            }
+        }
     }
 
     @SubscribeEvent @Api.Internal @ApiStatus.Internal
@@ -298,6 +305,7 @@ public class EventBus {
     @Api.Internal @ApiStatus.Internal
     public static ArrayList<ResourceLocation> serverSideAnimations = new ArrayList<>();
     private static final HashMap<String, WeakList<LabelCloseable>> labelListeners = new HashMap<>();
+    @Api.Internal @ApiStatus.Internal
     public static void hitLabel(String label, StoryAction<?> action) {
         if (labelListeners.containsKey(label)) {
             WeakList<LabelCloseable> c = labelListeners.get(label);
@@ -309,6 +317,7 @@ public class EventBus {
             }
         }
     }
+    @Api.Experimental(since = "2.1.0")
     public static void register(String label, LabelCloseable closeable) {
         if (labelListeners.containsKey(label)) {
             labelListeners.get(label).add(closeable);
@@ -317,7 +326,7 @@ public class EventBus {
         }
     }
 
-    @Contract(pure = true)
+    @Contract(pure = true) @Api.Experimental(since = "2.1.0")
     public static StoryLevel getStoryLevel() {
         return level;
     }

@@ -28,19 +28,23 @@ import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class CogScriptDispatcher {
     public static void dispatch(String scriptName, CogScriptEnvironment environment) {
-        CogwheelExecutor.schedule(() -> dispatcher(scriptName, new ScriptStorage(), environment));
+        CogwheelExecutor.schedule(() -> dispatchUnsafe(scriptName, new ScriptStorage(), environment));
     }
     public static void dispatch(String scriptName, ScriptStorage storage, CogScriptEnvironment environment) {
-        CogwheelExecutor.schedule(() -> dispatcher(scriptName, storage, environment));
+        CogwheelExecutor.schedule(() -> dispatchUnsafe(scriptName, storage, environment));
     }
     public static void dispatch(String scriptName, Consumer<DispatchedScript> s, CogScriptEnvironment environment) {
-        CogwheelExecutor.schedule(() -> s.accept(dispatcher(scriptName, new ScriptStorage(), environment)));
+        CogwheelExecutor.schedule(() -> s.accept(dispatchUnsafe(scriptName, new ScriptStorage(), environment)));
     }
     public static void dispatch(String scriptName, ScriptStorage storage, Consumer<DispatchedScript> s, CogScriptEnvironment environment) {
-        CogwheelExecutor.schedule(() -> s.accept(dispatcher(scriptName, storage, environment)));
+        CogwheelExecutor.schedule(() -> s.accept(dispatchUnsafe(scriptName, storage, environment)));
     }
-    private static @Nullable DispatchedScript dispatcher(String scriptName, ScriptStorage storage, CogScriptEnvironment environment) {
+    public static @Nullable DispatchedScript dispatchUnsafe(String scriptName, ScriptStorage storage, CogScriptEnvironment environment) {
         File script = new File(Minecraft.getInstance().gameDirectory, "config/" + scriptName);
+        return dispatchUnsafe(script, storage, environment);
+    }
+    public static @Nullable DispatchedScript dispatchUnsafe(File script, ScriptStorage storage, CogScriptEnvironment environment) {;
+        String scriptName = script.getName();
         if (!script.exists()) {
             log.error("Script {} does not exist. Dispatch ignored!", script);
             return null;
@@ -49,7 +53,7 @@ public class CogScriptDispatcher {
             log.info("Script: {} dispatched", scriptName);
             return readAndDispatch(scriptName, storage, environment, script);
         } else {
-            log.error("Script {} does not end with any known extension (known extensions are: \".sa\", \".sam\" ). Dispatch ignored!", script);
+            log.error("Script {} does not end with any known extension (known extensions are: \".sa\"). Dispatch ignored!", script);
         }
         return null;
     }

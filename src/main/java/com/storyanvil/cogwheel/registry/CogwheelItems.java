@@ -12,12 +12,17 @@
 package com.storyanvil.cogwheel.registry;
 
 import com.storyanvil.cogwheel.CogwheelEngine;
+import com.storyanvil.cogwheel.items.CustomItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 public class CogwheelItems {
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, CogwheelEngine.MODID);
+
+    public static final RegistryObject<Item> CUSTOM_ITEM = ITEMS.register("script_item",
+            () -> new CustomItem(new Item.Properties()));
 
     public static DeferredRegister<Item> getITEMS() {
         return ITEMS;

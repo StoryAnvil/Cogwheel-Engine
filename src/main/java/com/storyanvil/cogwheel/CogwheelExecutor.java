@@ -117,11 +117,13 @@ public class CogwheelExecutor {
 
     private static CogScriptEnvironment.DefaultEnvironment defaultEnvironment;
     private static HashMap<String, CogScriptEnvironment.LibraryEnvironment> libraryEnvironments;
+    private static CogScriptEnvironment.WorldEnvironment worldEnvironment;
 
     @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void serverStart(ServerStartingEvent event) {
         log.info("Creating CogScript default environment...");
         defaultEnvironment = new CogScriptEnvironment.DefaultEnvironment();
+        worldEnvironment = new CogScriptEnvironment.WorldEnvironment();
         if (libraryEnvironments != null) {
             libraryEnvironments.clear();
         }
@@ -161,6 +163,7 @@ public class CogwheelExecutor {
 
         log.info("Environments will be notified of initialization");
         defaultEnvironment.dispatchScript("init.sa");
+        worldEnvironment.dispatchScript("init.sa");
         for (CogScriptEnvironment.LibraryEnvironment environment : libraryEnvironments.values()) {
             if (!environment.init(new File(unpackedLibraries, environment.getUniqueIdentifier()))) {
                 libraryEnvironments.remove(environment.getUniqueIdentifier());
@@ -174,8 +177,10 @@ public class CogwheelExecutor {
         log.info("Disposing all CogScript environments...");
         defaultEnvironment.dispose();
         defaultEnvironment = null;
+        worldEnvironment.dispose();
+        worldEnvironment = null;
         for (CogScriptEnvironment.LibraryEnvironment environment : libraryEnvironments.values()) {
-            environment.dispose();;
+            environment.dispose();
         }
         libraryEnvironments = null;
     }
@@ -183,6 +188,11 @@ public class CogwheelExecutor {
     @Api.Stable(since = "2.0.0")
     public static CogScriptEnvironment.DefaultEnvironment getDefaultEnvironment() {
         return defaultEnvironment;
+    }
+
+    @Api.Stable(since = "2.1.0")
+    public static CogScriptEnvironment.WorldEnvironment getWorldEnvironment() {
+        return worldEnvironment;
     }
 
     @Api.Stable(since = "2.0.0")

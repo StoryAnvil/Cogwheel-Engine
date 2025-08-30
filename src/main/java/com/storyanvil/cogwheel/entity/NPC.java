@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 public class NPC extends Animal implements
         StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder,
         StoryNavigator, ObjectMonitor.IMonitored, CogPropertyManager,
-        StoryAnimator, GeoEntity {
+        StoryAnimator, GeoEntity, StoryModel {
     private static final ObjectMonitor<NPC> MONITOR = new ObjectMonitor<>();
     public NPC(EntityType<? extends Animal> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -72,6 +72,7 @@ public class NPC extends Animal implements
             me = new CogEntity(this);
             setSkin(DataStorage.getString(this, "skin", "test"));
             setCustomName(DataStorage.getString(this, "name", "NPC"));
+            setStoryModelID(DataStorage.getString(this, "model", "npc"));
         }
     }
 
@@ -81,6 +82,7 @@ public class NPC extends Animal implements
 
     private static final EntityDataAccessor<String> SKIN = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<String> MODEL = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
 
     @Override
     public void tick() {
@@ -170,6 +172,7 @@ public class NPC extends Animal implements
         super.defineSynchedData();
         this.entityData.define(SKIN, "test");
         this.entityData.define(NAME, "NPC");
+        this.entityData.define(MODEL, "npc");
     }
 
     @Override
@@ -241,6 +244,19 @@ public class NPC extends Animal implements
         });
         manager.reg("getSkin", (name, args, script, o) -> {
             return new CogString(((NPC) o).getSkin());
+        });
+
+        manager.reg("setModel", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            return npc.addChained(new StoryAction.Instant<NPC>() {
+                @Override
+                public void proceed(NPC myself) {
+                    myself.setStoryModelID(args.get(0).convertToString());
+                }
+            });
+        });
+        manager.reg("getModel", (name, args, script, o) -> {
+            return new CogString(((NPC) o).getStoryModelID());
         });
 
         manager.reg("chat", (name, args, script, o) -> {
@@ -368,5 +384,18 @@ public class NPC extends Animal implements
             return;
         }
         customAnimation = RawAnimation.begin().thenLoop(name);
+    }
+
+    @Override
+    public String getStoryModelID() {
+        return this.entityData.get(MODEL);
+    }
+
+    @Override
+    public void setStoryModelID(String id) {
+        this.entityData.set(MODEL, id, true);
+        if (!level().isClientSide) {
+            DataStorage.setString(this, "model", id);
+        }
     }
 }
