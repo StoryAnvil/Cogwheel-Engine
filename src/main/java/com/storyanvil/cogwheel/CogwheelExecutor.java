@@ -121,7 +121,7 @@ public class CogwheelExecutor {
 
     @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void serverStart(ServerStartingEvent event) {
-        log.info("Creating CogScript default environment...");
+        log.info("Creating CogScript default environments...");
         defaultEnvironment = new CogScriptEnvironment.DefaultEnvironment();
         worldEnvironment = new CogScriptEnvironment.WorldEnvironment();
         if (libraryEnvironments != null) {
