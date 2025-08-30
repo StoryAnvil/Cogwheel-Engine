@@ -212,4 +212,8 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
                 ", environment=" + environment +
                 '}';
     }
+
+    public void clearLines() {
+        linesToExecute.clear();
+    }
 }

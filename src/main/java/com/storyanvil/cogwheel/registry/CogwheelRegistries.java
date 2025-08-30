@@ -11,9 +11,12 @@
 
 package com.storyanvil.cogwheel.registry;
 
+import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.*;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
+import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.infrastructure.module.CogModule;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
@@ -172,6 +175,45 @@ public class CogwheelRegistries {
             @Override
             public @NotNull ResourceLocation getResourceLocation() {
                 return ResourceLocation.fromNamespaceAndPath(MODID, "foreach");
+            }
+        });
+        registerInternal(new ScriptLineHandler() {
+            @Override
+            public byte handle(@NotNull String line, @NotNull DispatchedScript script) throws Exception {
+                if (!line.startsWith("*")) return ScriptLineHandler.ignore();
+                String library;
+                boolean reload = false;
+                if (line.startsWith("*import ")) {
+                    library = line.substring(8);
+                } else if (line.startsWith("*reimport ")) {
+                    library = line.substring(10);
+                    reload = true;
+                } else if (line.startsWith("*return ")) {
+                    String expression = line.substring(8);
+                    CogPropertyManager exp = expressionHandler(expression, script, false).getB();
+                    script.put("$", exp);
+                    script.clearLines();
+                    return ScriptLineHandler.continueReading();
+                } else throw new CogExpressionFailure("STAR Expression is invalid");
+                ResourceLocation loc;
+                try {
+                    loc = ResourceLocation.parse(library + ".sam");
+                } catch (Throwable t) {throw new CogExpressionFailure("STAR Expression is invalid", t);}
+                CogScriptEnvironment environment = CogScriptEnvironment.getEnvironment(loc);
+                ResourceLocation modLoc = CogwheelExecutor.getDefaultEnvironment().getModuleLoc(environment, loc.getPath());
+                CogModule module = CogwheelExecutor.getDefaultEnvironment().getModule(modLoc);
+                if (!reload) reload = module == null;
+                if (reload) {
+                    module = CogModule.build(environment, loc.getPath());
+                    CogwheelExecutor.getDefaultEnvironment().putModule(modLoc, module);
+                }
+                script.put("m_" + loc.getPath().substring(0, loc.getPath().length() - 4), module);
+                return ScriptLineHandler.continueReading();
+            }
+
+            @Override
+            public @NotNull ResourceLocation getResourceLocation() {
+                return ResourceLocation.fromNamespaceAndPath(MODID, "star");
             }
         });
         registerInternal(new ScriptLineHandler() {

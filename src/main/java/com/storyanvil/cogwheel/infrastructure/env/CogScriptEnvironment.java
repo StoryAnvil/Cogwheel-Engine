@@ -18,6 +18,7 @@ import com.google.gson.JsonParser;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.module.CogModule;
 import com.storyanvil.cogwheel.infrastructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
@@ -113,6 +114,7 @@ public abstract class CogScriptEnvironment {
     }
     public abstract void dispatchScript(String name);
     public abstract void dispatchScript(String name, ScriptStorage storage);
+    public abstract String getScript(String name);
 
     /**
      * Finds correct CogScriptEnvironment and dispatched script.
@@ -132,7 +134,7 @@ public abstract class CogScriptEnvironment {
         environment.dispatchScript(loc.getPath());
     }
 
-    private static CogScriptEnvironment getEnvironment(ResourceLocation loc) {
+    public static CogScriptEnvironment getEnvironment(ResourceLocation loc) {
         CogScriptEnvironment environment;
         if (loc.getNamespace().equals("def") || loc.getNamespace().equals("minecraft")) {
             environment = CogwheelExecutor.getDefaultEnvironment();
@@ -178,6 +180,7 @@ public abstract class CogScriptEnvironment {
 
     public static class DefaultEnvironment extends CogScriptEnvironment {
         private final HashMap<String, Consumer<Integer>> dialogs;
+        private final HashMap<ResourceLocation, CogModule> moduleMap = new HashMap<>();
 
         public DefaultEnvironment() {
             super();
@@ -196,8 +199,13 @@ public abstract class CogScriptEnvironment {
         }
 
         @Override
+        public String getScript(String name) {
+            return "cog/" + name;
+        }
+
+        @Override
         public String getUniqueIdentifier() {
-            return "default.environment";
+            return "default_environment";
         }
 
         public void registerDialog(String id, Consumer<Integer> callback) {
@@ -205,6 +213,16 @@ public abstract class CogScriptEnvironment {
         }
         public HashMap<String, Consumer<Integer>> getDialogs() {
             return dialogs;
+        }
+
+        public void putModule(ResourceLocation loc, CogModule module) {
+            moduleMap.put(loc, module);
+        }
+        public CogModule getModule(ResourceLocation loc) {
+            return moduleMap.get(loc);
+        }
+        public ResourceLocation getModuleLoc(CogScriptEnvironment env, String script) {
+            return ResourceLocation.fromNamespaceAndPath(env.getUniqueIdentifier(), script);
         }
     }
     public static class LibraryEnvironment extends CogScriptEnvironment {
@@ -242,6 +260,11 @@ public abstract class CogScriptEnvironment {
         }
 
         @Override
+        public String getScript(String name) {
+            return "cog-libs/.cog/" + this.name + "/" + name;
+        }
+
+        @Override
         public String getUniqueIdentifier() {
             return name;
         }
@@ -252,7 +275,7 @@ public abstract class CogScriptEnvironment {
     }
     public static class TestEnvironment extends LibraryEnvironment {
         public TestEnvironment() {
-            super("test.environment");
+            super("test_environment");
         }
 
         @Override
@@ -263,6 +286,11 @@ public abstract class CogScriptEnvironment {
         @Override
         public void dispatchScript(String name, ScriptStorage storage) {
             CogScriptDispatcher.dispatch("cog/test." + name, storage, this);
+        }
+
+        @Override
+        public String getScript(String name) {
+            return "cog/test." + name;
         }
     }
     public static class WorldEnvironment extends CogScriptEnvironment {
@@ -277,8 +305,13 @@ public abstract class CogScriptEnvironment {
         }
 
         @Override
+        public String getScript(String name) {
+            return "";
+        }
+
+        @Override
         public String getUniqueIdentifier() {
-            return "world.environment";
+            return "world_environment";
         }
     }
     public static class EnvironmentData extends SavedData {
