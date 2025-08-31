@@ -37,7 +37,7 @@ public interface CogPropertyManager extends CogLike {
         return new CogString(convertToString());
     }
     @Override
-    default CogPropertyManager getCogManager() {
+    default CogPropertyManager asCogManager() {
         return this;
     }
 

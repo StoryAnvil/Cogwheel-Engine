@@ -50,8 +50,7 @@ public class CogwheelEngine
     public static class ClientModEvents
     {
         @SubscribeEvent @Api.Internal @ApiStatus.Internal
-        public static void onClientSetup(FMLClientSetupEvent event)
-        {
+        public static void onClientSetup(FMLClientSetupEvent event) {
             EntityRenderers.register(CogwheelEntities.NPC.get(), NPCRenderer::new);
         }
     }

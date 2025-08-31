@@ -21,7 +21,6 @@ import com.storyanvil.cogwheel.util.CogExpressionFailure;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class ModuleProperty implements PropertyHandler {
     private ArrayList<String> $lines;
@@ -37,9 +36,9 @@ public class ModuleProperty implements PropertyHandler {
     @Override
     public CogPropertyManager handle(String name, ArgumentData arg, DispatchedScript script, Object o) {
         if (o == null) {
-            o = new CogModuleInstance($parent);
+            o = new CMA($parent);
         }
-        CogModuleInstance instance = (CogModuleInstance) o;
+        CMA instance = (CMA) o;
         DispatchedScript $ = new DispatchedScript((ArrayList<String>) $lines.clone(), $parent.getEnvironment()).setScriptName("PROPERTY");
         $.put("this", instance);
         CogPropertyManager[] args = arg.getArgs();

@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.repo.CogRepository;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
 import com.storyanvil.cogwheel.infrastructure.cog.StoryLevel;
@@ -54,14 +55,15 @@ public class EventBus {
 
     @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void dataInjector(AddPackFindersEvent event) {
-        // TODO: Inject datapacks and resourcepacks
-        switch (event.getPackType()) {
-            case SERVER_DATA -> {}
-            case CLIENT_RESOURCES -> {}
-            default -> {
-                CogwheelEngine.LOGGER.warn("DATA-INJECTOR FAILURE: UNKNOWN PACK TYPE \"{}\" RECEIVED", event.getPackType().name());
-            }
-        }
+//        // TODO: Inject datapacks and resourcepacks
+//        switch (event.getPackType()) {
+//            case SERVER_DATA, CLIENT_RESOURCES -> {
+//                event.addRepositorySource(new CogRepository(event.getPackType()));
+//            }
+//            default -> {
+//                CogwheelEngine.LOGGER.warn("DATA-INJECTOR FAILURE: UNKNOWN PACK TYPE \"{}\" RECEIVED", event.getPackType().name());
+//            }
+//        }
     }
 
     @SubscribeEvent @Api.Internal @ApiStatus.Internal

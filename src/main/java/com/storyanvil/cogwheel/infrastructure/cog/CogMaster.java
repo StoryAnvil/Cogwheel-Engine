@@ -276,6 +276,12 @@ public class CogMaster implements CogPropertyManager {
             }
             return null;
         });
+        manager.reg("range", (name, args, script, o) -> {
+            return new CogRange(0, args.requireInt(0));
+        });
+        manager.reg("range2", (name, args, script, o) -> {
+            return new CogRange(args.requireInt(0), args.requireInt(1));
+        });
     }
 
     @Override

@@ -16,5 +16,5 @@ package com.storyanvil.cogwheel.infrastructure.cog;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 
 public interface CogLike {
-    CogPropertyManager getCogManager();
+    CogPropertyManager asCogManager();
 }
