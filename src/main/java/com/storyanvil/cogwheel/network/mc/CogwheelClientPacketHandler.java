@@ -14,6 +14,7 @@
 package com.storyanvil.cogwheel.network.mc;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.client.screen.DialogScreen;
 import com.storyanvil.cogwheel.infrastructure.abilities.StoryAnimator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -50,5 +51,13 @@ public class CogwheelClientPacketHandler {
                 animator.pushAnimation(animationBound.getAnimation().replace('_','.'));
             }
         });
+    }
+    public static Object dialogBound(DialogBound bound, Supplier<NetworkEvent.Context> contextSupplier) {
+        if (bound.isClose()) {
+            Minecraft.getInstance().setScreen(null);
+        } else {
+            Minecraft.getInstance().setScreen(new DialogScreen(bound));
+        }
+        return null;
     }
 }

@@ -22,6 +22,8 @@ import com.storyanvil.cogwheel.infrastructure.actions.AnimationAction;
 import com.storyanvil.cogwheel.infrastructure.actions.PathfindAction;
 import com.storyanvil.cogwheel.infrastructure.actions.WaitForLabelAction;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
+import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
+import com.storyanvil.cogwheel.network.mc.DialogBound;
 import com.storyanvil.cogwheel.util.DataStorage;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
@@ -41,6 +43,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -315,6 +318,40 @@ public class NPC extends Animal implements
                         CogwheelExecutor.schedule(() -> {
                             script.put(variable, new CogInteger(response));
                             script.lineDispatcher();
+                        });
+                    });
+                }
+            });
+        });
+        manager.reg("dialogChoiceUI", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            final String dialogID = UUID.randomUUID().toString();
+            int optionsLength = args.size() - 1;
+            String[] options = new String[optionsLength];
+            for (int i = 0; i < optionsLength; i++) {
+                options[i] = args.getString(i + 1);
+            }
+            DialogBound bound = DialogBound.choice(dialogID, args.getString(0), options, npc.getCogName());
+            npc.addStoryAction(new StoryAction.Instant<NPC>() {
+                @Override
+                public void proceed(NPC myself) {
+                    CogwheelExecutor.scheduleTickEvent(event -> {
+                        CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), bound);
+                    });
+                }
+            });
+            throw new PreventSubCalling(new SubCallPostPrevention() {
+                @Override
+                public void prevent(String variable) {
+                    // Dialogs can be registered only in default environment
+                    CogwheelExecutor.getDefaultEnvironment().registerDialog(dialogID, response -> {
+                        CogwheelExecutor.schedule(() -> {
+                            // Send dialog close packet
+                            CogwheelExecutor.scheduleTickEvent(levelTickEvent -> {
+                                CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
+                            });
+                            script.put(variable, new CogInteger(response));
+                            CogwheelExecutor.schedule(script::lineDispatcher);
                         });
                     });
                 }

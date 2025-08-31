@@ -35,5 +35,9 @@ public class CogwheelPacketHandler {
                 AnimationDataBound::encode, AnimationDataBound::decode, AnimationDataBound::handle);
         DELTA_BRIDGE.registerMessage(PACKET_ID.incrementAndGet(), AnimationBound.class,
                 AnimationBound::encode, AnimationBound::decode, AnimationBound::handle);
+        DELTA_BRIDGE.registerMessage(PACKET_ID.incrementAndGet(), DialogBound.class,
+                DialogBound::encode, DialogBound::decode, DialogBound::handle);
+        DELTA_BRIDGE.registerMessage(PACKET_ID.incrementAndGet(), DialogResponseBound.class,
+                DialogResponseBound::encode, DialogResponseBound::decode, DialogResponseBound::handle);
     }
 }

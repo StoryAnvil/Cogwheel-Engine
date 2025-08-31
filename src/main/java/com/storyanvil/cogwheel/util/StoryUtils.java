@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -42,7 +43,10 @@ public class StoryUtils {
     }
 
     @Api.Stable(since = "2.0.0")
-    public static void encodeString(@NotNull FriendlyByteBuf buf, @NotNull String str) {
+    public static void encodeString(@NotNull FriendlyByteBuf buf, @Nullable String str) {
+        if (str == null) {
+            str = "";
+        }
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
         buf.writeInt(bytes.length);
         buf.writeBytes(bytes);

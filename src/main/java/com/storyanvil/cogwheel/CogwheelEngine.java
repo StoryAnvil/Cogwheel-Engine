@@ -42,6 +42,7 @@ public class CogwheelEngine
         CogwheelItems.getITEMS().register(modEventBus);
         CogwheelSounds.getSoundEvents().register(modEventBus);
         CogwheelEntities.ENTITY_TYPES.register(modEventBus);
+        CogwheelUI.MENU.register(modEventBus);
         CogwheelPacketHandler.init();
         CogwheelRegistries.registerDefaultObjects();
     }
