@@ -19,22 +19,28 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 
-public class DialogBound {
+public class DialogChoiceBound {
     private boolean close = false;
     private String request = "";
+    private String dialogId = "";
+    private String[] options = new String[0];
     private String npcName = "";
     private String texture = "";
 
-    public static DialogBound close() {
-        DialogBound bound = new DialogBound();
+    public static DialogChoiceBound close() {
+        DialogChoiceBound bound = new DialogChoiceBound();
         bound.close = true;
+        bound.dialogId = "";
         return bound;
     }
-    public static DialogBound tell(String request, String npcName, String texture) {
-        DialogBound bound = new DialogBound();
+    public static DialogChoiceBound choice(String dialogId, String request, String[] options, String npcName, String texture) {
+        DialogChoiceBound bound = new DialogChoiceBound();
         bound.request = request;
+        bound.options = options;
+        bound.dialogId = dialogId;
         bound.npcName = npcName;
         bound.texture = texture;
         return bound;
@@ -48,6 +54,14 @@ public class DialogBound {
         return request;
     }
 
+    public String[] getOptions() {
+        return options;
+    }
+
+    public String getDialogId() {
+        return dialogId;
+    }
+
     public String getNpcName() {
         return npcName;
     }
@@ -58,23 +72,35 @@ public class DialogBound {
 
     public void encode(FriendlyByteBuf byteBuf) {
         byteBuf.writeBoolean(close);
+        StoryUtils.encodeString(byteBuf, dialogId);
         StoryUtils.encodeString(byteBuf, request);
         StoryUtils.encodeString(byteBuf, npcName);
         StoryUtils.encodeString(byteBuf, texture);
+        byteBuf.writeInt(options.length);
+        for (int i = 0; i < options.length; i++) {
+            StoryUtils.encodeString(byteBuf, options[i]);
+        }
     }
 
-    public static DialogBound decode(FriendlyByteBuf byteBuf) {
-        DialogBound bound = new DialogBound();
+    public static DialogChoiceBound decode(FriendlyByteBuf byteBuf) {
+        DialogChoiceBound bound = new DialogChoiceBound();
         bound.close = byteBuf.readBoolean();
+        bound.dialogId = StoryUtils.decodeString(byteBuf);
         bound.request = StoryUtils.decodeString(byteBuf);
         bound.npcName = StoryUtils.decodeString(byteBuf);
         bound.texture = StoryUtils.decodeString(byteBuf);
+        int optionsLength = byteBuf.readInt();
+        String[] options = new String[optionsLength];
+        for (int i = 0; i < optionsLength; i++) {
+            options[i] = StoryUtils.decodeString(byteBuf);
+        }
+        bound.options = options;
         return bound;
     }
 
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
         contextSupplier.get().enqueueWork(() -> {
-            DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> () -> CogwheelClientPacketHandler.dialogBound(this, contextSupplier));
+            DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> () -> CogwheelClientPacketHandler.dialogChoiceBound(this, contextSupplier));
         });
         contextSupplier.get().setPacketHandled(true);
     }
@@ -84,6 +110,8 @@ public class DialogBound {
         return "DialogBound{" +
                 "close=" + close +
                 ", request='" + request + '\'' +
+                ", dialogId='" + dialogId + '\'' +
+                ", options=" + Arrays.toString(options) +
                 '}';
     }
 }

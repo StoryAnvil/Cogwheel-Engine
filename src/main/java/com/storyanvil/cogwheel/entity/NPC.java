@@ -24,6 +24,7 @@ import com.storyanvil.cogwheel.infrastructure.actions.WaitForLabelAction;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.network.mc.DialogBound;
+import com.storyanvil.cogwheel.network.mc.DialogChoiceBound;
 import com.storyanvil.cogwheel.util.DataStorage;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
@@ -323,15 +324,51 @@ public class NPC extends Animal implements
                 }
             });
         });
+        manager.reg("dialogBlocking", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            DialogBound bound = DialogBound.tell(args.getString(0), npc.getCogName(), args.getString(1));
+            npc.addStoryAction(new StoryAction.Ticking<NPC>(args.requireInt(2)) {
+                @Override
+                public void proceed(NPC myself) {
+                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), bound);
+                }
+            });
+            throw new PreventSubCalling(new SubCallPostPrevention() {
+                @Override
+                public void prevent(String variable) {
+                    CogwheelExecutor.scheduleTickEvent(e -> {
+                        script.put(variable, CogPropertyManager.nullManager);
+                        CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
+                        CogwheelExecutor.schedule(script::lineDispatcher);
+                    }, args.requireInt(2));
+                }
+            });
+        });
+        manager.reg("dialogNonBlocking", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            DialogBound bound = DialogBound.tell(args.getString(0), npc.getCogName(), args.getString(1));
+            npc.addStoryAction(new StoryAction.Ticking<NPC>(args.requireInt(2)) {
+                @Override
+                public void proceed(NPC myself) {
+                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), bound);
+                }
+
+                @Override
+                public void onEnding() {
+                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
+                }
+            });
+            return null;
+        });
         manager.reg("dialogChoiceUI", (name, args, script, o) -> {
             NPC npc = (NPC) o;
             final String dialogID = UUID.randomUUID().toString();
             int optionsLength = args.size() - 1;
-            String[] options = new String[optionsLength];
-            for (int i = 0; i < optionsLength; i++) {
+            String[] options = new String[optionsLength - 1];
+            for (int i = 0; i < optionsLength - 1; i++) {
                 options[i] = args.getString(i + 1);
             }
-            DialogBound bound = DialogBound.choice(dialogID, args.getString(0), options, npc.getCogName());
+            DialogChoiceBound bound = DialogChoiceBound.choice(dialogID, args.getString(0), options, npc.getCogName(), args.getString(optionsLength));
             npc.addStoryAction(new StoryAction.Instant<NPC>() {
                 @Override
                 public void proceed(NPC myself) {
@@ -348,7 +385,7 @@ public class NPC extends Animal implements
                         CogwheelExecutor.schedule(() -> {
                             // Send dialog close packet
                             CogwheelExecutor.scheduleTickEvent(levelTickEvent -> {
-                                CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
+                                CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogChoiceBound.close());
                             });
                             script.put(variable, new CogInteger(response));
                             CogwheelExecutor.schedule(script::lineDispatcher);

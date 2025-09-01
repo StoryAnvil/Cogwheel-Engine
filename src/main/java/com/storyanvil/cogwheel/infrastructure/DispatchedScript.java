@@ -145,6 +145,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
 
     public void put(String key, CogPropertyManager o) {
         if (o == null) return;
+        if (key == null) return;
         storage.put(key, o);
     }
     public @Nullable CogPropertyManager get(String key) {

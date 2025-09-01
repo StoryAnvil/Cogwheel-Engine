@@ -120,4 +120,9 @@ public class StoryUtils {
 
         return destFile;
     }
+
+    @Api.Stable(since = "2.6.0")
+    public static boolean isHovering(int mouseX, int mouseY, int left, int right, int top, int bottom) {
+        return mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom;
+    }
 }

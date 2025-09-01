@@ -90,4 +90,24 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPro
             return true;
         }
     }
+    public abstract static class Ticking<T> extends StoryAction<T> {
+        public Ticking(int ticksLeft) {
+            super();
+            this.ticksLeft = ticksLeft;
+        }
+        private int ticksLeft;
+
+        @Override
+        public boolean freeToGo(T myself) {
+            if (ticksLeft > 0) {
+                ticksLeft--;
+                return false;
+            }
+            onEnding();
+            hitLabel();
+            return true;
+        }
+
+        public void onEnding() {}
+    }
 }

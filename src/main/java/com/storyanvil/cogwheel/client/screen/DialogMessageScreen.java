@@ -13,28 +13,32 @@
 
 package com.storyanvil.cogwheel.client.screen;
 
-import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.network.mc.DialogBound;
+import com.storyanvil.cogwheel.network.mc.DialogChoiceBound;
 import com.storyanvil.cogwheel.network.mc.DialogResponseBound;
-import net.minecraft.ChatFormatting;
+import com.storyanvil.cogwheel.util.StoryUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
+import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
+
 @OnlyIn(Dist.CLIENT)
-public class DialogScreen extends Screen {
+public class DialogMessageScreen extends Screen {
     private DialogBound bound;
-
     private int selectedButton = -1;
+    private ResourceLocation image = null;
 
-    public DialogScreen(DialogBound bound) {
+    public DialogMessageScreen(DialogBound bound) {
         super(Component.translatable("ui.storyanvil_cogwheel.dialog_choice"));
         this.bound = bound;
     }
@@ -51,45 +55,42 @@ public class DialogScreen extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-//        guiGraphics.drawString(Minecraft.getInstance().font, bound.getRequest(), pMouseX, pMouseY, ChatFormatting.RED.getColor());
-        int offsetY = 5;
+        if (boxLeft == 0)
+            resize(Minecraft.getInstance(), this.width, this.height);
         selectedButton = -1;
-        for (int i = 0; i < bound.getOptions().length; i++) {
-            offsetY += renderOption(guiGraphics, bound.getOptions()[i], i, 5, offsetY, pMouseX, pMouseY) + 5;
-        }
-
         Font font = Minecraft.getInstance().font;
-        int textWidth = font.width(bound.getRequest());
-        int fullWidth = textWidth + 10;
-        int left = (this.width - fullWidth) / 2;
-        int top = height / 6 * 4;
-
-        guiGraphics.fill(left, top, left + fullWidth, top + font.lineHeight + 10, -1772920468);
-        guiGraphics.drawString(font, bound.getRequest(), left + 5, top + 5, ChatFormatting.WHITE.getColor());
+        guiGraphics.fill(boxLeft, boxTop, boxRight, boxBottom, -939524096);
+        guiGraphics.blit(image, boxLeft, boxBottom - imageWidth, imageWidth, imageWidth, 0, 0, 100, 100, 100, 100);
+        guiGraphics.drawString(font, bound.getNpcName(), textX, textY, 5635925);
+        guiGraphics.drawWordWrap(font, FormattedText.of(bound.getRequest()), textX, textY + font.lineHeight + 5, textEnd, 16777215);
     }
 
-    private static final int LINE_LENGTH = 25;
-    private int renderOption(GuiGraphics guiGraphics, String option, int _i, int x, int y, int mouseX, int mouseY) {
-        Font font = Minecraft.getInstance().font;
-        int lines = option.length() / LINE_LENGTH + (option.length() % LINE_LENGTH != 0 ? 1 : 0);
-        int height = /* top + bottom offset */ 10 + font.lineHeight * lines;
-        int width = -1;
+    private int boxLeft = 0;
+    private int boxRight = 0;
+    private int boxTop = 0;
+    private int boxBottom = 0;
+    private int boxWidth = 0;
+    private int boxHeight = 0;
+    private int imageWidth = 0;
+    private int textX = 0;
+    private int textY = 0;
+    private int textEnd = 0;
 
-        String[] list = new String[lines];
-        for (int i = 0; i < lines; i++) {
-            String line = option.substring(i * LINE_LENGTH, Math.min(i * LINE_LENGTH + LINE_LENGTH, option.length()));
-            list[i] = line;
-            width = Math.max(width, font.width(line));
-        }
-        boolean hovered = mouseX >= x && mouseX <= x + width + 10 && mouseY >= y && mouseY <= y + height;
-        if (hovered) selectedButton = _i;
-        guiGraphics.fill(x + 3, y, x + width + 7, y + height, hovered ? -1772920468 : -1773973672);
-        guiGraphics.fill(x, y, x + 3, y + height, hovered ? -11312788 : -12365992);
-        for (int i = 0; i < lines; i++) {
-            String line = list[i];
-            guiGraphics.drawString(font, line, x + 5, 5 + font.lineHeight * i + y, ChatFormatting.WHITE.getColor());
-        }
-        return height;
+    @Override
+    public void resize(@NotNull Minecraft minecraft, int width, int height) {
+        super.resize(minecraft, width, height);
+        Font font = Minecraft.getInstance().font;
+        boxWidth = Mth.clamp((int) ((width / 100f) * 70), 100, 350);
+        boxHeight = Mth.clamp((int) ((height / 100f) * 30), 50, 150);
+        boxTop = (height / 4 * 3) - (boxHeight / 2);
+        boxLeft = (width / 2) - (boxWidth / 2);
+        boxRight = boxLeft + boxWidth;
+        boxBottom = boxTop + boxHeight;
+        imageWidth = Math.max(boxWidth / 3, boxHeight);
+        textX = boxLeft + imageWidth + 15;
+        textY = boxTop + 5;
+        textEnd = boxWidth - imageWidth - 30;
+        image = ResourceLocation.fromNamespaceAndPath(MODID, "textures/dialog/" + bound.getTexture() + ".png");
     }
 
     @Override
@@ -98,7 +99,7 @@ public class DialogScreen extends Screen {
             return super.mouseClicked(pMouseX, pMouseY, pButton);
         }
 //        System.out.println(bound.getOptions()[selectedButton]);
-        CogwheelPacketHandler.DELTA_BRIDGE.sendToServer(new DialogResponseBound(bound.getDialogId(), selectedButton));
+//        CogwheelPacketHandler.DELTA_BRIDGE.sendToServer(new DialogResponseBound(bound.getDialogId(), selectedButton));
         return true;
     }
 }
