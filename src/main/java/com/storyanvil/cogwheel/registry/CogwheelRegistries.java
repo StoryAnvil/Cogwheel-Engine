@@ -159,7 +159,7 @@ public class CogwheelRegistries {
                         } else if (l.equals("}")) {
                             level--;
                             if (level <= -1) {
-                                script.removeLine(i);
+                                script.defuseLine(i);
                                 endLine = i - 1;
                                 break;
                             }
@@ -207,7 +207,8 @@ public class CogwheelRegistries {
                     module = CogModule.build(environment, loc.getPath());
                     CogwheelExecutor.getDefaultEnvironment().putModule(modLoc, module);
                 }
-                script.put("m_" + loc.getPath().substring(0, loc.getPath().length() - 4), module);
+                String actualName = loc.getPath().substring(0, loc.getPath().length() - 4);
+                script.put(actualName.substring(0, 1).toUpperCase() + actualName.substring(1), module);
                 return ScriptLineHandler.continueReading();
             }
 
@@ -422,6 +423,7 @@ public class CogwheelRegistries {
             }
             script.stopLineUnloading();
             script.put(varName, bi.getA());
+            script.continueUnloadingLines();
             script.plantHandler(new ForEachInternal(bi.getB(), manager, varName, planningSchedule), planningSchedule);
             return ScriptLineHandler.continueReading();
         }

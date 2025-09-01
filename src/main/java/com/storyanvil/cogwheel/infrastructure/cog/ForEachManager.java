@@ -17,7 +17,7 @@ import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
 import com.storyanvil.cogwheel.util.Bi;
 
-public interface ForEachManager {
+public interface ForEachManager extends CogPropertyManager {
     /**
      * @return new object that will be used by your ForEachManager to track loop progress
      */

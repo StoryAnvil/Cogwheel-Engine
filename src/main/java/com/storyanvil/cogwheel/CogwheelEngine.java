@@ -42,6 +42,7 @@ public class CogwheelEngine
         CogwheelItems.getITEMS().register(modEventBus);
         CogwheelSounds.getSoundEvents().register(modEventBus);
         CogwheelEntities.ENTITY_TYPES.register(modEventBus);
+        CogwheelUI.MENU.register(modEventBus);
         CogwheelPacketHandler.init();
         CogwheelRegistries.registerDefaultObjects();
     }
@@ -50,8 +51,7 @@ public class CogwheelEngine
     public static class ClientModEvents
     {
         @SubscribeEvent @Api.Internal @ApiStatus.Internal
-        public static void onClientSetup(FMLClientSetupEvent event)
-        {
+        public static void onClientSetup(FMLClientSetupEvent event) {
             EntityRenderers.register(CogwheelEntities.NPC.get(), NPCRenderer::new);
         }
     }

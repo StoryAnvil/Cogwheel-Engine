@@ -11,10 +11,14 @@
  *
  */
 
-package com.storyanvil.cogwheel.infrastructure.cog;
+package com.storyanvil.cogwheel.registry;
 
-import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 
-public interface CogLike {
-    CogPropertyManager asCogManager();
+import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
+
+public class CogwheelUI {
+    public static final DeferredRegister<MenuType<?>> MENU = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
 }

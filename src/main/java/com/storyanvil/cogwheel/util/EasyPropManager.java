@@ -12,13 +12,17 @@
 package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.CogBool;
 import com.storyanvil.cogwheel.infrastructure.cog.PropertyHandler;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 
 import java.util.HashMap;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Api.Internal @ApiStatus.Internal
 public class EasyPropManager {
@@ -48,8 +52,30 @@ public class EasyPropManager {
     }
 
     @Api.Internal @ApiStatus.Internal
+    public boolean hasOwnProperty(String name, Function<String,Boolean> alt) {
+        return this.hasOwnProperty(name) || alt.apply(name);
+    }
+
+    @Api.Internal @ApiStatus.Internal
     public PropertyHandler get(String name) {
         return handlers.get(manager + name);
+    }
+    @Api.Internal @ApiStatus.Internal
+    public PropertyHandler get(String name, Function<String,PropertyHandler> alt) {
+        PropertyHandler h = this.get(name);
+        if (h != null) return h;
+        return alt.apply(name);
+    }
+    @Api.Internal @ApiStatus.Internal
+    public CogPropertyManager get(String name, ArgumentData args, DispatchedScript script, Object o) {
+        PropertyHandler h = this.get(name);
+        return h.handle(name, args, script, o);
+    }
+    @Api.Internal @ApiStatus.Internal
+    public CogPropertyManager get(String name, ArgumentData args, DispatchedScript script, Object o, Supplier<CogPropertyManager> alt) {
+        PropertyHandler h = this.get(name);
+        if (h != null) return h.handle(name, args, script, o);
+        return alt.get();
     }
 
     @Api.Internal @ApiStatus.Internal

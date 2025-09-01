@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.infrastructure;
 
+import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
@@ -26,7 +27,7 @@ import java.util.HashMap;
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class DispatchedScript implements ObjectMonitor.IMonitored {
-    @ApiStatus.Internal
+    @ApiStatus.Internal @Api.Internal
     public static final ObjectMonitor<DispatchedScript> MONITOR = new ObjectMonitor<>();
 
     private final ArrayList<String> linesToExecute;
@@ -144,6 +145,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
 
     public void put(String key, CogPropertyManager o) {
         if (o == null) return;
+        if (key == null) return;
         storage.put(key, o);
     }
     public @Nullable CogPropertyManager get(String key) {
@@ -181,6 +183,9 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     public String peekLine(int line) {
         if (line >= linesToExecute.size()) return null;
         return linesToExecute.get(line);
+    }
+    public void defuseLine(int line) {
+        linesToExecute.set(line, "");
     }
     public int linesLeft() {
         return linesToExecute.size();

@@ -17,27 +17,57 @@ import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
+import com.storyanvil.cogwheel.util.EasyPropManager;
+import com.storyanvil.cogwheel.util.ScriptStorage;
 import org.jetbrains.annotations.Nullable;
 
-public class CogModuleInstance implements CogPropertyManager {
-    private final CogModule parent;
+/**
+ * CogModuleAccessor
+ */
+public class CMA implements CogPropertyManager {
+    private static final EasyPropManager MANAGER = new EasyPropManager("cma", CMA::registerProps);
 
-    public CogModuleInstance(CogModule parent) {
+    private static void registerProps(EasyPropManager manager) {
+
+    }
+
+    private final CogModule parent;
+    private final ScriptStorage storage;
+
+    public CMA(CogModule parent) {
         this.parent = parent;
+        this.storage = new ScriptStorage();
     }
 
     @Override
     public boolean hasOwnProperty(String name) {
-        return parent._hasOwnProperty(name);
+        return name.startsWith("$") || MANAGER.hasOwnProperty(name, parent::_hasOwnProperty);
     }
 
     @Override
     public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling {
-        return parent._getProperty(name, args, script, this);
+        if (name.startsWith("$")) {
+            int i = args.getArgs().length;
+            if (i == 0) {
+                return storage.get(name.substring(1));
+            } else if (i == 1) {
+                storage.put(name.substring(1), args.get(0));
+                return null;
+            }
+        }
+        return MANAGER.get(name, args, script, this, () -> parent._getProperty(name, args, script, this));
     }
 
     @Override
     public boolean equalsTo(CogPropertyManager o) {
         return o == this;
+    }
+
+    @Override
+    public String toString() {
+        return "CMA{" +
+                "parent=" + parent +
+                ", storage=" + storage +
+                '}';
     }
 }

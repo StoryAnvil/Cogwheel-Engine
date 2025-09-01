@@ -61,6 +61,7 @@ public class CogModule implements CogPropertyManager {
                         dataFix.warn(propertyName);
                         if (space == 0) {
                             propertyName = "<init>";
+                            property.add("$ = this");
                         }
                         if (!header.endsWith(") {")) throw new CogExpressionFailure("Module line \"" + line + "\" is invalid property header [TAIL BRACKET MISMATCH]!");
                         String brackets = header.substring(space + 1, header.length() - 3);
@@ -111,13 +112,13 @@ public class CogModule implements CogPropertyManager {
         return ResourceLocation.fromNamespaceAndPath(environment.getUniqueIdentifier(), name);
     }
 
-    public CogPropertyManager _getProperty(String name, ArgumentData args, DispatchedScript script, CogModuleInstance instance) {
+    public CogPropertyManager _getProperty(String name, ArgumentData args, DispatchedScript script, CMA instance) {
         return properties.get(name).handle(name, args, script, instance);
     }
 
     @Override
     public boolean hasOwnProperty(String name) {
-        return name.equals("construct") || name.equals("dump");
+        return name.equals("new") || name.equals("dump");
     }
 
     @Override
