@@ -13,7 +13,9 @@ package com.storyanvil.cogwheel.infrastructure;
 
 import com.storyanvil.cogwheel.infrastructure.cog.CogLike;
 import com.storyanvil.cogwheel.infrastructure.cog.CogString;
+import com.storyanvil.cogwheel.infrastructure.cog.JavaType;
 import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

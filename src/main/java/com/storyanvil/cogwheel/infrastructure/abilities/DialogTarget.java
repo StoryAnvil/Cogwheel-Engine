@@ -11,18 +11,13 @@
  *
  */
 
-package com.storyanvil.cogwheel.util;
+package com.storyanvil.cogwheel.infrastructure.abilities;
 
-import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import java.util.List;
+import java.util.function.Consumer;
 
-import java.util.HashMap;
-
-@Api.Stable(since = "2.0.0")
-public class ScriptStorage extends HashMap<String, CogPropertyManager> {
-    @Api.Stable(since = "2.7.0")
-    public ScriptStorage append(String variableName, CogPropertyManager manager) {
-        super.put(variableName, manager);
-        return this;
-    }
+public interface DialogTarget {
+    void d$say(String text, String texture, int ticks, Runnable trigger);
+    void d$ask(String text, String texture, List<String> options, Consumer<Integer> acceptor);
+    String d$name();
 }

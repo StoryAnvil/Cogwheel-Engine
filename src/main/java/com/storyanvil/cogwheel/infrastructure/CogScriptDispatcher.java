@@ -11,10 +11,14 @@
 
 package com.storyanvil.cogwheel.infrastructure;
 
+import com.mojang.datafixers.util.Function4;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.infrastructure.script.DialogScript;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -51,25 +55,40 @@ public class CogScriptDispatcher {
         }
         if (scriptName.endsWith(".sa") /* storyanvil */) {
             log.info("Script: {} dispatched", scriptName);
-            return readAndDispatch(scriptName, storage, environment, script);
+            return readAndDispatch(scriptName, storage, environment, script, CogScriptDispatcher::cogScriptScript, true);
+        } else if (scriptName.endsWith(".sad") /* storyanvil dialog */) {
+            log.info("Dialog Script: {} dispatched", scriptName);
+            return readAndDispatch(scriptName, storage, environment, script, CogScriptDispatcher::dialog, false);
         } else {
             log.error("Script {} does not end with any known extension (known extensions are: \".sa\"). Dispatch ignored!", script);
         }
         return null;
     }
 
-    private static @Nullable DispatchedScript readAndDispatch(String scriptName, ScriptStorage storage, CogScriptEnvironment environment, File script) {
+    public static @Nullable DispatchedScript readAndDispatch(String scriptName, ScriptStorage storage, CogScriptEnvironment environment, File script, Function4<String, ScriptStorage, CogScriptEnvironment, ArrayList<String>, DispatchedScript> scriptFunction, boolean trim) {
         try (FileReader fr = new FileReader(script); Scanner sc = new Scanner(fr)) {
             ArrayList<String> lines = new ArrayList<>();
             while (sc.hasNextLine()) {
-                lines.add(sc.nextLine().trim());
+                if (trim)
+                    lines.add(sc.nextLine().trim());
+                else
+                    lines.add(sc.nextLine());
             }
-            DispatchedScript s = new DispatchedScript(lines, storage, environment);
-            CogwheelExecutor.schedule(s.setScriptName(scriptName)::lineDispatcher);
-            return s;
+            return scriptFunction.apply(scriptName, storage, environment, lines);
         } catch (IOException e) {
             log.error("Script dispatch failed while file reading", e);
         }
         return null;
+    }
+
+    private static @NotNull DispatchedScript cogScriptScript(String scriptName, ScriptStorage storage, CogScriptEnvironment environment, ArrayList<String> lines) {
+        DispatchedScript s = new DispatchedScript(lines, storage, environment);
+        CogwheelExecutor.schedule(s.setScriptName(scriptName)::startExecution);
+        return s;
+    }
+    private static @NotNull DispatchedScript dialog(String scriptName, ScriptStorage storage, CogScriptEnvironment environment, ArrayList<String> lines) {
+        DispatchedScript s = new DialogScript(lines, storage, environment);
+        CogwheelExecutor.schedule(s.setScriptName(scriptName)::startExecution);
+        return s;
     }
 }

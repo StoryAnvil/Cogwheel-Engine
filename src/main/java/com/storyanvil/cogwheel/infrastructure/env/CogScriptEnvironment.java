@@ -20,7 +20,7 @@ import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.module.CogModule;
 import com.storyanvil.cogwheel.infrastructure.CogScriptDispatcher;
-import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 import com.storyanvil.cogwheel.util.WeakList;

@@ -11,62 +11,54 @@
  *
  */
 
-package com.storyanvil.cogwheel.infrastructure.module;
+package com.storyanvil.cogwheel.infrastructure.cog;
 
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
-import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
 import com.storyanvil.cogwheel.util.EasyPropManager;
-import com.storyanvil.cogwheel.util.ScriptStorage;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * CogModuleAccessor
- */
-public class CMA implements CogPropertyManager {
-    private static final EasyPropManager MANAGER = new EasyPropManager("cma", CMA::registerProps);
+public class CogVarLinkage implements CogPropertyManager {
+    private String variable;
 
-    private static void registerProps(EasyPropManager manager) {
-        manager.reg("put", (name, args, script, o) -> {
-            CMA cma = (CMA) o;
-            cma.storage.put(args.getString(0), args.get(1));
-            return null;
-        });
-        manager.reg("get", (name, args, script, o) -> {
-            CMA cma = (CMA) o;
-            return cma.storage.get(args.getString(0));
-        });
+    public CogVarLinkage(String variable) {
+        this.variable = variable;
     }
 
-    private final CogModule parent;
-    private final ScriptStorage storage;
+    public void changeLinkage(String variable) {
+        this.variable = variable;
+    }
 
-    public CMA(CogModule parent) {
-        this.parent = parent;
-        this.storage = new ScriptStorage();
+    private static final EasyPropManager MANAGER = new EasyPropManager("varlinkage", CogVarLinkage::registerProps);
+
+    private static void registerProps(EasyPropManager manager) {
+        manager.reg("get", (name, args, script, o) -> {
+            CogVarLinkage linkage = (CogVarLinkage) o;
+            return script.get(linkage.variable);
+        });
+        manager.reg("set", (name, args, script, o) -> {
+            CogVarLinkage linkage = (CogVarLinkage) o;
+            script.put(linkage.variable, args.get(0));
+            return null;
+        });
     }
 
     @Override
     public boolean hasOwnProperty(String name) {
-        return MANAGER.hasOwnProperty(name, parent::_hasOwnProperty);
+        return MANAGER.hasOwnProperty(name);
     }
 
     @Override
     public @Nullable CogPropertyManager getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling {
-        return MANAGER.get(name, args, script, this, () -> parent._getProperty(name, args, script, this));
+        return MANAGER.get(name, args, script, this);
     }
 
     @Override
     public boolean equalsTo(CogPropertyManager o) {
-        return o == this;
-    }
-
-    @Override
-    public String toString() {
-        return "CMA{" +
-                "parent=" + parent +
-                ", storage=" + storage +
-                '}';
+        if (o instanceof CogVarLinkage linkage) {
+            return linkage.variable.equals(this.variable);
+        }
+        return false;
     }
 }

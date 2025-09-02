@@ -14,7 +14,7 @@
 package com.storyanvil.cogwheel.api;
 
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.ScriptLineHandler;
@@ -36,7 +36,7 @@ public class CogwheelAPI {
     }
 
     /**
-     * Runs CogScript(aka {@link com.storyanvil.cogwheel.infrastructure.DispatchedScript}) by ResourceLocation
+     * Runs CogScript(aka {@link DispatchedScript}) by ResourceLocation
      * <br>
      * To run script when you have environment ({@link CogScriptEnvironment}) already use {@link CogScriptEnvironment#dispatchScript(String)}
      * @param rl Namespace is used to identify script's environment, Path is used by environment to find the script
@@ -47,7 +47,7 @@ public class CogwheelAPI {
     }
 
     /**
-     * Runs CogScript(aka {@link com.storyanvil.cogwheel.infrastructure.DispatchedScript}) by ResourceLocation.
+     * Runs CogScript(aka {@link DispatchedScript}) by ResourceLocation.
      * <br>
      * To run script when you have environment ({@link CogScriptEnvironment}) already use {@link CogScriptEnvironment#dispatchScript(String, ScriptStorage)}
      * @param rl Namespace is used to identify script's environment, Path is used by environment to find the script

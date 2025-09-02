@@ -15,7 +15,7 @@ package com.storyanvil.cogwheel.infrastructure.module;
 
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.util.CogExpressionFailure;
@@ -58,14 +58,12 @@ public class CogModule implements CogPropertyManager {
                         int space = header.indexOf('(');
                         if (space == -1) throw new CogExpressionFailure("Module line \"" + line + "\" is invalid property header!");
                         propertyName = header.substring(0, space);
-                        dataFix.warn(propertyName);
                         if (space == 0) {
                             propertyName = "<init>";
                             property.add("$ = this");
                         }
                         if (!header.endsWith(") {")) throw new CogExpressionFailure("Module line \"" + line + "\" is invalid property header [TAIL BRACKET MISMATCH]!");
                         String brackets = header.substring(space + 1, header.length() - 3);
-                        dataFix.warn("{}<{}", propertyName, brackets);
                         propertyArgs = brackets.split(",");
                         level = 0;
                     }
@@ -153,8 +151,9 @@ public class CogModule implements CogPropertyManager {
     @Override
     public String toString() {
         return "CogModule{" +
-                "name='" + name + '\'' +
+                "properties=" + properties +
                 ", environment=" + environment +
+                ", name='" + name + '\'' +
                 '}';
     }
 }

@@ -1,17 +1,20 @@
 /*
- * StoryAnvil CogWheel Engine
- * Copyright (C) 2025 StoryAnvil
  *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *  * StoryAnvil CogWheel Engine
+ *  * Copyright (C) 2025 StoryAnvil
+ *  *
+ *  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *  *
+ *  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrastructure;
+package com.storyanvil.cogwheel.infrastructure.script;
 
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
@@ -30,14 +33,14 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     @ApiStatus.Internal @Api.Internal
     public static final ObjectMonitor<DispatchedScript> MONITOR = new ObjectMonitor<>();
 
-    private final ArrayList<String> linesToExecute;
-    private ScriptStorage storage;
-    private HashMap<Integer, ScriptLineHandler> additionalLineHandlers;
-    private String scriptName = "unknown-script";
-    private CogScriptEnvironment environment;
-    private boolean doNotRemoveLines = false;
-    private int lineSkipped = 0;
-    private int executionLine = 0;
+    protected final ArrayList<String> linesToExecute;
+    protected ScriptStorage storage;
+    protected HashMap<Integer, ScriptLineHandler> additionalLineHandlers;
+    protected String scriptName = "unknown-script";
+    protected CogScriptEnvironment environment;
+    protected boolean doNotRemoveLines = false;
+    protected int lineSkipped = 0;
+    protected int executionLine = 0;
 
     public DispatchedScript(ArrayList<String> linesToExecute, CogScriptEnvironment environment) {
         MONITOR.register(this);
@@ -87,16 +90,16 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         return true;
     }
 
-    public void lineDispatcher() {
+    public boolean lineDispatcher() {
         if (!Thread.currentThread().getName().contains("cogwheel-executor")) {
             RuntimeException e = new RuntimeException("Line dispatcher can only be run in cogwheel executor thread");
             e.printStackTrace();
             log.error("[!CRITICAL!] LINE DISPATCHER WAS CALLED FROM NON-EXECUTOR THREAD! THIS WILL CAUSE MEMORY LEAKS AND PREVENT SCRIPTS FOR PROPER EXECUTION! THIS CALL WAS DISMISSED, PROBABLY CAUSING A MEMORY LEAK!");
             throw e;
         }
-        lineDispatcherInternal();
+        return lineDispatcherInternal();
     }
-    private void lineDispatcherInternal() {
+    private boolean lineDispatcherInternal() {
         try {
             while (!linesToExecute.isEmpty()) {
                 String line;
@@ -109,7 +112,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
                 }
                 executionLine++;
                 if (!executeLine(line)) {
-                    break;
+                    return true;
                 }
                 if (additionalLineHandlers.containsKey(executionLine)) {
                     try {
@@ -126,6 +129,8 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
             log.error("FATAL LINE DISPATCHER FAILURE!", a);
             throw a;
         }
+        onEnd();
+        return false;
     }
 
     public void stopLineUnloading() {
@@ -144,7 +149,10 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     }
 
     public void put(String key, CogPropertyManager o) {
-        if (o == null) return;
+        if (o == null) {
+            storage.remove(key);
+            return;
+        }
         if (key == null) return;
         storage.put(key, o);
     }
@@ -221,4 +229,9 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
     public void clearLines() {
         linesToExecute.clear();
     }
+
+    public void startExecution() {
+        lineDispatcher();
+    }
+    public void onEnd() {}
 }
