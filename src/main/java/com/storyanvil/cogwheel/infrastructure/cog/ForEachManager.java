@@ -14,7 +14,7 @@
 package com.storyanvil.cogwheel.infrastructure.cog;
 
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.Bi;
 
 public interface ForEachManager extends CogPropertyManager {

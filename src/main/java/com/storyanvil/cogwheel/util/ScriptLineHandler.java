@@ -12,7 +12,7 @@
 package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;

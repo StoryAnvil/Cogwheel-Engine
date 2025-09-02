@@ -17,6 +17,7 @@ import com.storyanvil.cogwheel.infrastructure.*;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.module.CogModule;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;

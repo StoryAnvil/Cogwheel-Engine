@@ -14,7 +14,7 @@ package com.storyanvil.cogwheel.util;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.CogBool;
 import com.storyanvil.cogwheel.infrastructure.cog.PropertyHandler;
 import org.jetbrains.annotations.ApiStatus;

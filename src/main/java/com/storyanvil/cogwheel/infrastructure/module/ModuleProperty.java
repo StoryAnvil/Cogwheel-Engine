@@ -15,7 +15,7 @@ package com.storyanvil.cogwheel.infrastructure.module;
 
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.PropertyHandler;
 import com.storyanvil.cogwheel.util.CogExpressionFailure;
 

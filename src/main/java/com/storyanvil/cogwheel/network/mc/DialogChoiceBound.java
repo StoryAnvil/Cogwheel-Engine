@@ -20,6 +20,7 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class DialogChoiceBound {
@@ -44,6 +45,13 @@ public class DialogChoiceBound {
         bound.npcName = npcName;
         bound.texture = texture;
         return bound;
+    }
+    public static DialogChoiceBound choice(String dialogId, String request, List<String> options, String npcName, String texture) {
+        String[] o = new String[options.size()];
+        for (int i = 0; i < options.size(); i++) {
+            o[i] = options.get(i);
+        }
+        return choice(dialogId, request, o, npcName, texture);
     }
 
     public boolean isClose() {

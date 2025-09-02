@@ -17,7 +17,7 @@ import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.entity.NPC;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
@@ -281,6 +281,14 @@ public class CogMaster implements CogPropertyManager {
         });
         manager.reg("range2", (name, args, script, o) -> {
             return new CogRange(args.requireInt(0), args.requireInt(1));
+        });
+        manager.reg("choose", (name, args, script, o) -> {
+            boolean b = args.requireBoolean(0);
+            return b ? args.get(1) : args.get(2);
+        });
+        manager.reg("map", (name, args, script, o) -> {
+            int b = args.requireInt(0);
+            return args.get(b + 1);
         });
     }
 

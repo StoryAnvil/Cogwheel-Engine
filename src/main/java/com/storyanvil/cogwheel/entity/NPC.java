@@ -15,7 +15,7 @@ import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
-import com.storyanvil.cogwheel.infrastructure.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.abilities.*;
 import com.storyanvil.cogwheel.infrastructure.actions.AnimationAction;
@@ -59,15 +59,17 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class NPC extends Animal implements
         StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder,
         StoryNavigator, ObjectMonitor.IMonitored, CogPropertyManager,
-        StoryAnimator, GeoEntity, StoryModel {
+        StoryAnimator, GeoEntity, StoryModel, DialogTarget {
     private static final ObjectMonitor<NPC> MONITOR = new ObjectMonitor<>();
     public NPC(EntityType<? extends Animal> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -471,5 +473,50 @@ public class NPC extends Animal implements
         if (!level().isClientSide) {
             DataStorage.setString(this, "model", id);
         }
+    }
+
+    @Override
+    public void d$say(String text, String texture, int ticks, Runnable trigger) {
+        DialogBound bound = DialogBound.tell(text, getCogName(), texture);
+        this.addStoryAction(new StoryAction.Ticking<NPC>(ticks) {
+            @Override
+            public void proceed(NPC myself) {
+                CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), bound);
+            }
+
+            @Override
+            public void onEnding() {
+                CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
+                CogwheelExecutor.schedule(trigger);
+            }
+        });
+    }
+
+    @Override
+    public void d$ask(String text, String texture, List<String> options, Consumer<Integer> acceptor) {
+        final String dialogID = UUID.randomUUID().toString();
+        DialogChoiceBound bound = DialogChoiceBound.choice(dialogID, text, options, this.getCogName(), texture);
+        this.addStoryAction(new StoryAction.Instant<NPC>() {
+            @Override
+            public void proceed(NPC myself) {
+                CogwheelExecutor.scheduleTickEvent(event -> {
+                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), bound);
+                });
+            }
+        });
+        CogwheelExecutor.getDefaultEnvironment().registerDialog(dialogID, response -> {
+            CogwheelExecutor.schedule(() -> {
+                // Send dialog close packet
+                CogwheelExecutor.scheduleTickEvent(levelTickEvent -> {
+                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogChoiceBound.close());
+                });
+                acceptor.accept(response);
+            });
+        });
+    }
+
+    @Override
+    public String d$name() {
+        return getCogName();
     }
 }

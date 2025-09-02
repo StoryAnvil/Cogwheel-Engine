@@ -13,6 +13,7 @@ package com.storyanvil.cogwheel.infrastructure;
 
 import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrastructure.cog.CogString;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
 import org.jetbrains.annotations.NotNull;
