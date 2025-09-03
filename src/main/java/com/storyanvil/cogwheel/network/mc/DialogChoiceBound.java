@@ -43,7 +43,7 @@ public class DialogChoiceBound {
         bound.options = options;
         bound.dialogId = dialogId;
         bound.npcName = npcName;
-        bound.texture = texture;
+        bound.texture = texture.toLowerCase().replace(' ', '_');
         return bound;
     }
     public static DialogChoiceBound choice(String dialogId, String request, List<String> options, String npcName, String texture) {

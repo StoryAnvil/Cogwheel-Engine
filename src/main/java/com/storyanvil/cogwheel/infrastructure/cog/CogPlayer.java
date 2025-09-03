@@ -12,14 +12,21 @@
 package com.storyanvil.cogwheel.infrastructure.cog;
 
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.data.CameraPos;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
+import com.storyanvil.cogwheel.network.mc.CameraForceBound;
+import com.storyanvil.cogwheel.network.mc.CameraTransitionBound;
+import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
+import com.storyanvil.cogwheel.network.mc.DialogResponseBound;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +59,34 @@ public class CogPlayer extends CogEntity implements CogPropertyManager {
             if (shareTag == null) return null;
             String s = shareTag.getString("story");
             return new CogString(s);
+        });
+        manager.reg("setCamera", (name, args, script, o) -> {
+            CogPlayer pll = (CogPlayer) o;
+            CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(pll.player::get), new CameraForceBound(
+                    new CameraPos(new Vec3(args.requireDouble(0), args.requireDouble(1), args.requireDouble(2)), (float) args.requireDouble(3), (float) args.requireDouble(4))
+            ));
+            return null;
+        });
+        manager.reg("unsetCamera", (name, args, script, o) -> {
+            CogPlayer pll = (CogPlayer) o;
+            CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(pll.player::get), new CameraForceBound(null));
+            return null;
+        });
+        manager.reg("transCamera", (name, args, script, o) -> {
+            CogPlayer pll = (CogPlayer) o;
+            CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(pll.player::get), new CameraTransitionBound(
+                    new CameraPos(new Vec3(args.requireDouble(0), args.requireDouble(1), args.requireDouble(2)), (float) args.requireDouble(3), (float) args.requireDouble(4)),
+                    new CameraPos(new Vec3(args.requireDouble(5), args.requireDouble(6), args.requireDouble(7)), (float) args.requireDouble(8), (float) args.requireDouble(9)),
+                    (float) args.requireDouble(10)
+            ));
+            return null;
+        });
+        manager.reg("transCameraEnd", (name, args, script, o) -> {
+            CogPlayer pll = (CogPlayer) o;
+            CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(pll.player::get), new CameraTransitionBound(
+                    null, null, 0
+            ));
+            return null;
         });
     }
 

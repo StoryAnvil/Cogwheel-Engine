@@ -24,3 +24,4 @@ run
 # Files from Forge MDK
 forge*changelog.txt
 /src/generated
+/src/main/resources/assets/storyanvil_cogwheel/textures/entity/npc/skin2.png

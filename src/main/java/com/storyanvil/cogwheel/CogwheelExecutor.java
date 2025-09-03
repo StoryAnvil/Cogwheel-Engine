@@ -13,6 +13,7 @@ package com.storyanvil.cogwheel;
 
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.infrastructure.script.StreamExecutionScript;
 import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.StoryUtils;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -118,6 +119,7 @@ public class CogwheelExecutor {
     private static CogScriptEnvironment.DefaultEnvironment defaultEnvironment;
     private static HashMap<String, CogScriptEnvironment.LibraryEnvironment> libraryEnvironments;
     private static CogScriptEnvironment.WorldEnvironment worldEnvironment;
+    private static StreamExecutionScript chatConsole;
 
     @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void serverStart(ServerStartingEvent event) {
@@ -171,7 +173,18 @@ public class CogwheelExecutor {
             }
             environment.dispatchScript("init.sa");
         }
+        createNewConsole();
     }
+
+    public static void createNewConsole() {
+        log.info("Created new console script");
+        chatConsole = new StreamExecutionScript(defaultEnvironment);
+    }
+
+    public static StreamExecutionScript getChatConsole() {
+        return chatConsole;
+    }
+
     @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void serverStop(ServerStoppingEvent event) {
         log.info("Disposing all CogScript environments...");

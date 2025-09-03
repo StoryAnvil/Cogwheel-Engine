@@ -68,6 +68,19 @@ public class EventBus {
 
     @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void registerCommands(@NotNull RegisterCommandsEvent event) {
+        event.getDispatcher().register(Commands.literal("@storyconsole").requires(css -> css.hasPermission(1))
+                .then(Commands.argument("cmd", StringArgumentType.greedyString())
+                        .executes(ctx -> {
+                            String text = StringArgumentType.getString(ctx, "cmd");
+                            if (text.equals(":reset")) {
+                                CogwheelExecutor.createNewConsole();
+                            } else {
+                                CogwheelExecutor.getChatConsole().addLineRedirecting(text);
+                            }
+                            return 1;
+                        })
+                )
+        );
         event.getDispatcher().register(Commands.literal("@storyanvil").requires(css -> css.hasPermission(1))
                 .then(Commands.literal("dispatch-script")
                         .then(Commands.argument("name", ResourceLocationArgument.id())
@@ -244,8 +257,7 @@ public class EventBus {
             if (event.phase != TickEvent.Phase.END) return;
             synchronized (clientQueue) {
                 try {
-                    int size = clientQueue.size();
-                    for (int i = 0; i < size; i++) {
+                    for (int i = 0; i < clientQueue.size(); i++) {
                         Bi<Consumer<TickEvent.LevelTickEvent>, Integer> e = clientQueue.get(i);
                         if (e.getB() < 2) {
                             e.getA().accept(event);
