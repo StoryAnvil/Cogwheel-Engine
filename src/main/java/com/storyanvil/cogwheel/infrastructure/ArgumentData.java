@@ -67,6 +67,9 @@ public class ArgumentData {
         if (m instanceof CogDouble i) {
             return i.getValue();
         }
+        if (m instanceof CogInteger i) {
+            return i.getValue();
+        }
         throw new RuntimeException("Argument #" + argument + " is not CogDouble");
     }
     public double requireDoubleOrInt(int argument) {

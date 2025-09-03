@@ -13,6 +13,7 @@ package com.storyanvil.cogwheel.registry;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.client.saui.SAUI;
 import com.storyanvil.cogwheel.infrastructure.*;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
@@ -235,6 +236,8 @@ public class CogwheelRegistries {
         registerInternal("MANIFEST", script -> CogManifest.getInstance());
         registerInternal("true", script -> CogBool.TRUE);
         registerInternal("false", script -> CogBool.FALSE);
+
+        SAUI.registerInternal();
     }
 
     private static void skipCurrentLevel(@NotNull DispatchedScript script) {

@@ -13,6 +13,9 @@
 
 package com.storyanvil.cogwheel.api;
 
+import com.storyanvil.cogwheel.client.saui.AbstractCogComponent;
+import com.storyanvil.cogwheel.client.saui.SAUI;
+import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
@@ -74,5 +77,14 @@ public class CogwheelAPI {
     @Api.Stable(since = "2.0.0")
     public static void registerDefaultScriptVariables(@NotNull String name, @NotNull Function<DispatchedScript, CogPropertyManager> f) {
         CogwheelRegistries.register(name, f);
+    }
+
+    /**
+     * Registers CogComponent codec.
+     * @apiNote `storyanvil_cogwheel` namespace is not allowed!
+     */
+    @Api.Stable(since = "2.8.0")
+    public static void registerCogComponent(ResourceLocation loc, StoryCodec<AbstractCogComponent> codec) {
+        SAUI.registerCogComponent(loc, codec);
     }
 }

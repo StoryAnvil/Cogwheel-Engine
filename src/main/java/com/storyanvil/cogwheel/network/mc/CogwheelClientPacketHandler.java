@@ -14,9 +14,11 @@
 package com.storyanvil.cogwheel.network.mc;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.client.CutSceneManagement;
 import com.storyanvil.cogwheel.client.screen.DialogChoiceScreen;
 import com.storyanvil.cogwheel.client.screen.DialogMessageScreen;
 import com.storyanvil.cogwheel.infrastructure.abilities.StoryAnimator;
+import com.storyanvil.cogwheel.util.Bi;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -67,6 +69,17 @@ public class CogwheelClientPacketHandler {
         } else {
             Minecraft.getInstance().setScreen(new DialogMessageScreen(bound));
         }
+        return null;
+    }
+
+    public static Object cameraForce(CameraForceBound cameraForceBound, Supplier<NetworkEvent.Context> contextSupplier) {
+        CutSceneManagement.setPositionForce(cameraForceBound.getPos());
+        return null;
+    }
+
+    public static Object cameraTrans(CameraTransitionBound cameraTransitionBound, Supplier<NetworkEvent.Context> contextSupplier) {
+        CutSceneManagement.setTransitionGoal(cameraTransitionBound.getGoal());
+        CutSceneManagement.setTransition(new Bi<>(cameraTransitionBound.getPos1(), cameraTransitionBound.getPos2()));
         return null;
     }
 }

@@ -36,7 +36,7 @@ public class DialogBound {
         DialogBound bound = new DialogBound();
         bound.request = request;
         bound.npcName = npcName;
-        bound.texture = texture;
+        bound.texture = texture.toLowerCase().replace(' ', '_');
         return bound;
     }
 

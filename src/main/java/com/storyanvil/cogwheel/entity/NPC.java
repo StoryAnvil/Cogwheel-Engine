@@ -22,6 +22,7 @@ import com.storyanvil.cogwheel.infrastructure.actions.AnimationAction;
 import com.storyanvil.cogwheel.infrastructure.actions.PathfindAction;
 import com.storyanvil.cogwheel.infrastructure.actions.WaitForLabelAction;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
+import com.storyanvil.cogwheel.network.mc.AnimationBound;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.network.mc.DialogBound;
 import com.storyanvil.cogwheel.network.mc.DialogChoiceBound;
@@ -333,6 +334,7 @@ public class NPC extends Animal implements
                 @Override
                 public void proceed(NPC myself) {
                     CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), bound);
+                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(myself.getAnimatorID(), "animation.npc.talk"));
                 }
             });
             throw new PreventSubCalling(new SubCallPostPrevention() {
@@ -341,6 +343,7 @@ public class NPC extends Animal implements
                     CogwheelExecutor.scheduleTickEvent(e -> {
                         script.put(variable, CogPropertyManager.nullManager);
                         CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
+                        CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(npc.getAnimatorID(), "null"));
                         CogwheelExecutor.schedule(script::lineDispatcher);
                     }, args.requireInt(2));
                 }
@@ -353,11 +356,13 @@ public class NPC extends Animal implements
                 @Override
                 public void proceed(NPC myself) {
                     CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), bound);
+                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(myself.getAnimatorID(), "animation.npc.talk"));
                 }
 
                 @Override
                 public void onEnding() {
                     CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
+                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(npc.getAnimatorID(), "null"));
                 }
             });
             return null;
@@ -432,7 +437,6 @@ public class NPC extends Animal implements
 
     protected <E extends NPC> PlayState walkAnim(final AnimationState<E> event) {
         if (customAnimation != null) {
-            CogwheelExecutor.log.error(customAnimation.getAnimationStages().stream().map(RawAnimation.Stage::animationName).collect(Collectors.joining()));
             return event.setAndContinue(customAnimation);
         }
         if (event.isMoving())
@@ -482,11 +486,13 @@ public class NPC extends Animal implements
             @Override
             public void proceed(NPC myself) {
                 CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), bound);
+                CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(myself.getAnimatorID(), "animation.npc.talk"));
             }
 
             @Override
             public void onEnding() {
                 CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
+                CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(NPC.this.getAnimatorID(), "null"));
                 CogwheelExecutor.schedule(trigger);
             }
         });

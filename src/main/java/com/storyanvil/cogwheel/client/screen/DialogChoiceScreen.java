@@ -52,6 +52,7 @@ public class DialogChoiceScreen extends Screen {
         return false;
     }
 
+    private float time = 0f;
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (boxLeft == 0)
@@ -61,7 +62,8 @@ public class DialogChoiceScreen extends Screen {
         guiGraphics.fill(boxLeft, boxTop, boxRight, boxBottom, -939524096);
         guiGraphics.blit(image, boxLeft, boxBottom - imageWidth, imageWidth, imageWidth, 0, 0, 100, 100, 100, 100);
         guiGraphics.drawString(font, bound.getNpcName(), textX, textY, 5635925);
-        guiGraphics.drawWordWrap(font, FormattedText.of(bound.getRequest()), textX, textY + font.lineHeight + 5, textEnd, 16777215);
+        time += pPartialTick;
+        guiGraphics.drawWordWrap(font, FormattedText.of(bound.getRequest().substring(0, Math.min((int) (time), bound.getRequest().length()))), textX, textY + font.lineHeight + 5, textEnd, 16777215);
 
         for (int i = 0; i < bound.getOptions().length; i++) {
             String o = bound.getOptions()[i];
