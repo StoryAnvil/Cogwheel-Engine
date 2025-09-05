@@ -100,6 +100,7 @@ public abstract class CogScriptEnvironment {
     public void dispose() {
         log.info("Environment {} is disposing...", getUniqueIdentifier());
         WeakList<DispatchedScript> scripts = DispatchedScript.MONITOR.getObjects();
+        if (scripts == null) return;
         for (int i = 0; i < scripts.size(); i++) {
             DispatchedScript script = scripts.get(i);
             if (script == null) {

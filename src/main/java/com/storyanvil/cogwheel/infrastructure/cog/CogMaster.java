@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel.infrastructure.cog;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.entity.NPC;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
@@ -71,6 +72,14 @@ public class CogMaster implements CogPropertyManager {
         manager.reg("log", (name, args, script, o) -> {
             CogwheelExecutor.log.info("{}: {}", script.getScriptName(), args.getString(0));
             return null;
+        });
+        manager.reg("debug", (name, args, script, o) -> {
+            if (CogwheelConfig.isDevEnvironment())
+                CogwheelExecutor.log.info("[DBG] {}: {}", script.getScriptName(), args.getString(0));
+            return null;
+        });
+        manager.reg("isDebugging", (name, args, script, o) -> {
+            return CogBool.getInstance(CogwheelConfig.isDevEnvironment());
         });
         manager.reg("getTaggedNPC", (name, args, script, o) -> {
             throw new PreventSubCalling(new SubCallPostPrevention() {
@@ -155,6 +164,9 @@ public class CogMaster implements CogPropertyManager {
             else
                 script.getEnvironment().dispatchScript(args.getString(0), ((CogHashmap) args.get(1)).getValue());
             return null;
+        });
+        manager.reg("scriptInvoker", (name, args, script, o) -> {
+            return CogInvoker.scriptInvoker(ResourceLocation.parse(args.getString(0)));
         });
         manager.reg("scheduleScript", (name, args, script, o) -> {
             CogwheelExecutor.schedule(() -> {

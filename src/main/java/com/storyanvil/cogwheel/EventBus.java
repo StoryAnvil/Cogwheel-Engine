@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.infrastructure.repo.CogRepository;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
@@ -50,6 +51,8 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static com.storyanvil.cogwheel.CogwheelExecutor.log;
+
 @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID) @Api.Internal @ApiStatus.Internal
 public class EventBus {
 
@@ -85,9 +88,14 @@ public class EventBus {
                 .then(Commands.literal("dispatch-script")
                         .then(Commands.argument("name", ResourceLocationArgument.id())
                                 .executes(ctx -> {
+                                    String name = ResourceLocationArgument.getId(ctx, "name").toString();
+                                    if (CogwheelConfig.isDisablingAllScripts() && !name.contains("config-main.json")) {
+                                        ctx.getSource().sendSystemMessage(Component.literal("Script execution is disabled from configs!").withStyle(ChatFormatting.RED));
+                                        return 0;
+                                    }
                                     ctx.getSource().sendSystemMessage(Component.literal("Script execution will be dispatched"));
                                     try {
-                                        CogScriptEnvironment.dispatchScriptGlobal(ResourceLocationArgument.getId(ctx, "name").toString());
+                                        CogScriptEnvironment.dispatchScriptGlobal(name);
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
@@ -171,7 +179,11 @@ public class EventBus {
                         .then(Commands.literal("start")
                                 .then(Commands.argument("host", StringArgumentType.greedyString())
                                         .executes(ctx -> {
-                                            beltCommunications = BeltCommunications.create(StringArgumentType.getString(ctx, "host"));
+                                            try {
+                                                beltCommunications = BeltCommunications.create(StringArgumentType.getString(ctx, "host"));
+                                            } catch (Exception e) {
+                                                log.warn("Failed to connect BELT PROTOCOL", e);
+                                            }
                                             return 0;
                                         })
                                 )
@@ -231,8 +243,8 @@ public class EventBus {
 
     private static @NotNull StringBuilder guessIfModded() {
         StringBuilder modded = new StringBuilder();
-        for (ScriptLineHandler handler : CogwheelRegistries.getLineHandlers()) {
-            if (!handler.getResourceLocation().getNamespace().equals(CogwheelEngine.MODID)) {
+        for (Bi<ScriptLineHandler, Boolean> handler : CogwheelRegistries.getLineHandlers()) {
+            if (!handler.getA().getResourceLocation().getNamespace().equals(CogwheelEngine.MODID)) {
                 modded.append(" DETECTED CUSTOM LINE HANDLERS");
             }
         }

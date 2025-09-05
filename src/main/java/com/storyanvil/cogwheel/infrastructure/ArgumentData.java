@@ -48,6 +48,13 @@ public class ArgumentData {
         }
         throw new RuntimeException("Argument #" + argument + " is not CogInteger");
     }
+    public CogInvoker requireInvoker(int argument) {
+        CogPropertyManager m = get(argument);
+        if (m instanceof CogInvoker i) {
+            return i;
+        }
+        throw new RuntimeException("Argument #" + argument + " is not CogInvoker");
+    }
     public long requireLong(int argument) {
         CogPropertyManager m = get(argument);
         if (m instanceof CogLong i) {
@@ -109,7 +116,7 @@ public class ArgumentData {
     }
 
     @Contract(value = "_, _ -> new", pure = false)
-    public static @NotNull ArgumentData createFromString(@NotNull String str, DispatchedScript script) {
+    public static @NotNull ArgumentData of(@NotNull String str, DispatchedScript script) {
         ArrayList<String> expressions = new ArrayList<>();
         boolean quotes = false;
         int level = 0;
@@ -136,6 +143,19 @@ public class ArgumentData {
             managers[i] = CogwheelRegistries.expressionHandler(expressions.get(i), script, false).getB();
         }
         return new ArgumentData(managers, str, script);
+    }
+
+    public static @NotNull ArgumentData of(DispatchedScript script, CogPropertyManager a1) {
+        return new ArgumentData(new CogPropertyManager[]{a1}, null, script);
+    }
+    public static @NotNull ArgumentData of(DispatchedScript script, CogPropertyManager a1, CogPropertyManager a2) {
+        return new ArgumentData(new CogPropertyManager[]{a1, a2}, null, script);
+    }
+    public static @NotNull ArgumentData of(DispatchedScript script, CogPropertyManager a1, CogPropertyManager a2, CogPropertyManager a3) {
+        return new ArgumentData(new CogPropertyManager[]{a1, a2, a3}, null, script);
+    }
+    public static @NotNull ArgumentData of(DispatchedScript script, CogPropertyManager... a) {
+        return new ArgumentData(a, null, script);
     }
 
     @Override

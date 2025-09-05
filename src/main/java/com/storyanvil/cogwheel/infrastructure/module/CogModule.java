@@ -15,6 +15,7 @@ package com.storyanvil.cogwheel.infrastructure.module;
 
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrastructure.cog.CogInvoker;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
@@ -103,6 +104,9 @@ public class CogModule implements CogPropertyManager {
     private final String name;
 
     public boolean _hasOwnProperty(String name) {
+        if (name.startsWith(":")) {
+            name = name.substring(1);
+        }
         return properties.containsKey(name);
     }
 
@@ -111,6 +115,9 @@ public class CogModule implements CogPropertyManager {
     }
 
     public CogPropertyManager _getProperty(String name, ArgumentData args, DispatchedScript script, CMA instance) {
+        if (name.startsWith(":")) {
+            return CogInvoker.cmaInvoker(instance, name);
+        }
         return properties.get(name).handle(name, args, script, instance);
     }
 

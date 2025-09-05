@@ -30,6 +30,7 @@ public class ChatAction extends StoryAction<StoryChatter> {
 
     @Override
     public boolean freeToGo(StoryChatter myself) {
+        super.hitLabel();
         return true;
     }
 }

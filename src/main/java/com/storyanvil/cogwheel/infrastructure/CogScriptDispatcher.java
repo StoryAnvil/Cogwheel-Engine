@@ -13,6 +13,8 @@ package com.storyanvil.cogwheel.infrastructure;
 
 import com.mojang.datafixers.util.Function4;
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.DialogScript;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
@@ -47,7 +49,16 @@ public class CogScriptDispatcher {
         File script = new File(Minecraft.getInstance().gameDirectory, "config/" + scriptName);
         return dispatchUnsafe(script, storage, environment);
     }
+    @Api.MixinsNotAllowed(where = "CogScriptDispatcher#mixinEntrypoint")
     public static @Nullable DispatchedScript dispatchUnsafe(File script, ScriptStorage storage, CogScriptEnvironment environment) {;
+        if (script.getName().equals("config-main.json")) {
+            CogwheelConfig.reload();
+            return null;
+        }
+        if (CogwheelConfig.isDisablingAllScripts()) {
+            log.error("Script {} can not be dispatched. All scripts were disabled in config. Dispatch ignored!", script);
+            return null;
+        }
         String scriptName = script.getName();
         if (!script.exists()) {
             log.error("Script {} does not exist. Dispatch ignored!", script);
@@ -60,8 +71,14 @@ public class CogScriptDispatcher {
             log.info("Dialog Script: {} dispatched", scriptName);
             return readAndDispatch(scriptName, storage, environment, script, CogScriptDispatcher::dialog, false);
         } else {
-            log.error("Script {} does not end with any known extension (known extensions are: \".sa\"). Dispatch ignored!", script);
+            if (mixinEntrypoint(script, storage, environment) == null)
+                log.error("Script {} does not end with any known extension (known extensions are: \".sa\"). Dispatch ignored!", script);
         }
+        return null;
+    }
+
+    @Api.MixinIntoHere
+    public static @Nullable DispatchedScript mixinEntrypoint(File script, ScriptStorage storage, CogScriptEnvironment environment) {
         return null;
     }
 

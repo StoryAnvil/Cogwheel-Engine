@@ -32,33 +32,33 @@ import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
 
 public class CogwheelRegistries {
     private static final List<Bi<String, Function<DispatchedScript, CogPropertyManager>>> defaultVariables = new ArrayList<>();
-    private static final ArrayList<ScriptLineHandler> lineHandlers = new ArrayList<>();
+    private static final ArrayList<Bi<ScriptLineHandler, Boolean>> lineHandlers = new ArrayList<>();
     /**
      * Registries ScriptLineHandler
      * @apiNote Namespaces <code>storyanvil</code> and <code>storyanvil_cogwheel</code> reserved for internal purposes and cannot be used
      * @param factory factory that will be registered
      */
-    @Api.Stable(since = "2.0.0")
+    @Api.Stable(since = "2.0.0") @Api.MixinsNotAllowed(where = "NOWHERE")
     public static void register(@NotNull ScriptLineHandler factory) {
         synchronized (lineHandlers) {
             ResourceLocation id = factory.getResourceLocation();
             if (id.getNamespace().equals("storyanvil") || id.getNamespace().equals(MODID))
                 throw new IllegalArgumentException("ActionFactory with namespace \"" + id.getNamespace() + "\" cannot be registered as this namespace is reserved for internal purposes");
-            lineHandlers.add(Objects.requireNonNull(factory));
+            lineHandlers.add(new Bi<>(Objects.requireNonNull(factory), true));
         }
     }
 
-    @Api.Internal @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal @Api.MixinsNotAllowed(where = "NOWHERE")
     protected static void registerInternal(@NotNull ScriptLineHandler factory) {
         synchronized (lineHandlers) {
-            lineHandlers.add(Objects.requireNonNull(factory));
+            lineHandlers.add(new Bi<>(Objects.requireNonNull(factory), true));
         }
     }
     /**
      * Registries Default Variable
      * @apiNote Name must not be "StoryAnvil" or "CogWheel"
      */
-    @Api.Stable(since = "2.0.0")
+    @Api.Stable(since = "2.0.0") @Api.MixinsNotAllowed(where = "NOWHERE")
     public static void register(@NotNull String name, @NotNull Function<DispatchedScript, CogPropertyManager> f) {
         synchronized (defaultVariables) {
             if (name.equalsIgnoreCase("storyanvil") || name.equalsIgnoreCase("cogwheel")) throw new IllegalArgumentException("Name not permitted");
@@ -66,7 +66,7 @@ public class CogwheelRegistries {
         }
     }
 
-    @Api.Internal @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal @Api.MixinsNotAllowed(where = "NOWHERE")
     protected static void registerInternal(@NotNull String name, @NotNull Function<DispatchedScript, CogPropertyManager> f) {
         synchronized (defaultVariables) {
             defaultVariables.add(new Bi<>(name, f));
@@ -74,12 +74,12 @@ public class CogwheelRegistries {
     }
 
     @Contract(pure = true)
-    @Api.Internal @ApiStatus.Internal
-    public static List<ScriptLineHandler> getLineHandlers() {
+    @Api.Internal @ApiStatus.Internal @Api.MixinsNotAllowed(where = "NOWHERE")
+    public static List<Bi<ScriptLineHandler, Boolean>> getLineHandlers() {
         return lineHandlers;
     }
 
-    @Api.Internal @ApiStatus.Internal
+    @Api.Internal @ApiStatus.Internal @Api.MixinsNotAllowed(where = "NOWHERE")
     public static void registerDefaultObjects() {
         registerInternal(new ScriptLineHandler() {
             @Override
@@ -353,7 +353,7 @@ public class CogwheelRegistries {
             }
             int firstBracket = step.indexOf('(');
             String propName = step.substring(0, firstBracket);
-            ArgumentData argumentData = ArgumentData.createFromString(step.substring(firstBracket + 1, step.length() - 1), script);
+            ArgumentData argumentData = ArgumentData.of(step.substring(firstBracket + 1, step.length() - 1), script);
             if (!manager.hasOwnProperty(propName)) {
                 throw new CogExpressionFailure(manager.getClass().getCanonicalName() + " object does not have property \"" + propName + "\"! \"" + line + "\"");
             }

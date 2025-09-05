@@ -11,8 +11,11 @@
 
 package com.storyanvil.cogwheel.infrastructure;
 
+import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrastructure.cog.CogString;
+import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
+import com.storyanvil.cogwheel.infrastructure.cog.SubCallPostPrevention;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
@@ -24,6 +27,9 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPro
     private String actionLabel = null;
     public abstract void proceed(T myself);
     public abstract boolean freeToGo(T myself);
+    private Runnable onExit;
+    private boolean done = false;
+
     @Override
     public String toString() {
         return this.getClass().getName() + "$ACT#";
@@ -37,10 +43,21 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPro
         this.actionLabel = actionLabel;
     }
 
+    /**
+     * Must be called when StoryAction finished
+     */
     public void hitLabel() {
-        if (actionLabel == null) return;
-        EventBus.hitLabel(actionLabel, this);
+        if (actionLabel != null) {
+            EventBus.hitLabel(actionLabel, this);
+        }
+        if (onExit != null)
+            onExit.run();
+        done = true;
     };
+
+    public boolean isDone() {
+        return done;
+    }
 
     public StoryAction() {
         MONITOR.register(this);
@@ -49,6 +66,11 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPro
     @Override
     public void reportState(@NotNull StringBuilder sb) {
         sb.append(this);
+    }
+
+    public void setOnExit(Runnable onExit) {
+        if (this.onExit != null) throw new RuntimeException("OnExit already set!");
+        this.onExit = onExit;
     }
 
     private static final EasyPropManager MANAGER = new EasyPropManager("storyAction", StoryAction::registerProps);
@@ -62,6 +84,24 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPro
         manager.reg("getLabel", (name, args, script, o) -> {
             StoryAction<?> action = (StoryAction<?>) o;
             return new CogString(action.getActionLabel());
+        });
+        manager.reg("blocking", (name, args, script, o) -> {
+            StoryAction<?> action = (StoryAction<?>) o;
+            throw new PreventSubCalling(new SubCallPostPrevention() {
+                @Override
+                public void prevent(String variable) {
+                    if (action.isDone()) {
+                        CogwheelExecutor.schedule(script::lineDispatcher);
+                        return;
+                    }
+                    action.setOnExit(() -> CogwheelExecutor.schedule(script::lineDispatcher));
+                }
+            });
+        });
+        manager.reg("then", (name, args, script, o) -> {
+            StoryAction<?> action = (StoryAction<?>) o;
+            action.setOnExit(args.requireInvoker(0).unsafeRunnable(args, script));
+            return action;
         });
     }
 
