@@ -15,7 +15,6 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
-import com.storyanvil.cogwheel.infrastructure.repo.CogRepository;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
 import com.storyanvil.cogwheel.infrastructure.cog.StoryLevel;
@@ -356,4 +355,5 @@ public class EventBus {
     public static StoryLevel getStoryLevel() {
         return level;
     }
+
 }
