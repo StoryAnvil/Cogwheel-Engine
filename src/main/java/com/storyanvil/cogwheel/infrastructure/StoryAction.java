@@ -100,7 +100,7 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPro
         });
         manager.reg("then", (name, args, script, o) -> {
             StoryAction<?> action = (StoryAction<?>) o;
-            action.setOnExit(args.requireInvoker(0).unsafeRunnable(args, script));
+            action.setOnExit(() -> args.requireInvoker(0).unsafeRunnable(args, script).run());
             return action;
         });
     }

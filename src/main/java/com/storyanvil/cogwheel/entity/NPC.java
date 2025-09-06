@@ -354,7 +354,8 @@ public class NPC extends Animal implements
         manager.reg("dialogNonBlocking", (name, args, script, o) -> {
             NPC npc = (NPC) o;
             DialogBound bound = DialogBound.tell(args.getString(0), npc.getCogName(), args.getString(1));
-            npc.addStoryAction(new StoryAction.Ticking<NPC>(args.requireInt(2)) {
+            // TODO add to wiki
+            return npc.addChained(new StoryAction.Ticking<NPC>(args.requireInt(2)) {
                 @Override
                 public void proceed(NPC myself) {
                     CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), bound);
@@ -368,7 +369,6 @@ public class NPC extends Animal implements
                         CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(npc.getAnimatorID(), "null"));
                 }
             });
-            return null;
         });
         manager.reg("dialogChoiceUI", (name, args, script, o) -> {
             NPC npc = (NPC) o;
