@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel.util;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrastructure.cog.CogInvoker;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.CogBool;
 import com.storyanvil.cogwheel.infrastructure.cog.PropertyHandler;
@@ -45,6 +46,10 @@ public class EasyPropManager {
             });
             this.reg("equals", (__, args, script, o) -> {
                 return CogBool.getInstance(((CogPropertyManager) o).equalsTo(args.get(0)));
+            });
+            this.reg("asInvoker", (__, args, script, o) -> {
+                CogPropertyManager m = (CogPropertyManager) o;
+                return CogInvoker.genericInvoker(m, args.getString(0));
             });
             registrar.register(this);
         }

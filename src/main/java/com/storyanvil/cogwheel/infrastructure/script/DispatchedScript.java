@@ -17,6 +17,7 @@ import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
+import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
 import com.storyanvil.cogwheel.util.ScriptLineHandler;
 import com.storyanvil.cogwheel.util.ScriptStorage;
@@ -76,13 +77,14 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
 //            label = line.substring(0, labelEnd);
 //            line = line.substring(labelEnd + 3);
 //        }
-        for (ScriptLineHandler handler : CogwheelRegistries.getLineHandlers()) {
+        for (Bi<ScriptLineHandler, Boolean> handler : CogwheelRegistries.getLineHandlers()) {
+            if (!handler.getB().booleanValue()) continue;
             try {
-                byte result = handler.handle(line, this);
+                byte result = handler.getA().handle(line, this);
                 if (result == ScriptLineHandler.ignore()) continue;
                 return result == ScriptLineHandler.continueReading();
             } catch (Throwable e) {
-                log.warn("{}: LineHandler {} failed with exception. Line: \"{}\"", getScriptName(), handler.getResourceLocation(), line, e);
+                log.warn("{}: LineHandler {} failed with exception. Line: \"{}\"", getScriptName(), handler.getA().getResourceLocation(), line, e);
             }
 
         }

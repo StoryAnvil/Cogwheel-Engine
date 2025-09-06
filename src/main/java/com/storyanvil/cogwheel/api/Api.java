@@ -13,6 +13,8 @@
 
 package com.storyanvil.cogwheel.api;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.lang.annotation.*;
 
 public final class Api {
@@ -37,6 +39,20 @@ public final class Api {
     /**
      * This annotation is used to mark Internal methods. This methods must not be used by Cogwheel Engine addons at all costs because these methods can change any time or even break things inside of Cogwheel Engine.
      */
-    @Documented @Retention(RetentionPolicy.CLASS)
+    @Documented @Retention(RetentionPolicy.CLASS) @ApiStatus.Internal
     public @interface Internal {}
+
+    /**
+     * This annotation is used to mark methods where mixins are welcomed.
+     */
+    @Documented @Retention(RetentionPolicy.CLASS) @ApiStatus.Internal
+    public @interface MixinIntoHere {}
+
+    /**
+     * This annotation is used to mark methods where mixins are not allowed. See {@link MixinsNotAllowed#where()} to know where you can mixin to change this method
+     */
+    @Documented @Retention(RetentionPolicy.CLASS) @ApiStatus.Internal
+    public @interface MixinsNotAllowed {
+        String where() default "UNSPECIFIED";
+    }
 }

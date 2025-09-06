@@ -12,6 +12,7 @@
 package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.config.CogwheelConfig;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.ref.Reference;
@@ -22,17 +23,16 @@ import java.lang.ref.Reference;
 @Api.Internal @ApiStatus.Internal
 public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
     private final static WeakList<ObjectMonitor<?>> MONITOR_REGISTRY = new WeakList<>();
-    private final static boolean ENABLED = true;
 
     private static synchronized int register(ObjectMonitor<?> monitor) {
-        if (!ENABLED) return 0;
+        if (CogwheelConfig.isMonitorDisabled()) return 0;
         int id = MONITOR_REGISTRY.size();
         MONITOR_REGISTRY.add(monitor);
         return id;
     }
     @Api.Internal @ApiStatus.Internal
     public static synchronized void dumpAll(StringBuilder sb) {
-        if (!ENABLED) return;
+        if (CogwheelConfig.isMonitorDisabled()) return;
         try {
             // For each is not supported by WeakList
             //noinspection ForLoopReplaceableByForEach
@@ -51,14 +51,18 @@ public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
 
     @Api.Internal @ApiStatus.Internal
     public ObjectMonitor() {
-        if (!ENABLED) return;
+        if (CogwheelConfig.isMonitorDisabled()) {
+            objects = null;
+            id = 0;
+            return;
+        }
         objects = new WeakList<>();
         id = register(this);
     }
 
     @Api.Internal @ApiStatus.Internal
     public void register(T object) {
-        if (!ENABLED) return;
+        if (CogwheelConfig.isMonitorDisabled()) return;
         if (objects.contains(object)) return;
         objects.add(object);
     }
@@ -72,7 +76,7 @@ public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
 
     @Api.Internal @ApiStatus.Internal
     public void dump(StringBuilder sb) {
-        if (!ENABLED) return;
+        if (CogwheelConfig.isMonitorDisabled()) return;
         sb.append("=== === === OBJECT MONITOR REPORT === === ===\n");
         sb.append("MONITOR ID: ").append(id).append("\nOBJECTS:\n");
         for (int i = 0; i < objects.size(); i++) {

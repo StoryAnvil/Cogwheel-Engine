@@ -14,6 +14,7 @@
 package com.storyanvil.cogwheel.infrastructure.script;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrastructure.abilities.DialogTarget;
 import com.storyanvil.cogwheel.infrastructure.cog.CogInteger;
@@ -78,6 +79,7 @@ public class DialogScript extends StreamExecutionScript {
     private boolean endToStart = false;
     private List<Integer> optionLines = null;
 
+    @Api.MixinsNotAllowed(where = "DialogScript#mixinEntrypoint")
     private boolean handleLine(String line) {
         int level = 0;
         for (int i = 0; i < line.length(); i++) {
@@ -151,12 +153,27 @@ public class DialogScript extends StreamExecutionScript {
                 } else throw new CogExpressionFailure("Dialog Action target is not valid: " + line);
                 break;
             }
-            default -> throw new CogExpressionFailure("Unknown line type: " + line);
+            default -> {
+                if (!mixinEntrypoint(line, code, level))
+                    throw new CogExpressionFailure("Unknown line type: " + line);
+            }
         }
         return false;
     }
 
-    private int computeTicks(String text) {
+    /**
+     * Allows adding custom handlers to dialog scripts
+     * @param line Entire line of code
+     * @param code Line of code without leading whitespaces
+     * @param level Amount of leading whitespaces
+     * @return true if line was handles. false if line was not recognised
+     */
+    @Api.MixinIntoHere
+    public boolean mixinEntrypoint(String line, String code, int level) {
+        return false;
+    }
+
+    public static int computeTicks(String text) {
         return Mth.clamp(15 + text.split(" ").length * 10, 15, 2000);
     }
 

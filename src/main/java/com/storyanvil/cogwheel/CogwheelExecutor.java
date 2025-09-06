@@ -11,24 +11,37 @@
 
 package com.storyanvil.cogwheel;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.StreamExecutionScript;
 import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.StoryUtils;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.loading.FMLLoader;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -139,6 +152,7 @@ public class CogwheelExecutor {
             StoryUtils.deleteDirectory(unpackedLibraries);
         }
         unpackedLibraries.mkdir();
+        CogwheelConfig.reload();
         File[] libFiles = libs.listFiles();
         ArrayList<String> libraryNames = new ArrayList<>();
         if (libFiles != null) {
@@ -174,11 +188,49 @@ public class CogwheelExecutor {
             environment.dispatchScript("init.sa");
         }
         createNewConsole();
+        performVersionCheck();
     }
 
     public static void createNewConsole() {
         log.info("Created new console script");
         chatConsole = new StreamExecutionScript(defaultEnvironment);
+    }
+
+    public static void performVersionCheck() {
+        ArtifactVersion version = ModList.get().getModContainerById(CogwheelEngine.MODID).get().getModInfo().getVersion();
+        String currentVersion = version.getMajorVersion() + "." + version.getMinorVersion() + "." + version.getIncrementalVersion();
+        String mcVersion = SharedConstants.getCurrentVersion().getName();
+        log.info("[VerChk] Current version is: \"{}\" for minecraft \"{}\"", currentVersion, mcVersion);
+        HttpClient versionChecker = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)
+                .followRedirects(HttpClient.Redirect.ALWAYS)
+                .build();
+        HttpRequest.Builder request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.modrinth.com/updates/cogwheel-engine/forge_updates.json"))
+                .GET()
+                .header("User-Agent", "StoryAnvil/Cogwheel-Engine/" + currentVersion + "(storyanvil.github.io)")
+                .header("X-StoryAnvil", "Cogwheel-Engine")
+                .timeout(Duration.ofSeconds(10));
+        versionChecker.sendAsync(request.build(), HttpResponse.BodyHandlers.ofString()).thenAccept(resp -> {
+            JsonObject obj = JsonParser.parseString(resp.body()).getAsJsonObject().get("promos").getAsJsonObject();
+            String recommended = obj.get(mcVersion + "-recommended").getAsString();
+            String latest = obj.get(mcVersion + "-latest").getAsString();
+            if (currentVersion.equals(recommended)) {
+                log.info("[VerChk] Using recommended version!");
+            } else if (currentVersion.equals(latest)) {
+                log.info("[VerChk] Using latest version! Recommended version is {}", recommended);
+            } else {
+                log.warn("[VerChk] ===== [ OUTDATED VERSION ] =====");
+                log.warn("[VerChk] | Recommended version: {}", recommended);
+                log.warn("[VerChk] | Latest version: {}", latest);
+                log.warn("[VerChk] | Current version: {}", currentVersion);
+                log.warn("[VerChk] | ");
+                log.warn("[VerChk] | Make sure to install recommended or latest version available");
+                log.warn("[VerChk] | for new features and bug fixes.");
+                log.warn("[VerChk] | https://modrinth.com/mod/cogwheel-engine/version/latest?version={}&&loader=forge", mcVersion);
+                log.warn("[VerChk] ===== [ Cowheel Engine  ] =====");
+            }
+        });
     }
 
     public static StreamExecutionScript getChatConsole() {

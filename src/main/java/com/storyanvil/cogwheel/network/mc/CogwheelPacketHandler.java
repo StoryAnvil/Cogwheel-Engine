@@ -14,6 +14,7 @@
 package com.storyanvil.cogwheel.network.mc;
 
 import com.storyanvil.cogwheel.CogwheelEngine;
+import com.storyanvil.cogwheel.network.devui.DevBoundRequest;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -45,5 +46,9 @@ public class CogwheelPacketHandler {
                 CameraForceBound::encode, CameraForceBound::decode, CameraForceBound::handle);
         DELTA_BRIDGE.registerMessage(PACKET_ID.incrementAndGet(), CameraTransitionBound.class,
                 CameraTransitionBound::encode, CameraTransitionBound::decode, CameraTransitionBound::handle);
+        DELTA_BRIDGE.registerMessage(PACKET_ID.incrementAndGet(), Notification.class,
+                Notification::encode, Notification::decode, Notification::handle);
+        DELTA_BRIDGE.registerMessage(PACKET_ID.incrementAndGet(), DevBoundRequest.class,
+                DevBoundRequest::encode, DevBoundRequest::decode, DevBoundRequest::handle);
     }
 }

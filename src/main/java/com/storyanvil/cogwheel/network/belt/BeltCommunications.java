@@ -16,6 +16,7 @@ package com.storyanvil.cogwheel.network.belt;
 import com.google.gson.*;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.EventBus;
+import com.storyanvil.cogwheel.config.CogwheelConfig;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -41,6 +42,9 @@ public class BeltCommunications {
     private String token = null;
 
     public static BeltCommunications create(String host) {
+        if (CogwheelConfig.isDisablingBelt()) {
+            throw new RuntimeException("Belt Protocol is disabled!");
+        }
         try {
             URI url = new URI(host);
             BeltCommunications com = new BeltCommunications();

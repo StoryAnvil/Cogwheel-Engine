@@ -13,6 +13,7 @@ package com.storyanvil.cogwheel.entity;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
@@ -343,7 +344,8 @@ public class NPC extends Animal implements
                     CogwheelExecutor.scheduleTickEvent(e -> {
                         script.put(variable, CogPropertyManager.nullManager);
                         CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
-                        CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(npc.getAnimatorID(), "null"));
+                        if (CogwheelConfig.isNpcTalkingAnimationEnabled())
+                            CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(npc.getAnimatorID(), "null"));
                         CogwheelExecutor.schedule(script::lineDispatcher);
                     }, args.requireInt(2));
                 }
@@ -362,7 +364,8 @@ public class NPC extends Animal implements
                 @Override
                 public void onEnding() {
                     CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
-                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(npc.getAnimatorID(), "null"));
+                    if (CogwheelConfig.isNpcTalkingAnimationEnabled())
+                        CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(npc.getAnimatorID(), "null"));
                 }
             });
             return null;
@@ -492,7 +495,8 @@ public class NPC extends Animal implements
             @Override
             public void onEnding() {
                 CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), DialogBound.close());
-                CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(NPC.this.getAnimatorID(), "null"));
+                if (CogwheelConfig.isNpcTalkingAnimationEnabled())
+                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.ALL.noArg(), new AnimationBound(NPC.this.getAnimatorID(), "null"));
                 CogwheelExecutor.schedule(trigger);
             }
         });

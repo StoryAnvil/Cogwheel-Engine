@@ -24,6 +24,7 @@ import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 import com.storyanvil.cogwheel.util.WeakList;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -100,6 +101,7 @@ public abstract class CogScriptEnvironment {
     public void dispose() {
         log.info("Environment {} is disposing...", getUniqueIdentifier());
         WeakList<DispatchedScript> scripts = DispatchedScript.MONITOR.getObjects();
+        if (scripts == null) return;
         for (int i = 0; i < scripts.size(); i++) {
             DispatchedScript script = scripts.get(i);
             if (script == null) {
@@ -161,6 +163,12 @@ public abstract class CogScriptEnvironment {
         CogScriptEnvironment environment = getEnvironment(loc);
         if (environment == null) throw new RuntimeException("Dispatch Failure! No environment found");
         environment.dispatchScript(loc.getPath(), storage);
+    }
+
+    @Api.Internal @ApiStatus.Internal
+    public static File getScriptFile(ResourceLocation rl) {
+        CogScriptEnvironment environment = getEnvironment(rl);
+        return new File(Minecraft.getInstance().gameDirectory, "config/" + environment.getScript(rl.getPath()));
     }
 
     public @NotNull EnvironmentData getData() {

@@ -13,56 +13,65 @@
 
 package com.storyanvil.cogwheel.util;
 
+import com.storyanvil.cogwheel.api.Api;
+
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+@Api.Stable(since = "2.8.0")
 public class B<A> implements Supplier<A>, Consumer<A>, UnaryOperator<A> {
     private A a;
 
+    @Api.Stable(since = "2.8.0")
     public B(A a) {
         this.a = a;
     }
 
+    @Api.Stable(since = "2.8.0")
     public B() {
         this.a = null;
     }
 
+    @Api.Stable(since = "2.8.0")
     public void set(A a) {
         this.a = a;
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.8.0")
     public String toString() {
         return "B{" + a +'}';
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.8.0")
     public int hashCode() {
         return Objects.hashCode(a);
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.8.0")
     public A get() {
         return a;
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.8.0")
     public void accept(A a) {
         this.a = a;
     }
 
-    @Override
+    @Override @Api.Stable(since = "2.8.0")
     public A apply(A a) {
         A old = this.a;
         this.a = a;
         return old;
     }
 
+    @Api.Stable(since = "2.8.0")
     public void putIfNull(A a) {
         if (this.a == null) this.a = a;
     }
+
+    @Api.Stable(since = "2.8.0")
     public void putNonNull(A a) {
         if (a != null) this.a = a;
     }

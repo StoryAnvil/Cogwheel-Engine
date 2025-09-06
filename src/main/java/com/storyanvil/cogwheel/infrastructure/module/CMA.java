@@ -69,4 +69,8 @@ public class CMA implements CogPropertyManager {
                 ", storage=" + storage +
                 '}';
     }
+
+    public CogPropertyManager call(String propertyName, ArgumentData args, DispatchedScript script) {
+        return parent._getProperty(propertyName, args, script, this);
+    }
 }

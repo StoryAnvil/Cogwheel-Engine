@@ -17,16 +17,24 @@ import com.storyanvil.cogwheel.client.saui.AbstractCogComponent;
 import com.storyanvil.cogwheel.client.saui.SAUI;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.ScriptLineHandler;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.ref.WeakReference;
 import java.util.function.Function;
 
+/**
+ * Class for most stable API methods.
+ * @apiNote If there is possibility to do something with this class this is a better way
+ */
 public class CogwheelAPI {
     /**
      * Fires event for all environments. ({@link com.storyanvil.cogwheel.infrastructure.cog.CogManifest} can be used in script to subscribe to events)
@@ -86,5 +94,83 @@ public class CogwheelAPI {
     @Api.Stable(since = "2.8.0")
     public static void registerCogComponent(ResourceLocation loc, StoryCodec<AbstractCogComponent> codec) {
         SAUI.registerCogComponent(loc, codec);
+    }
+
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogBool cogify(boolean value) {
+        return CogBool.getInstance(value);
+    }
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogBool cogify(Boolean value) {
+        return value == null ? null : CogBool.getInstance(value);
+    }
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogInteger cogify(int value) {
+        return new CogInteger(value);
+    }
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogInteger cogify(Integer value) {
+        return value == null ? null : new CogInteger(value);
+    }
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogLong cogify(long value) {
+        return new CogLong(value);
+    }
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogLong cogify(Long value) {
+        return value == null ? null : new CogLong(value);
+    }
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogDouble cogify(double value) {
+        return new CogDouble(value);
+    }
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogDouble cogify(Double value) {
+        return value == null ? null : new CogDouble(value);
+    }
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogEntity cogify(Entity value) {
+        return value == null ? null : new CogEntity(value);
+    }
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogPlayer cogify(ServerPlayer value) {
+        return value == null ? null : new CogPlayer(new WeakReference<>(value));
+    }
+    /**
+     * Converts objects to their CogScript versions
+     */
+    @Api.Stable(since = "2.8.0")
+    public static CogPropertyManager cogify(CogLike value) {
+        return value == null ? null : value.asCogManager();
     }
 }

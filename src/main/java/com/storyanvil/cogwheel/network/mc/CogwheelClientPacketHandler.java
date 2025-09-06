@@ -20,6 +20,7 @@ import com.storyanvil.cogwheel.client.screen.DialogMessageScreen;
 import com.storyanvil.cogwheel.infrastructure.abilities.StoryAnimator;
 import com.storyanvil.cogwheel.util.Bi;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -80,6 +81,13 @@ public class CogwheelClientPacketHandler {
     public static Object cameraTrans(CameraTransitionBound cameraTransitionBound, Supplier<NetworkEvent.Context> contextSupplier) {
         CutSceneManagement.setTransitionGoal(cameraTransitionBound.getGoal());
         CutSceneManagement.setTransition(new Bi<>(cameraTransitionBound.getPos1(), cameraTransitionBound.getPos2()));
+        return null;
+    }
+
+    public static Object notification(Notification notification, Supplier<NetworkEvent.Context> contextSupplier) {
+        Minecraft.getInstance().getToasts().addToast(new SystemToast(
+                SystemToast.SystemToastIds.PERIODIC_NOTIFICATION, notification.getTitle(), notification.getText()
+        ));
         return null;
     }
 }

@@ -13,6 +13,7 @@
 
 package com.storyanvil.cogwheel.network.mc;
 
+import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.util.StoryUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
@@ -45,6 +46,9 @@ public class AnimationBound {
     public AnimationBound(@NotNull String animatorID, @NotNull String animation) {
         this.animatorID = animatorID;
         this.animation = animation;
+        if (!CogwheelConfig.isNpcTalkingAnimationEnabled() && animation.equals("animation.npc.talk")) {
+            this.animation = "<ignore>";
+        }
     }
 
     public void encode(@NotNull FriendlyByteBuf friendlyByteBuf) {
@@ -60,9 +64,11 @@ public class AnimationBound {
     }
 
     public void handle(@NotNull Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> CogwheelClientPacketHandler.animationBound(this, ctx));
-        });
+        if (!this.animation.equals("<ignore>")) {
+            ctx.get().enqueueWork(() -> {
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> CogwheelClientPacketHandler.animationBound(this, ctx));
+            });
+        }
         ctx.get().setPacketHandled(true);
     }
 }

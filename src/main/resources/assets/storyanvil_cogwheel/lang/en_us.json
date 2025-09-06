@@ -1,4 +1,8 @@
 {
     "ui.storyanvil_cogwheel.server_pack": "Cogwheel Engine Server",
-    "ui.storyanvil_cogwheel.dialog_choice": "Dialog Choice"
+    "ui.storyanvil_cogwheel.dialog_choice": "Dialog Choice",
+    "ui.storyanvil_cogwheel": "Cogwheel Engine",
+    "ui.storyanvil_cogwheel.dev_ui": "Open Dev UI",
+    "ui.storyanvil_cogwheel.notif_sync": "DevUI Sync Finished",
+    "ui.storyanvil_cogwheel.notif_sync_msg": "DevUI completed full resync"
 }
