@@ -14,6 +14,7 @@
 package com.storyanvil.cogwheel.client.devui;
 
 import com.storyanvil.cogwheel.network.devui.DevConsoleCode;
+import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import com.storyanvil.cogwheel.network.devui.DevNetwork;
 import com.storyanvil.cogwheel.network.devui.DevOpenFile;
 import net.minecraft.ChatFormatting;
@@ -167,21 +168,21 @@ public class DWConsole extends DevWidget {
         return editBox.charTyped(pCodePoint, pModifiers);
     }
 
-    public void computeTips(String query) {
+    public void computeTips(String query) { //TODO: make this use math tree to search for options
         synchronized (this) {
             boolean empty = query.isBlank();
             ArrayList<Component> tips = new ArrayList<>();
             if (query.startsWith("!") || empty) {
                 tips.add(
                         Component.literal("!").withStyle(ChatFormatting.YELLOW).append(
-                                Component.literal("<cogscript>").withStyle(ChatFormatting.GRAY)).append(
+                                Component.literal("<cogscript>").withStyle(ChatFormatting.DARK_GRAY)).append(
                                         Component.literal(" - Run CogScript code"))
                 );
             }
             if (query.startsWith(">") || empty) {
                 tips.add(
                         Component.literal(">").withStyle(ChatFormatting.YELLOW).append(
-                                Component.literal("<env>:<script name>").withStyle(ChatFormatting.GRAY)).append(
+                                Component.literal("<env>:<script name>").withStyle(ChatFormatting.DARK_GRAY)).append(
                                 Component.literal(" - Open script file"))
                 );
             }
@@ -189,16 +190,39 @@ public class DWConsole extends DevWidget {
                 tips.add(
                         Component.literal("... some option may be hidden").withStyle(ChatFormatting.GRAY)
                 );
+            } else {
+                compute(tips, query, "fullscreen", "Toggle fullscreen");
+                compute(tips, query, "resync", "Request DevUI resync");
             }
             this.tips = tips;
         }
     }
+    private void compute(ArrayList<Component> tips, String q, String cmd, String desc) {
+        compute(tips, q, cmd, "", desc);
+    }
+    private void compute(ArrayList<Component> tips, String q, String cmd, String arg, String desc) {
+        if (cmd.startsWith(q)) {
+            boolean full = q.length() <= cmd.length();
+            tips.add(
+                    Component.literal(full ? cmd.substring(0, q.length()) : cmd).withStyle(ChatFormatting.YELLOW).append(
+                            Component.literal(full ? cmd.substring(q.length()) : "").withStyle(ChatFormatting.GRAY)).append(
+                            Component.literal(arg).withStyle(ChatFormatting.DARK_GRAY)).append(
+                            Component.literal(" - " + desc).withStyle(ChatFormatting.WHITE))
+            );
+        }
+    }
 
     private void executeCommand(String query) {
+        editBox.setValue("");
         if (query.startsWith("!")) {
             DevNetwork.sendToServer(new DevConsoleCode(query.substring(1)));
         } else if (query.startsWith(">")) {
             DevNetwork.sendToServer(new DevOpenFile(ResourceLocation.parse(query.substring(1)), ""));
+        } else if (query.equals("fullscreen")) {
+            ui().fullscreen = !ui().fullscreen;
+            ui().scheduleResize();
+        } else if (query.equals("resync")) {
+            DevNetwork.sendToServer(new DevEarlySyncPacket(true, false));
         }
     }
 }

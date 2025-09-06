@@ -14,6 +14,7 @@
 package com.storyanvil.cogwheel.network.devui;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.client.devui.DWCodeEditor;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryCodecs;
 import com.storyanvil.cogwheel.data.StoryPacket;
@@ -55,6 +56,7 @@ public record DevOpenFile(ResourceLocation script, String code) implements Story
 
     @Override
     public void onClientUnsafe(Supplier<NetworkEvent.Context> ctx) {
-        CogwheelExecutor.log.warn("DevOpenFile{script={}, code='{}'}", script, code);
+        DWCodeEditor editor = DWCodeEditor.getOrCreateEditor(script);
+        editor.setCode(code);
     }
 }

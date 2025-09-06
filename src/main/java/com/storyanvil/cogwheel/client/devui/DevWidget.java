@@ -47,8 +47,8 @@ public abstract class DevWidget implements GuiEventListener {
         renderLastS(g, mouseX, mouseY, partialTick, isHovered, timeHovered, getTop(), getLeft(), getRight(), getBottom());
     }
     public void resize(@NotNull Minecraft minecraft, int width, int height) {
-        right = left + this.width;
-        bottom = top + this.height;
+        right = left + this.getWidth();
+        bottom = top + this.getHeight();
     }
 //    public boolean keyPressed(int key, int scancode, int mods) {return false;}
 //    public boolean mouseClicked(double pMouseX, double pMouseY, int button) {return false;}
@@ -98,6 +98,13 @@ public abstract class DevWidget implements GuiEventListener {
     public int getTop() {
         return offY() + top;
     }
+    public int getRawLeft() {
+        return left;
+    }
+
+    public int getRawTop() {
+        return top;
+    }
 
     public int getWidth() {
         return width;
@@ -138,8 +145,8 @@ public abstract class DevWidget implements GuiEventListener {
         return "DevWidget{" +
                 "left=" + left +
                 ", top=" + top +
-                ", width=" + width +
-                ", height=" + height +
+                ", width=" + getWidth() +
+                ", height=" + getHeight() +
                 ", right=" + right +
                 ", bottom=" + bottom +
                 '}';

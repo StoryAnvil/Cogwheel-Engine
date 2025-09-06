@@ -55,6 +55,56 @@ public final class StoryCodecBuilder {
             t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);
         }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf)));
     }
+    public static <T0,T1,T2,T3,T4,T5,T6,R> StoryCodec<R> build(P<R,T0>t0,P<R,T1>t1,P<R,T2>t2,P<R,T3>t3,P<R,T4>t4,P<R,T5>t5,P<R,T6>t6,Function7<T0,T1,T2,T3,T4,T5,T6,R> decoder) {
+        return new StoryCodec<>((r, buf) -> {
+            t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);t6.encode(r, buf);
+        }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf), t6.decode(buf)));
+    }
+    public static <T0,T1,T2,T3,T4,T5,T6,T7,R> StoryCodec<R> build(P<R,T0>t0,P<R,T1>t1,P<R,T2>t2,P<R,T3>t3,P<R,T4>t4,P<R,T5>t5,P<R,T6>t6,P<R,T7>t7,Function8<T0,T1,T2,T3,T4,T5,T6,T7,R> decoder) {
+        return new StoryCodec<>((r, buf) -> {
+            t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);t6.encode(r, buf);t7.encode(r, buf);
+        }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf), t6.decode(buf), t7.decode(buf)));
+    }
+    public static <T0,T1,T2,T3,T4,T5,T6,T7,T8,R> StoryCodec<R> build(P<R,T0>t0,P<R,T1>t1,P<R,T2>t2,P<R,T3>t3,P<R,T4>t4,P<R,T5>t5,P<R,T6>t6,P<R,T7>t7,P<R,T8>t8,Function9<T0,T1,T2,T3,T4,T5,T6,T7,T8,R> decoder) {
+        return new StoryCodec<>((r, buf) -> {
+            t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);t6.encode(r, buf);t7.encode(r, buf);t8.encode(r, buf);
+        }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf), t6.decode(buf), t7.decode(buf), t8.decode(buf)));
+    }
+    public static <T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,R> StoryCodec<R> build(P<R,T0>t0,P<R,T1>t1,P<R,T2>t2,P<R,T3>t3,P<R,T4>t4,P<R,T5>t5,P<R,T6>t6,P<R,T7>t7,P<R,T8>t8,P<R,T9>t9,Function10<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,R> decoder) {
+        return new StoryCodec<>((r, buf) -> {
+            t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);t6.encode(r, buf);t7.encode(r, buf);t8.encode(r, buf);t9.encode(r, buf);
+        }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf), t6.decode(buf), t7.decode(buf), t8.decode(buf), t9.decode(buf)));
+    }
+    public static <T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,R> StoryCodec<R> build(P<R,T0>t0,P<R,T1>t1,P<R,T2>t2,P<R,T3>t3,P<R,T4>t4,P<R,T5>t5,P<R,T6>t6,P<R,T7>t7,P<R,T8>t8,P<R,T9>t9,P<R,T10>t10,Function11<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,R> decoder) {
+        return new StoryCodec<>((r, buf) -> {
+            t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);t6.encode(r, buf);t7.encode(r, buf);t8.encode(r, buf);t9.encode(r, buf);t10.encode(r, buf);
+        }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf), t6.decode(buf), t7.decode(buf), t8.decode(buf), t9.decode(buf), t10.decode(buf)));
+    }
+    public static <T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,R> StoryCodec<R> build(P<R,T0>t0,P<R,T1>t1,P<R,T2>t2,P<R,T3>t3,P<R,T4>t4,P<R,T5>t5,P<R,T6>t6,P<R,T7>t7,P<R,T8>t8,P<R,T9>t9,P<R,T10>t10,P<R,T11>t11,Function12<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,R> decoder) {
+        return new StoryCodec<>((r, buf) -> {
+            t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);t6.encode(r, buf);t7.encode(r, buf);t8.encode(r, buf);t9.encode(r, buf);t10.encode(r, buf);t11.encode(r, buf);
+        }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf), t6.decode(buf), t7.decode(buf), t8.decode(buf), t9.decode(buf), t10.decode(buf), t11.decode(buf)));
+    }
+    public static <T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,R> StoryCodec<R> build(P<R,T0>t0,P<R,T1>t1,P<R,T2>t2,P<R,T3>t3,P<R,T4>t4,P<R,T5>t5,P<R,T6>t6,P<R,T7>t7,P<R,T8>t8,P<R,T9>t9,P<R,T10>t10,P<R,T11>t11,P<R,T12>t12,Function13<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,R> decoder) {
+        return new StoryCodec<>((r, buf) -> {
+            t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);t6.encode(r, buf);t7.encode(r, buf);t8.encode(r, buf);t9.encode(r, buf);t10.encode(r, buf);t11.encode(r, buf);t12.encode(r, buf);
+        }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf), t6.decode(buf), t7.decode(buf), t8.decode(buf), t9.decode(buf), t10.decode(buf), t11.decode(buf), t12.decode(buf)));
+    }
+    public static <T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,R> StoryCodec<R> build(P<R,T0>t0,P<R,T1>t1,P<R,T2>t2,P<R,T3>t3,P<R,T4>t4,P<R,T5>t5,P<R,T6>t6,P<R,T7>t7,P<R,T8>t8,P<R,T9>t9,P<R,T10>t10,P<R,T11>t11,P<R,T12>t12,P<R,T13>t13,Function14<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,R> decoder) {
+        return new StoryCodec<>((r, buf) -> {
+            t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);t6.encode(r, buf);t7.encode(r, buf);t8.encode(r, buf);t9.encode(r, buf);t10.encode(r, buf);t11.encode(r, buf);t12.encode(r, buf);t13.encode(r, buf);
+        }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf), t6.decode(buf), t7.decode(buf), t8.decode(buf), t9.decode(buf), t10.decode(buf), t11.decode(buf), t12.decode(buf), t13.decode(buf)));
+    }
+    public static <T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,R> StoryCodec<R> build(P<R,T0>t0,P<R,T1>t1,P<R,T2>t2,P<R,T3>t3,P<R,T4>t4,P<R,T5>t5,P<R,T6>t6,P<R,T7>t7,P<R,T8>t8,P<R,T9>t9,P<R,T10>t10,P<R,T11>t11,P<R,T12>t12,P<R,T13>t13,P<R,T14>t14,Function15<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,R> decoder) {
+        return new StoryCodec<>((r, buf) -> {
+            t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);t6.encode(r, buf);t7.encode(r, buf);t8.encode(r, buf);t9.encode(r, buf);t10.encode(r, buf);t11.encode(r, buf);t12.encode(r, buf);t13.encode(r, buf);t14.encode(r, buf);
+        }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf), t6.decode(buf), t7.decode(buf), t8.decode(buf), t9.decode(buf), t10.decode(buf), t11.decode(buf), t12.decode(buf), t13.decode(buf), t14.decode(buf)));
+    }
+    public static <T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,R> StoryCodec<R> build(P<R,T0>t0,P<R,T1>t1,P<R,T2>t2,P<R,T3>t3,P<R,T4>t4,P<R,T5>t5,P<R,T6>t6,P<R,T7>t7,P<R,T8>t8,P<R,T9>t9,P<R,T10>t10,P<R,T11>t11,P<R,T12>t12,P<R,T13>t13,P<R,T14>t14,P<R,T15>t15,Function16<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,R> decoder) {
+        return new StoryCodec<>((r, buf) -> {
+            t0.encode(r, buf);t1.encode(r, buf);t2.encode(r, buf);t3.encode(r, buf);t4.encode(r, buf);t5.encode(r, buf);t6.encode(r, buf);t7.encode(r, buf);t8.encode(r, buf);t9.encode(r, buf);t10.encode(r, buf);t11.encode(r, buf);t12.encode(r, buf);t13.encode(r, buf);t14.encode(r, buf);t15.encode(r, buf);
+        }, buf -> decoder.apply(t0.decode(buf), t1.decode(buf), t2.decode(buf), t3.decode(buf), t4.decode(buf), t5.decode(buf), t6.decode(buf), t7.decode(buf), t8.decode(buf), t9.decode(buf), t10.decode(buf), t11.decode(buf), t12.decode(buf), t13.decode(buf), t14.decode(buf), t15.decode(buf)));
+    }
 
     public static <R> P<R, Boolean> Bool(Function<R, Boolean> getter) {
         return new P<>(getter, StoryCodecs.BOOLEAN);

@@ -58,12 +58,13 @@ public class DevUI implements GuiEventListener {
     protected int screenHeight = 0;
     protected Font font;
 
-    private boolean fullscreen = false;
+    boolean fullscreen = false;
     protected int panelLeft = 0;
     protected int panelTop = 0;
 
     protected boolean drawConsole = false;
     private DWConsole console;
+    DWTabbedView tabs;
 
     public DevUI() {
         instance = this;
@@ -91,6 +92,14 @@ public class DevUI implements GuiEventListener {
                 if (btn == GLFW_MOUSE_BUTTON_LEFT) {
                     DevUI.instance.openConsole();
                 }
+            }
+        });
+        tabs = addWidget(new DWTabbedView(0, 12, 0, 0){
+            @Override
+            public void resize(@NotNull Minecraft minecraft, int width, int height) {
+                setWidth(ui().screenWidth - ui().panelLeft);
+                setHeight(screenHeight - getRawTop());
+                super.resize(minecraft, width, height);
             }
         });
         console = addWidget(new DWConsole());
