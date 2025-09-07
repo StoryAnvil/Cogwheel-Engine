@@ -17,6 +17,7 @@ import com.google.gson.*;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.ScriptLineHandler;
@@ -129,6 +130,7 @@ public class CogwheelConfig {
             log.error("[CFG] Failed to updated config-main!", e);
         }
         json = null;
+        DevEarlySyncPacket.syncAll(true);
         log.info("[CFG] Config reloaded!");
     }
 

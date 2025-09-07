@@ -114,6 +114,7 @@ public abstract class CogScriptEnvironment {
             }
         }
     }
+    public boolean canBeEdited() {return false;}
     public abstract void dispatchScript(String name);
     public abstract void dispatchScript(String name, ScriptStorage storage);
     public abstract String getScript(String name);
@@ -231,6 +232,11 @@ public abstract class CogScriptEnvironment {
         }
         public ResourceLocation getModuleLoc(CogScriptEnvironment env, String script) {
             return ResourceLocation.fromNamespaceAndPath(env.getUniqueIdentifier(), script);
+        }
+
+        @Override
+        public boolean canBeEdited() {
+            return true;
         }
     }
     public static class LibraryEnvironment extends CogScriptEnvironment {

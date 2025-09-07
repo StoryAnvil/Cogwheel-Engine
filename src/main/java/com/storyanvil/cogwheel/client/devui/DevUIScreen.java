@@ -24,7 +24,7 @@ public class DevUIScreen extends Screen {
     public DevUIScreen() {
         super(Component.literal("Cogwheel Engine DevUI"));
         if (DevUI.instance != null)
-            DevUI.instance.reInit();
+            DevUI.instance.init();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class DevUIScreen extends Screen {
     public void render(@NotNull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         if (DevUI.instance == null) {
             DevUI.instance = new DevUI();
-            DevUI.instance.reInit();
+            DevUI.instance.init();
             this.resize(Minecraft.getInstance(), this.width, this.height);
         }
         try {
@@ -60,7 +60,7 @@ public class DevUIScreen extends Screen {
     @Override
     public boolean keyPressed(int key, int scancode, int mods) {
         if (DevUI.OPEN_DEVUI.get().isActiveAndMatches(InputConstants.getKey(key, scancode))) {
-            Minecraft.getInstance().setScreen(null);
+            DevUI.instance.openConsole();
             return true;
         }
         if (DevUI.instance.keyPressed(key, scancode, mods)) {
@@ -68,20 +68,40 @@ public class DevUIScreen extends Screen {
         }
         return super.keyPressed(key, scancode, mods);
     }
-
     @Override
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        if (DevUI.instance.mouseClicked(pButton)) {
+    public boolean keyReleased(int key, int scancode, int mods) {
+        if (DevUI.instance.keyReleased(key, scancode, mods)) {
             return true;
         }
-        return super.mouseClicked(pMouseX, pMouseY, pButton);
+        return super.keyReleased(key, scancode, mods);
+    }
+    @Override
+    public boolean charTyped(char pCodePoint, int pModifiers) {
+        if (DevUI.instance.charTyped(pCodePoint, pModifiers)) {
+            return true;
+        }
+        return super.charTyped(pCodePoint, pModifiers);
     }
 
     @Override
+    public void mouseMoved(double pMouseX, double pMouseY) {
+        super.mouseMoved(pMouseX, pMouseY);
+        DevUI.instance.mouseMoved(pMouseX, pMouseY);
+    }
+    @Override
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        return DevUI.instance.mouseClicked(pMouseX, pMouseY, pButton) || super.mouseClicked(pMouseX, pMouseY, pButton);
+    }
+    @Override
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+        return DevUI.instance.mouseReleased(pMouseX, pMouseY, pButton) || super.mouseReleased(pMouseX, pMouseY, pButton);
+    }
+    @Override
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        return DevUI.instance.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY) || super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+    }
+    @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
-        if (DevUI.instance.mouseScrolled(pMouseX, pMouseY, pDelta)) {
-            return true;
-        }
-        return super.mouseScrolled(pMouseX, pMouseY, pDelta);
+        return DevUI.instance.mouseScrolled(pMouseX, pMouseY, pDelta) || super.mouseScrolled(pMouseX, pMouseY, pDelta);
     }
 }

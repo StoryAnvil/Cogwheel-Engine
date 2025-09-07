@@ -13,6 +13,7 @@
 
 package com.storyanvil.cogwheel.infrastructure.cog;
 
+import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
@@ -34,6 +35,7 @@ public class CogInvoker implements CogPropertyManager {
     private static void registerProps(EasyPropManager manager) {
         manager.reg("invoke", (name, args, script, o) -> {
             CogInvoker cogCallable = (CogInvoker) o;
+            if (cogCallable.invoker == null) return null;
             return cogCallable.invoker.handle(null, args, script, null);
         });
         manager.reg("unlink", (name, args, script, o) -> {

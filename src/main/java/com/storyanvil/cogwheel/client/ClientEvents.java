@@ -16,9 +16,9 @@ package com.storyanvil.cogwheel.client;
 import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.client.devui.DevUI;
 import com.storyanvil.cogwheel.client.devui.DevUIScreen;
-import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
-import com.storyanvil.cogwheel.network.devui.DevBoundRequest;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.toasts.SystemToast;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.TickEvent;
@@ -28,18 +28,17 @@ import net.minecraftforge.fml.common.Mod;
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID, value = Dist.CLIENT)
 public class ClientEvents {
-    private static long lastResync = 0;
-
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             while (DevUI.OPEN_DEVUI.get().consumeClick()) {
-                long t = System.currentTimeMillis();
-                if (t - lastResync > 5000) {
-                    CogwheelPacketHandler.DELTA_BRIDGE.sendToServer(new DevBoundRequest("full", "silent"));
-                    lastResync = t;
+                if (DevUI.permitted) {
+                    Minecraft.getInstance().setScreen(new DevUIScreen());
+                } else {
+                    Minecraft.getInstance().getToasts().addToast(new SystemToast(
+                            SystemToast.SystemToastIds.PERIODIC_NOTIFICATION, Component.translatable("ui.storyanvil_cogwheel.notif_ban"), Component.translatable("ui.storyanvil_cogwheel.notif_ban_msg")
+                    ));
                 }
-                Minecraft.getInstance().setScreen(new DevUIScreen());
             }
         }
     }

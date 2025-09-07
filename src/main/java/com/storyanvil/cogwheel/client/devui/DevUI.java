@@ -15,13 +15,15 @@ package com.storyanvil.cogwheel.client.devui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.storyanvil.cogwheel.CogwheelEngine;
-import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
-import com.storyanvil.cogwheel.network.devui.DevBoundRequest;
-import net.minecraft.ChatFormatting;
+import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
+import com.storyanvil.cogwheel.network.devui.DevNetwork;
+import com.storyanvil.cogwheel.network.devui.DevResyncRequest;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -33,170 +35,227 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
-import java.util.function.Consumer;
 
-import static com.storyanvil.cogwheel.util.StoryUtils.isHovering;
+import static org.lwjgl.glfw.GLFW.*;
 
 @OnlyIn(Dist.CLIENT) @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class DevUI {
-    protected static DevUI instance;
-    private static final ResourceLocation ATLAS = ResourceLocation.fromNamespaceAndPath(CogwheelEngine.MODID, "textures/gui/devui.png");
-    protected Minecraft mc;
-    protected Font mainFont;
-    protected boolean fullscreen = false;
-    protected int panelWidth;
-    protected int panelLeft;
-    protected int screenHeight;
-    protected int screenWidth;
-    protected Hover click = null;
-    protected double tabScroll = 0f;
-    protected ArrayList<DevTab> tabs = new ArrayList<>();
-    protected DevTab selected = null;
-
-    private GuiGraphics g;
-    public void renderLogic(@NotNull GuiGraphics g, int mouseX, int mouseY, float partialTick, int width, int height) {
-        if (width != screenWidth || height != screenHeight) {
-            resizeLogic(Minecraft.getInstance(), width, height);
-        }
-        this.g = g;
-        this.click = null;
-
-        // Render
-        g.fill(panelLeft, 0, screenWidth, screenHeight, -15987436);
-
-        renderBtn(panelLeft, 0, 10, 10, 0, 0, 10, 10, this::fullscreenBtn, mouseX, mouseY);
-        renderBtn(panelLeft + 10, 0, 10, 10, 10, 0, 10, 10, this::syncBtn, mouseX, mouseY);
-        renderBtn(panelLeft + 20, 0, 10, 10, 20, 0, 10, 10, this::fileBtn, mouseX, mouseY);
-        renderTabs(mouseX, mouseY, partialTick);
-        // Render end
-
-        this.g = null;
-    }
-
-    private void renderBtn(int x, int y, int w, int h, int ox, int oy, int sx, int sy, Consumer<Integer> click, int mX, int mY) {
-        g.blit(ATLAS, x, y, w, h, ox, oy, sx, sy, 256, 256);
-        if (isHovering(mX, mY, x, x + w, y, y + h)) {
-            this.click = new Hover().withClick(click);
-        }
-    }
-    private void renderTabs(int mX, int mY, float partialTick) {
-        g.fill(panelLeft, 10, screenWidth, 22, -14736844);
-        boolean h = false;
-        if (isHovering(mX, mY, panelLeft, screenWidth, 12, 22)) {
-            this.click = new Hover().withScroll(this::tabScroll);
-            h = true;
-        }
-        g.enableScissor(panelLeft, 10, screenWidth, 22);
-        int offestX = (int) tabScroll;
-        int textY = 20 - mainFont.lineHeight;
-        for (int i = 0; i < tabs.size(); i++) {
-            DevTab tab = tabs.get(i);
-            boolean isSelected = tab == instance.selected;
-            int left = panelLeft + offestX;
-            int w = mainFont.width(tab.getName()) + 4;
-            int right = left + w;
-            boolean isHovered = h && (mX >= left && mX <= right);
-            g.fill(left, 10, right, 22, -15987436);
-            if (isSelected) {
-                g.fill(left, 21, right, 22, -14468940);
-            }
-            if (isHovered) {
-                this.click.withClick(I -> {
-                    if (I == 1) {
-                        if (tab.closeRequest()) {
-                            tabs.remove(tab);
-                            if (tab == selected) {
-                                selected = tabs.isEmpty() ? null : tabs.get(0);
-                            }
-                        }
-                    } else if (I == 0) {
-                        DevUI.this.selected = tab;
-                    }
-                });
-            }
-            //noinspection DataFlowIssue
-            g.drawString(mainFont, tab.getName(), left + 2, textY, (isSelected || isHovered ? ChatFormatting.WHITE : ChatFormatting.GRAY).getColor(), false);
-            offestX += right - left;
-        }
-        g.disableScissor();
-        g.enableScissor(panelLeft, 23, screenWidth, screenHeight);
-        if (selected != null)
-            selected.render(g, mX, mY, partialTick, panelLeft, 23, screenWidth, screenHeight);
-        g.disableScissor();
-    }
-
-    public void resizeLogic(@NotNull Minecraft minecraft, int width, int height) {
-        mc = minecraft;
-        mainFont = minecraft.font;
-        screenHeight = height;
-        screenWidth = width;
-        if (fullscreen) {
-            panelLeft = 0;
-            panelWidth = screenWidth;
-        } else {
-            panelLeft = width / 2;
-            panelWidth = panelLeft;
-        }
-    }
-
-    private void fullscreenBtn(int btn) {
-        this.fullscreen = !this.fullscreen;
-        this.screenWidth = -1; // schedule resize
-    }
-    private void syncBtn(int btn) {
-        CogwheelPacketHandler.DELTA_BRIDGE.sendToServer(new DevBoundRequest("full"));
-    }
-    private void fileBtn(int btn) {
-        // TODO
-    }
-    private void tabScroll(double delta) {
-        this.tabScroll += delta * 5;
-    }
-
-    public static final Lazy<KeyMapping> OPEN_DEVUI = Lazy.of(() ->
-            new KeyMapping("ui.storyanvil_cogwheel.dev_ui", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_GRAVE_ACCENT, "ui.storyanvil_cogwheel"));
-
+public class DevUI implements GuiEventListener {
+    public static final Lazy<KeyMapping> OPEN_DEVUI = Lazy.of(() -> new KeyMapping("ui.storyanvil_cogwheel.dev_ui", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_GRAVE_ACCENT, "ui.storyanvil_cogwheel"));
+    public static final ResourceLocation ATLAS = ResourceLocation.fromNamespaceAndPath(CogwheelEngine.MODID, "textures/gui/devui.png");
+    public static final int ATLAS_SIZE = 256;
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(OPEN_DEVUI.get());
     }
+    protected static DevUI instance;
+    public static boolean permitted = false;
 
-    public boolean mouseClicked(int button) {
-        if (click != null) {
-            click.click.accept(button);
+    // ========================================================================================== \\
+
+    protected DevWidget hovered = null;
+    protected float hoverTime = 0f;
+    private ArrayList<DevWidget> widgets = new ArrayList<>();
+    protected int screenWidth = 0;
+    protected int screenHeight = 0;
+    protected Font font;
+
+    boolean fullscreen = false;
+    protected int panelLeft = 0;
+    protected int panelTop = 0;
+
+    protected boolean drawConsole = false;
+    private DWConsole console;
+    DWTabbedView tabs;
+
+    public DevUI() {
+        instance = this;
+        font = Minecraft.getInstance().font;
+        addWidget(new DWButton(0, 0, 11, 11, 0, 0, 11, 11, Component.translatable("ui.storyanvil_cogwheel.devui.fullscreen")){
+            @Override
+            public void press(int btn) {
+                if (btn == GLFW_MOUSE_BUTTON_LEFT) {
+                    fullscreen = !fullscreen;
+                    scheduleResize();
+                }
+            }
+        });
+        addWidget(new DWButton(11, 0, 11, 11, 10, 0, 11, 11, Component.translatable("ui.storyanvil_cogwheel.devui.resync")){
+            @Override
+            public void press(int btn) {
+                if (btn == GLFW_MOUSE_BUTTON_LEFT) {
+                    DevNetwork.sendToServer(new DevEarlySyncPacket(permitted, false));
+                    DevNetwork.sendToServer(new DevResyncRequest());
+                }
+            }
+        });
+        addWidget(new DWButton(22, 0, 11, 11, 20, 0, 11, 11, Component.translatable("ui.storyanvil_cogwheel.devui.console")){
+            @Override
+            public void press(int btn) {
+                if (btn == GLFW_MOUSE_BUTTON_LEFT) {
+                    DevUI.instance.openConsole();
+                }
+            }
+        });
+        addWidget(new DWButton(33, 0, 11, 11, 30, 0, 11, 11, Component.translatable("ui.storyanvil_cogwheel.devui.run")){
+            @Override
+            public void press(int btn) {
+                if (btn == GLFW_MOUSE_BUTTON_LEFT) {
+                    DWTabbedView.Tab s = DevUI.instance.tabs.selected;
+                    if (s instanceof DWCodeEditor editor) {
+                        editor.run();
+                    }
+                }
+            }
+        });
+        addWidget(new DWButton(44, 0, 11, 11, 40, 0, 11, 11, Component.translatable("ui.storyanvil_cogwheel.devui.save")){
+            @Override
+            public void press(int btn) {
+                if (btn == GLFW_MOUSE_BUTTON_LEFT) {
+                    DWTabbedView.Tab s = DevUI.instance.tabs.selected;
+                    if (s instanceof DWCodeEditor editor) {
+                        editor.save();
+                    }
+                }
+            }
+        });
+//        addWidget(new DWButton(55, 0, 11, 11, 50, 0, 11, 11, Component.translatable("ui.storyanvil_cogwheel.devui.new")){
+//            @Override
+//            public void press(int btn) {
+//                if (btn == GLFW_MOUSE_BUTTON_LEFT) {
+//
+//                }
+//            }
+//        });
+        tabs = addWidget(new DWTabbedView(0, 12, 0, 0){
+            @Override
+            public void resize(@NotNull Minecraft minecraft, int width, int height) {
+                setWidth(ui().screenWidth - ui().panelLeft);
+                setHeight(screenHeight - getRawTop());
+                super.resize(minecraft, width, height);
+            }
+        });
+        console = addWidget(new DWConsole());
+    }
+
+    public void openConsole() {
+        drawConsole = true;
+    }
+
+    public void init() {
+        hovered = null;
+    }
+
+    public void renderLogic(@NotNull GuiGraphics g, int mouseX, int mouseY, float partialTick, int width, int height) {
+        if (screenWidth != width || screenHeight != height) {
+            this.resizeLogic(Minecraft.getInstance(), width, height);
+        }
+        g.fill(panelLeft, panelTop, screenWidth, screenHeight, -15461087);
+        DevWidget oldHovered = hovered;
+        boolean allowHover = true;
+        this.hovered = null;
+        if (drawConsole) {
+            this.hovered = console;
+            allowHover = false;
+        }
+        for (int i = 0; i < widgets.size(); i++) {
+            DevWidget widget = widgets.get(i);
+            boolean hover = allowHover && widget.isHovered(mouseX, mouseY);
+            if (hover) {
+                hovered = widget;
+                if (hovered != oldHovered) hoverTime = 0f;
+                else hoverTime += partialTick;
+            }
+            widget.render(g, mouseX, mouseY, partialTick, hover, hoverTime);
+        }
+        for (int i = 0; i < widgets.size(); i++) {
+            DevWidget widget = widgets.get(i);
+            widget.renderLast(g, mouseX, mouseY, partialTick, hovered == widget, hoverTime);
+        }
+    }
+
+    public void resizeLogic(@NotNull Minecraft minecraft, int width, int height) {
+        this.screenWidth = width;
+        this.screenHeight = height;
+
+        this.panelTop = 0;
+        if (fullscreen) {
+            this.panelLeft = 0;
+        } else {
+            this.panelLeft = this.screenWidth / 2;
+        }
+        for (int i = 0; i < widgets.size(); i++) {
+            DevWidget widget = widgets.get(i);
+            widget.resize(minecraft, width, height);
+        }
+    }
+
+    @Override
+    public boolean keyPressed(int key, int scancode, int mods) {
+        if (drawConsole) {
+            return console.keyPressed(key, scancode, mods);
+        }
+        if (tabs.selected != null && tabs.selected.keyPressed(key, scancode, mods)) {
             return true;
         }
         return false;
     }
 
-    public void reInit() {
-        click = null;
+    @Override
+    public void setFocused(boolean pFocused) {}
+
+    @Override
+    public boolean isFocused() {
+        return true;
+    }
+
+    public boolean mouseClicked(double pMouseX, double pMouseY, int button) {
+        return (hovered != null && hovered.mouseClicked(pMouseX, pMouseY, button));
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (click != null) {
-            click.scroll.accept(delta);
+        return (hovered != null && hovered.mouseScrolled(mouseX, mouseY, delta));
+    }
+
+    public <T extends DevWidget> T addWidget(T widget) {
+        widgets.add(widget);
+        scheduleResize();
+        return widget;
+    }
+    public void scheduleResize() {
+        this.screenHeight = -1;
+    }
+
+    @Override
+    public boolean keyReleased(int key, int scancode, int mods) {
+        if (hovered != null && hovered.keyReleased(key, scancode, mods)) {
+            return true;
+        }
+        if (tabs.selected != null && tabs.selected.keyReleased(key, scancode, mods)) {
+            return true;
+        }
+        return false;
+    }
+    @Override
+    public boolean charTyped(char pCodePoint, int pModifiers) {
+        if (hovered != null && hovered.charTyped(pCodePoint, pModifiers)) {
+            return true;
+        }
+        if (tabs.selected != null && tabs.selected.charTyped(pCodePoint, pModifiers)) {
             return true;
         }
         return false;
     }
 
-    public boolean keyPressed(int key, int scancode, int mods) {
-        return selected.keyPressed(key, scancode, mods);
+    @Override
+    public void mouseMoved(double pMouseX, double pMouseY) {
+        if (hovered != null) hovered.mouseMoved(pMouseX, pMouseY);
     }
-
-    public static class Hover {
-        public Consumer<Integer> click = i -> {};
-        public Consumer<Double> scroll = i -> {};
-
-        public Hover withClick(Consumer<Integer> click) {
-            this.click = click;
-            return this;
-        }
-
-        public Hover withScroll(Consumer<Double> scroll) {
-            this.scroll = scroll;
-            return this;
-        }
+    @Override
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+        return hovered != null && hovered.mouseReleased(pMouseX, pMouseY, pButton);
+    }
+    @Override
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        return hovered != null && hovered.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
     }
 }

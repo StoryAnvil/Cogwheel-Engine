@@ -45,6 +45,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -194,6 +195,7 @@ public class CogwheelExecutor {
     public static void createNewConsole() {
         log.info("Created new console script");
         chatConsole = new StreamExecutionScript(defaultEnvironment);
+        chatConsole.setScriptName("Console-" + UUID.randomUUID().toString().toUpperCase());
     }
 
     public static void performVersionCheck() {

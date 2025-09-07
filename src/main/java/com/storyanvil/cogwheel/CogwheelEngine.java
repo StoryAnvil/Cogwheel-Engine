@@ -13,6 +13,7 @@ package com.storyanvil.cogwheel;
 
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.entity.NPCRenderer;
+import com.storyanvil.cogwheel.network.devui.DevNetwork;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.registry.*;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -44,6 +45,7 @@ public class CogwheelEngine
         CogwheelEntities.ENTITY_TYPES.register(modEventBus);
         CogwheelUI.MENU.register(modEventBus);
         CogwheelPacketHandler.init();
+        DevNetwork.init();
         CogwheelRegistries.registerDefaultObjects();
     }
 

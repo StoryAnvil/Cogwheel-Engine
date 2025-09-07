@@ -21,12 +21,15 @@ import com.storyanvil.cogwheel.infrastructure.cog.StoryLevel;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.network.belt.BeltCommunications;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
+import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
+import com.storyanvil.cogwheel.network.devui.editor.DevEditorSession;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.ClickEvent;
@@ -237,6 +240,10 @@ public class EventBus {
                                 )
                         )
                 )
+                .then(Commands.literal("dev-resync").requires(CommandSourceStack::isPlayer).executes(ctx -> {
+                    DevEarlySyncPacket.syncFor(ctx.getSource().getPlayer(), false);
+                    return 0;
+                }))
         );
     }
 
@@ -324,6 +331,14 @@ public class EventBus {
                 sb.append(loc.toString());
             }
             CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(() -> player), new AnimationDataBound(sb.toString()));
+            DevEarlySyncPacket.syncFor(player, true);
+            DevEditorSession.boundColorFor(player);
+        }
+    }
+    @SubscribeEvent @Api.Internal @ApiStatus.Internal
+    public static void boundEvent(PlayerEvent.@NotNull PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            DevEditorSession.unboundColorFrom(player);
         }
     }
 
