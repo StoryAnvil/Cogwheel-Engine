@@ -16,22 +16,11 @@ package com.storyanvil.cogwheel.data;
 import com.storyanvil.cogwheel.api.Api;
 import net.minecraft.network.FriendlyByteBuf;
 
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-
 @Api.Experimental(since = "2.10.0")
-public record StoryCodec<T>(BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder) {
+public interface IStoryCodec<T> {
     @Api.Experimental(since = "2.10.0")
-    public void encode(T v, FriendlyByteBuf buf) {
-        encoder.accept(v, buf);
-    }
-    @Api.Experimental(since = "2.10.0")
-    public T decode(FriendlyByteBuf buf) {
-        return decoder.apply(buf);
-    }
+    void encode(T t, FriendlyByteBuf buf);
 
     @Api.Experimental(since = "2.10.0")
-    public static <T> StoryCodec<T> fromIStoryCodec(IStoryCodec<T> codec) {
-        return new StoryCodec<>(codec::encode, codec::decode);
-    }
+    T decode(FriendlyByteBuf buf);
 }

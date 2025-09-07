@@ -13,8 +13,10 @@
 
 package com.storyanvil.cogwheel.network.mc;
 
-import com.storyanvil.cogwheel.util.StoryUtils;
-import net.minecraft.network.FriendlyByteBuf;
+import com.storyanvil.cogwheel.data.StoryCodec;
+import com.storyanvil.cogwheel.data.StoryCodecBuilder;
+import com.storyanvil.cogwheel.data.StoryCodecs;
+import com.storyanvil.cogwheel.data.StoryPacket;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
@@ -22,47 +24,14 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class Notification {
-    public Notification(Component title, Component text) {
-        this.title = title;
-        this.text = text;
-    }
-
-    private Component title = null;
-    private Component text = null;
-
-    public Component getTitle() {
-        return title;
-    }
-
-    public void setTitle(Component title) {
-        this.title = title;
-    }
-
-    public Component getText() {
-        return text;
-    }
-
-    public void setText(Component text) {
-        this.text = text;
-    }
-
-    public void encode(FriendlyByteBuf byteBuf) {
-        StoryUtils.encodeString(byteBuf, Component.Serializer.toStableJson(title));
-        StoryUtils.encodeString(byteBuf, Component.Serializer.toStableJson(text));
-    }
-
-    public static Notification decode(FriendlyByteBuf byteBuf) {
-        return new Notification(
-                Component.Serializer.fromJson(StoryUtils.decodeString(byteBuf)),
-                Component.Serializer.fromJson(StoryUtils.decodeString(byteBuf))
-        );
-    }
-
-    public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        contextSupplier.get().enqueueWork(() -> {
-            DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> () -> CogwheelClientPacketHandler.notification(this, contextSupplier));
-        });
-        contextSupplier.get().setPacketHandled(true);
+public record Notification(Component title, Component text) implements StoryPacket {
+    public static final StoryCodec<Notification> CODEC = StoryCodecBuilder.build(
+            StoryCodecBuilder.Prop(Notification::title, StoryCodecs.COMPONENT),
+            StoryCodecBuilder.Prop(Notification::text, StoryCodecs.COMPONENT),
+            Notification::new
+    );
+    @Override
+    public void onClientUnsafe(Supplier<NetworkEvent.Context> ctx) {
+        DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> () -> CogwheelClientPacketHandler.notification(this, ctx));
     }
 }
