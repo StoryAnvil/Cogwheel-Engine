@@ -14,6 +14,8 @@ package com.storyanvil.cogwheel.util;
 import com.storyanvil.cogwheel.api.Api;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Contract;
@@ -22,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -125,4 +129,38 @@ public class StoryUtils {
     public static boolean isHovering(int mouseX, int mouseY, int left, int right, int top, int bottom) {
         return mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom;
     }
+
+    @Api.Stable(since = "2.9.0")
+    public static MutableComponent subComponent(MutableComponent source, int from, int to) {
+        MutableComponent c = Component.empty();
+        int l = 0;
+        AtomicInteger skip = new AtomicInteger(from);
+        AtomicInteger left = new AtomicInteger(to - from - 1);
+
+        source.visit((style, content) -> {
+            int s = content.length();
+            if (skip.get() > 0) {
+                if (skip.get() >= s) {
+                    skip.addAndGet(-s);
+                } else {
+                    c.append(Component.literal(content.substring(skip.get())).withStyle(style));
+                    skip.set(0);
+                }
+                return Optional.empty();
+            }
+            if (left.get() > 0) {
+                int lef = left.get();
+                if (lef > s) {
+                    c.append(Component.literal(content).withStyle(style));
+                    left.addAndGet(-s);
+                } else {
+                    c.append(Component.literal(content.substring(0, lef)).withStyle(style));
+                    left.set(0);
+                }
+            }
+            return Optional.empty();
+        }, Style.EMPTY);
+        return c;
+    }
+
 }

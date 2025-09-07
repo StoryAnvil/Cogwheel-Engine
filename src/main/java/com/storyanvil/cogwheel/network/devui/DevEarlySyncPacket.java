@@ -71,4 +71,12 @@ public record DevEarlySyncPacket(boolean permitted, boolean silent) implements S
             ));
         }
     }
+
+    @Override
+    public String toString() {
+        return "DevEarlySyncPacket{" +
+                "permitted=" + permitted +
+                ", silent=" + silent +
+                '}';
+    }
 }

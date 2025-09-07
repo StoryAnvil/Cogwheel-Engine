@@ -21,7 +21,7 @@ import java.util.ArrayList;
 
 public class DWTabbedView extends DevWidget {
     private ArrayList<Tab> tabs = new ArrayList<>();
-    private Tab selected = null;
+    Tab selected = null;
     private Tab hovered = null;
 
     public DWTabbedView(int left, int top, int width, int height) {

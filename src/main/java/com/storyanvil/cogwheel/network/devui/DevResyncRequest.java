@@ -13,34 +13,30 @@
 
 package com.storyanvil.cogwheel.network.devui;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.data.StoryCodec;
+import com.storyanvil.cogwheel.data.StoryCodecBuilder;
 import com.storyanvil.cogwheel.data.StoryPacket;
+import com.storyanvil.cogwheel.network.devui.editor.DevEditorSession;
+import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
+import com.storyanvil.cogwheel.network.mc.Notification;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.function.Supplier;
 
-import static com.storyanvil.cogwheel.data.StoryCodecBuilder.*;
-
-public record DevConsoleCode(String code) implements StoryPacket {
-    public static final StoryCodec<DevConsoleCode> CODEC = build(
-            String(DevConsoleCode::code),
-            DevConsoleCode::new
+public record DevResyncRequest() implements StoryPacket {
+    public static final StoryCodec<DevResyncRequest> CODEC = StoryCodecBuilder.build(
+            DevResyncRequest::new
     );
 
     @Override
     public void onServerUnsafe(Supplier<NetworkEvent.Context> ctx) {
-        if (!DevEarlySyncPacket.isDev()) {
-            error(ctx.get().getSender(), "DevUI Disabled!");
-            return;
+        for (DevEditorSession session : DevEditorSession.getSessions()) {
+            session.resync(ctx.get().getSender());
         }
-        CogwheelExecutor.getChatConsole().addLineRedirecting(code);
-    }
-
-    @Override
-    public String toString() {
-        return "DevConsoleCode{" +
-                "code='" + code + '\'' +
-                '}';
+        CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(ctx.get()::getSender), new Notification(
+                Component.translatable("ui.storyanvil_cogwheel.notif_fsync"), Component.translatable("ui.storyanvil_cogwheel.notif_fsync_msg")
+        ));
     }
 }

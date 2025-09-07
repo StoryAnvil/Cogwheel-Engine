@@ -13,6 +13,7 @@
 
 package com.storyanvil.cogwheel.data;
 
+import com.storyanvil.cogwheel.network.devui.DevNetwork;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.network.mc.Notification;
 import net.minecraft.network.chat.Component;
@@ -24,9 +25,15 @@ import java.util.function.Supplier;
 
 public interface StoryPacket {
     default void handle(Supplier<NetworkEvent.Context> ctx) {
-        if (ctx.get().getDirection().getReceptionSide().isServer()) onServerUnsafe(ctx);
-        else onClientUnsafe(ctx);
-        ctx.get().setPacketHandled(true);
+        try {
+            DevNetwork.log.debug("Handling {} as {}", this.toString(), this.getClass().getCanonicalName());
+            if (ctx.get().getDirection().getReceptionSide().isServer()) onServerUnsafe(ctx);
+            else onClientUnsafe(ctx);
+            ctx.get().setPacketHandled(true);
+        } catch (Exception e) {
+            DevNetwork.log.error("Exception while handling packet {}", this.getClass().getCanonicalName(), e);
+            throw e;
+        }
     };
 
     default void onClientUnsafe(Supplier<NetworkEvent.Context> ctx) {};

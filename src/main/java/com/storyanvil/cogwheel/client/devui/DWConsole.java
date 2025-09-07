@@ -13,10 +13,7 @@
 
 package com.storyanvil.cogwheel.client.devui;
 
-import com.storyanvil.cogwheel.network.devui.DevConsoleCode;
-import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
-import com.storyanvil.cogwheel.network.devui.DevNetwork;
-import com.storyanvil.cogwheel.network.devui.DevOpenFile;
+import com.storyanvil.cogwheel.network.devui.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -188,7 +185,7 @@ public class DWConsole extends DevWidget {
             }
             if (empty) {
                 tips.add(
-                        Component.literal("... some option may be hidden").withStyle(ChatFormatting.GRAY)
+                        Component.literal("... some option may be hidden").withStyle(ChatFormatting.DARK_GRAY)
                 );
             } else {
                 compute(tips, query, "fullscreen", "Toggle fullscreen");
@@ -214,15 +211,17 @@ public class DWConsole extends DevWidget {
 
     private void executeCommand(String query) {
         editBox.setValue("");
+        ui().drawConsole = false;
         if (query.startsWith("!")) {
             DevNetwork.sendToServer(new DevConsoleCode(query.substring(1)));
         } else if (query.startsWith(">")) {
-            DevNetwork.sendToServer(new DevOpenFile(ResourceLocation.parse(query.substring(1)), ""));
+            DevNetwork.sendToServer(new DevOpenFile(ResourceLocation.parse(query.substring(1))));
         } else if (query.equals("fullscreen")) {
             ui().fullscreen = !ui().fullscreen;
             ui().scheduleResize();
         } else if (query.equals("resync")) {
             DevNetwork.sendToServer(new DevEarlySyncPacket(true, false));
+            DevNetwork.sendToServer(new DevResyncRequest());
         }
     }
 }

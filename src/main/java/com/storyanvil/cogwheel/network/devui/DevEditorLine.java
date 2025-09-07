@@ -13,34 +13,43 @@
 
 package com.storyanvil.cogwheel.network.devui;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.client.devui.DWCodeEditor;
 import com.storyanvil.cogwheel.data.StoryCodec;
+import com.storyanvil.cogwheel.data.StoryCodecs;
 import com.storyanvil.cogwheel.data.StoryPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
 import static com.storyanvil.cogwheel.data.StoryCodecBuilder.*;
 
-public record DevConsoleCode(String code) implements StoryPacket {
-    public static final StoryCodec<DevConsoleCode> CODEC = build(
-            String(DevConsoleCode::code),
-            DevConsoleCode::new
+public record DevEditorLine(ResourceLocation lc, int lineNumber, String line, int linesTotal) implements StoryPacket {
+    public static final StoryCodec<DevEditorLine> CODEC = build(
+            Prop(DevEditorLine::lc, StoryCodecs.RESOURCE_LOC),
+            Integer(DevEditorLine::lineNumber),
+            String(DevEditorLine::line),
+            Integer(DevEditorLine::linesTotal),
+            DevEditorLine::new
     );
 
     @Override
-    public void onServerUnsafe(Supplier<NetworkEvent.Context> ctx) {
-        if (!DevEarlySyncPacket.isDev()) {
-            error(ctx.get().getSender(), "DevUI Disabled!");
+    public void onClientUnsafe(Supplier<NetworkEvent.Context> ctx) {
+        DWCodeEditor editor = DWCodeEditor.get(lc);
+        if (editor == null) {
+            DevNetwork.sendToServer(new DevEditorState(lc, (byte)-128));
             return;
         }
-        CogwheelExecutor.getChatConsole().addLineRedirecting(code);
+        editor.handle(this);
     }
 
     @Override
     public String toString() {
-        return "DevConsoleCode{" +
-                "code='" + code + '\'' +
+        return "DevEditorLine{" +
+                "lc=" + lc +
+                ", lineNumber=" + lineNumber +
+                ", line='" + line + '\'' +
+                ", linesTotal=" + linesTotal +
                 '}';
     }
 }

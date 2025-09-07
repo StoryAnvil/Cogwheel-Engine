@@ -21,12 +21,15 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
 
 public class DevNetwork {
+    public static final Logger log = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/NETWORK");
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel DEV_BRIDGE = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(MODID, "dev-bridge"),
@@ -39,6 +42,10 @@ public class DevNetwork {
         register(DevEarlySyncPacket.class, DevEarlySyncPacket.CODEC);
         register(DevConsoleCode.class, DevConsoleCode.CODEC);
         register(DevOpenFile.class, DevOpenFile.CODEC);
+        register(DevEditorLine.class, DevEditorLine.CODEC);
+        register(DevEditorState.class, DevEditorState.CODEC);
+        register(DevEditorUserDelta.class, DevEditorUserDelta.CODEC);
+        register(DevResyncRequest.class, DevResyncRequest.CODEC);
     }
 
     private static <T extends StoryPacket> void register(@NotNull Class<T> clazz, @NotNull StoryCodec<T> codec) {

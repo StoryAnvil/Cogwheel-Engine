@@ -15,51 +15,58 @@ package com.storyanvil.cogwheel.network.devui;
 
 import com.storyanvil.cogwheel.client.devui.DWCodeEditor;
 import com.storyanvil.cogwheel.data.StoryCodec;
+import com.storyanvil.cogwheel.data.StoryCodecBuilder;
 import com.storyanvil.cogwheel.data.StoryCodecs;
 import com.storyanvil.cogwheel.data.StoryPacket;
 import com.storyanvil.cogwheel.network.devui.editor.DevEditorSession;
-import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
-import com.storyanvil.cogwheel.network.mc.Notification;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
 
-import java.io.IOException;
 import java.util.function.Supplier;
 
-import static com.storyanvil.cogwheel.data.StoryCodecBuilder.*;
-
-public record DevOpenFile(ResourceLocation script) implements StoryPacket {
-    public static final StoryCodec<DevOpenFile> CODEC = build(
-            Prop(DevOpenFile::script, StoryCodecs.RESOURCE_LOC),
-            DevOpenFile::new
+public record DevEditorState(ResourceLocation lc, Byte state) implements StoryPacket {
+    public static final StoryCodec<DevEditorState> CODEC = StoryCodecBuilder.build(
+            StoryCodecBuilder.Prop(DevEditorState::lc, StoryCodecs.RESOURCE_LOC),
+            StoryCodecBuilder.Byte(DevEditorState::state),
+            DevEditorState::new
     );
 
     @Override
     public void onServerUnsafe(Supplier<NetworkEvent.Context> ctx) {
-        DevEditorSession session = DevEditorSession.createOrGet(script());
-        try {
-            session.read();
-            session.addConnection(ctx.get().getSender());
-        } catch (IOException e) {
-            CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(ctx.get()::getSender), new Notification(
-                    Component.literal("File can't be opened!"), Component.literal("Unknown error on serverside!")
-            ));
-            session.dispose();
+        DevEditorSession session = DevEditorSession.get(lc);
+        if (session == null) {
+            error(ctx.get().getSender(), "Invalid session!");
+            return;
+        }
+        if (state == -128) {
+            session.closeConnection(ctx.get());
+            return;
+        } else if (state == -127) {
+            session.resync(ctx.get().getSender());
+            return;
         }
     }
 
     @Override
     public void onClientUnsafe(Supplier<NetworkEvent.Context> ctx) {
-        DWCodeEditor editor = DWCodeEditor.getOrCreateEditor(script);
-        DevNetwork.sendToServer(new DevEditorState(script, (byte) -127));
+        if (state == -128) {
+            DWCodeEditor editor = DWCodeEditor.get(lc);
+            if (editor == null) return;
+            DWCodeEditor.delete(lc);
+            Minecraft.getInstance().getToasts().addToast(new SystemToast(
+                    SystemToast.SystemToastIds.PERIODIC_NOTIFICATION, Component.literal("Server change!"), Component.literal("Server closed your edition session!")
+            ));
+        }
     }
 
     @Override
     public String toString() {
-        return "DevOpenFile{" +
-                "script=" + script +
+        return "DevEditorState{" +
+                "lc=" + lc +
+                ", state=" + state +
                 '}';
     }
 }

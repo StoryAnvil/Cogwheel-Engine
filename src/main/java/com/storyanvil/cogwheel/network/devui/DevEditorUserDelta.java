@@ -18,48 +18,40 @@ import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryCodecs;
 import com.storyanvil.cogwheel.data.StoryPacket;
 import com.storyanvil.cogwheel.network.devui.editor.DevEditorSession;
-import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
-import com.storyanvil.cogwheel.network.mc.Notification;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
 
-import java.io.IOException;
 import java.util.function.Supplier;
 
 import static com.storyanvil.cogwheel.data.StoryCodecBuilder.*;
 
-public record DevOpenFile(ResourceLocation script) implements StoryPacket {
-    public static final StoryCodec<DevOpenFile> CODEC = build(
-            Prop(DevOpenFile::script, StoryCodecs.RESOURCE_LOC),
-            DevOpenFile::new
+public record DevEditorUserDelta(ResourceLocation lc, int line, int pos, int selected, String name) implements StoryPacket {
+    public static final StoryCodec<DevEditorUserDelta> CODEC = build(
+            Prop(DevEditorUserDelta::lc, StoryCodecs.RESOURCE_LOC),
+            Integer(DevEditorUserDelta::line),
+            Integer(DevEditorUserDelta::pos),
+            Integer(DevEditorUserDelta::selected),
+            String(DevEditorUserDelta::name),
+            DevEditorUserDelta::new
     );
 
     @Override
-    public void onServerUnsafe(Supplier<NetworkEvent.Context> ctx) {
-        DevEditorSession session = DevEditorSession.createOrGet(script());
-        try {
-            session.read();
-            session.addConnection(ctx.get().getSender());
-        } catch (IOException e) {
-            CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(ctx.get()::getSender), new Notification(
-                    Component.literal("File can't be opened!"), Component.literal("Unknown error on serverside!")
-            ));
-            session.dispose();
-        }
-    }
-
-    @Override
     public void onClientUnsafe(Supplier<NetworkEvent.Context> ctx) {
-        DWCodeEditor editor = DWCodeEditor.getOrCreateEditor(script);
-        DevNetwork.sendToServer(new DevEditorState(script, (byte) -127));
+        DWCodeEditor editor = DWCodeEditor.get(lc);
+        if (editor == null) {
+            DevNetwork.sendToServer(new DevEditorState(lc, (byte)-128));
+            return;
+        }
+        editor.handle(this);
     }
 
     @Override
-    public String toString() {
-        return "DevOpenFile{" +
-                "script=" + script +
-                '}';
+    public void onServerUnsafe(Supplier<NetworkEvent.Context> ctx) {
+        DevEditorSession session = DevEditorSession.get(lc);
+        if (session == null) {
+            error(ctx.get().getSender(), "Invalid session!");
+            return;
+        }
+        session.updateConnection(ctx.get().getSender(), this);
     }
 }

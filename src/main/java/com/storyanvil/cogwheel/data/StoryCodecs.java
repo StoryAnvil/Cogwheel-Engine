@@ -19,6 +19,9 @@ import com.storyanvil.cogwheel.util.StoryUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StoryCodecs {
     public static final StoryCodec<Boolean> BOOLEAN = new StoryCodec<>((a,b)->b.writeBoolean(a), FriendlyByteBuf::readBoolean);
     public static final StoryCodec<Byte> BYTE = new StoryCodec<>((a,b)->b.writeByte(a), FriendlyByteBuf::readByte);
@@ -29,4 +32,10 @@ public class StoryCodecs {
     public static final StoryCodec<String> STRING = new StoryCodec<>((a,b)->StoryUtils.encodeString(b,a), StoryUtils::decodeString);
     public static final StoryCodec<JsonObject> JSON = new StoryCodec<>((a, b)->StoryUtils.encodeString(b,a.toString()), b-> JsonParser.parseString(StoryUtils.decodeString(b)).getAsJsonObject());
     public static final StoryCodec<ResourceLocation> RESOURCE_LOC = new StoryCodec<>((a, b)->{StoryUtils.encodeString(b,a.getNamespace());StoryUtils.encodeString(b,a.getPath());}, b->ResourceLocation.fromNamespaceAndPath(StoryUtils.decodeString(b),StoryUtils.decodeString(b)));
+
+    public static <T> StoryCodec<List<T>> getListCodec(StoryCodec<T> codec) {
+        return new StoryCodec<>((ts, buf) -> {
+            buf.writeInt(ts.size()); for (int i = 0; i < ts.size(); i++) codec.encode(ts.get(i), buf);
+            }, buf -> {int l = buf.readInt(); ArrayList<T> q = new ArrayList<>(l); for (int i = 0; i < l; i++) q.add(codec.decode(buf)); return q;});
+    }
 }

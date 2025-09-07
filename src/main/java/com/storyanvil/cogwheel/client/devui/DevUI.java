@@ -17,6 +17,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import com.storyanvil.cogwheel.network.devui.DevNetwork;
+import com.storyanvil.cogwheel.network.devui.DevResyncRequest;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -83,6 +84,7 @@ public class DevUI implements GuiEventListener {
             public void press(int btn) {
                 if (btn == GLFW_MOUSE_BUTTON_LEFT) {
                     DevNetwork.sendToServer(new DevEarlySyncPacket(permitted, false));
+                    DevNetwork.sendToServer(new DevResyncRequest());
                 }
             }
         });
@@ -157,9 +159,13 @@ public class DevUI implements GuiEventListener {
         }
     }
 
+    @Override
     public boolean keyPressed(int key, int scancode, int mods) {
         if (drawConsole) {
             return console.keyPressed(key, scancode, mods);
+        }
+        if (tabs.selected != null && tabs.selected.keyPressed(key, scancode, mods)) {
+            return true;
         }
         return false;
     }
@@ -194,11 +200,17 @@ public class DevUI implements GuiEventListener {
         if (hovered != null && hovered.keyReleased(key, scancode, mods)) {
             return true;
         }
+        if (tabs.selected != null && tabs.selected.keyReleased(key, scancode, mods)) {
+            return true;
+        }
         return false;
     }
     @Override
     public boolean charTyped(char pCodePoint, int pModifiers) {
         if (hovered != null && hovered.charTyped(pCodePoint, pModifiers)) {
+            return true;
+        }
+        if (tabs.selected != null && tabs.selected.charTyped(pCodePoint, pModifiers)) {
             return true;
         }
         return false;
