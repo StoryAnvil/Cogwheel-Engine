@@ -39,12 +39,12 @@ public class DevEditorUser {
     }
 
     public void dispose() {
-        session = null;
         ServerPlayer plr = player.get();
         if (plr != null) {
             DevNetwork.sendFromServer(plr, new DevEditorState(session.lc, (byte) -128));
             plr = null;
         }
+        session = null;
         player.clear();
         player = null;
     }
@@ -59,6 +59,11 @@ public class DevEditorUser {
 
     public DevEditorUserDelta toDelta() {
         return new DevEditorUserDelta(session.lc, line, pos, selectedChars, player.get().getScoreboardName());
+    }
+    public void applyDelta(DevEditorUserDelta delta) {
+        this.pos = delta.pos();
+        this.line = delta.line();
+        this.selectedChars = delta.selected();
     }
 
     public int getLine() {

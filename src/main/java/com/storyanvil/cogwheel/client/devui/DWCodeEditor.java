@@ -14,10 +14,7 @@
 package com.storyanvil.cogwheel.client.devui;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.network.devui.DevEditorLine;
-import com.storyanvil.cogwheel.network.devui.DevEditorState;
-import com.storyanvil.cogwheel.network.devui.DevEditorUserDelta;
-import com.storyanvil.cogwheel.network.devui.DevNetwork;
+import com.storyanvil.cogwheel.network.devui.*;
 import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.StoryUtils;
 import net.minecraft.ChatFormatting;
@@ -124,7 +121,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
     private static final MutableComponent EMPTY = Component.literal("UNHIGHLIGHTED").withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
     private static final MutableComponent NODATA = Component.literal("NO DATA").withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
     private static final MutableComponent FAILURE = Component.literal("HIGHLIGHTER FAILURE").withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-    public void setCode(String code) {
+    public synchronized void setCode(String code) {
         this.code.clear();
         String[] lines = code.split("\n");
         for (int i = 0; i < lines.length; i++) {
@@ -134,7 +131,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
             highlight(i);
         }
     }
-    public void highlight(int line) {
+    public synchronized void highlight(int line) {
         try {
             MutableComponent c = highlighter.highlight(line, code, code.get(line).getA());
             this.code.get(line).setB(c);
@@ -150,7 +147,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         }
     }
 
-    private Cursor getCursor(String name) {
+    private synchronized Cursor getCursor(String name) {
         for (int i = 0; i < cursors.size(); i++) {
             Cursor c = cursors.get(i);
             if (c.name.equals(name))
@@ -159,7 +156,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         return null;
     }
 
-    public void handle(DevEditorLine devEditorLine) {
+    public synchronized void handle(DevEditorLine devEditorLine) {
         if (devEditorLine.linesTotal() != code.size()) {
             if (code.size() > devEditorLine.linesTotal()) {
                 DevNetwork.sendToServer(new DevEditorState(rl, (byte) -127));
@@ -175,11 +172,12 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         highlight(devEditorLine.lineNumber());
     }
 
-    public void handle(DevEditorUserDelta delta) {
+    public synchronized void handle(DevEditorUserDelta delta) {
         Cursor c = getCursor(delta.name());
         if (c == null) {
             c = new Cursor();
             c.editor = this;
+            c.name = delta.name();
             cursors.add(c);
             if (delta.name().equals(myName)) {
                 mine = c;
@@ -188,6 +186,12 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         c.line = delta.line();
         c.pos = delta.pos();
         c.selectNextChars = delta.selected();
+    }
+
+    @Override
+    public boolean closingRequest() {
+        DevNetwork.sendToServer(new DevEditorState(rl, (byte) -128));
+        return true;
     }
 
     @Override
@@ -202,8 +206,31 @@ public class DWCodeEditor extends DWTabbedView.Tab {
             mine.setLineSafe(mine.line - 1);
         } else if (code == GLFW.GLFW_KEY_DOWN) {
             mine.setLineSafe(mine.line + 1);
+        } else if (code == GLFW.GLFW_KEY_BACKSPACE) {
+            DevNetwork.sendToServer(new DevTypeCallback(rl, "<backspace>", mine.toDelta()));
+        } else if (code == GLFW.GLFW_KEY_DELETE) {
+            DevNetwork.sendToServer(new DevTypeCallback(rl, "<delete>", mine.toDelta()));
+        } else if (code == GLFW.GLFW_KEY_HOME) {
+            mine.setPosSafe(0);
+        } else if (code == GLFW.GLFW_KEY_END) {
+            mine.setPosSafe(Integer.MAX_VALUE);
+        } else if (code == GLFW.GLFW_KEY_PAGE_UP) {
+            mine.setLineSafe(0);
+            mine.setPosSafe(0);
+        } else if (code == GLFW.GLFW_KEY_PAGE_DOWN) {
+            mine.setLineSafe(Integer.MAX_VALUE);
+            mine.setPosSafe(Integer.MAX_VALUE);
+        } else if (code == GLFW.GLFW_KEY_S && (mods & GLFW.GLFW_MOD_CONTROL) == GLFW.GLFW_MOD_CONTROL) {
+            DevNetwork.sendToServer(new DevFlush(rl));
+            return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean charTyped(char c, int mods) {
+        DevNetwork.sendToServer(new DevTypeCallback(rl, ""+c, mine.toDelta()));
+        return true;
     }
 
     public abstract static class Highlighter {
@@ -214,7 +241,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         private int line = 0;
         private int pos = 0;
         private int selectNextChars = 0;
-        private String name;
+        private String name = ">huynya<";
         private Component sup;
 
         private boolean onEndOfLine = false;
@@ -262,8 +289,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         }
 
         public void setLineSafe(int line) {
-            if (line < 0) return;
-            if (line >= editor.code.size()) return;
+            line = Mth.clamp(line, 0, editor.code.size() - 1);
             this.line = line;
             setPosSafe(this.pos);
         }
@@ -272,6 +298,10 @@ public class DWCodeEditor extends DWTabbedView.Tab {
             editor.blink = true;
             editor.blinker = 0f;
             DevNetwork.sendToServer(new DevEditorUserDelta(editor.rl, line, pos, selectNextChars, editor.myName));
+        }
+
+        public DevEditorUserDelta toDelta() {
+            return new DevEditorUserDelta(editor.rl, line, pos, selectNextChars, editor.myName);
         }
     }
 }

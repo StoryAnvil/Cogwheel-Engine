@@ -46,6 +46,8 @@ public class DevNetwork {
         register(DevEditorState.class, DevEditorState.CODEC);
         register(DevEditorUserDelta.class, DevEditorUserDelta.CODEC);
         register(DevResyncRequest.class, DevResyncRequest.CODEC);
+        register(DevTypeCallback.class, DevTypeCallback.CODEC);
+        register(DevFlush.class, DevFlush.CODEC);
     }
 
     private static <T extends StoryPacket> void register(@NotNull Class<T> clazz, @NotNull StoryCodec<T> codec) {
@@ -53,13 +55,13 @@ public class DevNetwork {
                 codec.encoder(), codec.decoder(), T::handle);
     }
 
-    public static void sendToServer(Object msg) {
+    public static void sendToServer(StoryPacket msg) {
         DEV_BRIDGE.sendToServer(msg);
     }
-    public static void sendFromServer(Object msg) {
+    public static void sendFromServer(StoryPacket msg) {
         DEV_BRIDGE.send(PacketDistributor.ALL.noArg(), msg);
     }
-    public static void sendFromServer(ServerPlayer plr, Object msg) {
+    public static void sendFromServer(ServerPlayer plr, StoryPacket msg) {
         DEV_BRIDGE.send(PacketDistributor.PLAYER.with(() -> plr), msg);
     }
 }
