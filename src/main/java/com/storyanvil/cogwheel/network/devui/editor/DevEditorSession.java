@@ -33,11 +33,33 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class DevEditorSession {
     private static final HashMap<ResourceLocation, DevEditorSession> sessions = new HashMap<>();
+
+    private static final HashMap<String, Integer> cursorColors = new HashMap<>();
+    private static final AtomicInteger currentColor = new AtomicInteger(0);
+    private static final int[] COLORS = new int[]{
+            -922812416, -922790912, -922748160, -932643072, -939458643, -939495199, -935890719, -923664159
+    };
+
+    public static synchronized void boundColorFor(ServerPlayer plr) {
+        cursorColors.put(plr.getScoreboardName(), COLORS[currentColor.get()]);
+        if (currentColor.addAndGet(1) >= COLORS.length) {
+            currentColor.set(0);
+        }
+    }
+    public static synchronized void unboundColorFrom(ServerPlayer plr) {
+        cursorColors.remove(plr.getScoreboardName());
+    }
+    public static int getColorFor(ServerPlayer plr) {
+        return cursorColors.get(plr.getScoreboardName());
+    }
+
+
 
     public static DevEditorSession createOrGet(ResourceLocation lc) {
         if (sessions.containsKey(lc)) {
@@ -55,6 +77,7 @@ public class DevEditorSession {
         return sessions.values();
     }
 
+    private CogScriptEnvironment env;
     protected ResourceLocation lc;
     private File file;
     protected ArrayList<String> lines = new ArrayList<>();
@@ -62,6 +85,7 @@ public class DevEditorSession {
     private DevEditorSession(ResourceLocation lc) {
         this.lc = lc;
         this.file = CogScriptEnvironment.getScriptFile(lc);
+        this.env = CogScriptEnvironment.getEnvironment(lc);
         log.info("Created EditorSession for {}({})", file, lc);
     }
 
@@ -93,6 +117,13 @@ public class DevEditorSession {
     }
 
     public synchronized void read() throws IOException {
+        if (!env.canBeEdited())
+            throw new IOException("Scripts in environment \"" + env.toString() + "\" does not allow script editing");
+        if (!file.exists()) {
+            lines.clear();
+            resyncAll();
+            return;
+        }
         try (FileReader fr = new FileReader(file); Scanner sc = new Scanner(fr)) {
             lines.clear();
             while (sc.hasNextLine())
@@ -119,6 +150,7 @@ public class DevEditorSession {
         DevEditorUser con = new DevEditorUser(this, plr);
         connections.add(con);
         DevNetwork.sendFromServer(plr, new DevOpenFile(lc));
+        con.setColor(getColorFor(plr));
     }
 
     public synchronized void closeConnection(NetworkEvent.Context ctx) {
@@ -216,6 +248,42 @@ public class DevEditorSession {
     }
 
     public synchronized void flush(@Nullable ServerPlayer sender) {
+
+        try {
+            if (!file.exists()) file.createNewFile();
+            try (FileWriter fw = new FileWriter(file)) {
+                for (String line : lines) {
+                    fw.append(line).append('\n');
+                }
+                fw.flush();
+                for (int i = 0; i < connections.size(); i++) {
+                    DevEditorUser con = connections.get(i);
+                    if (con.isInvalid()) {
+                        i--;
+                        connections.remove(i);
+                        continue;
+                    }
+                    ServerPlayer plr = con.get();
+                    CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(() -> plr), new Notification(
+                            Component.literal("File saved"), Component.literal("File " + lc + " was saved!")
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            log.error("Exception while flushing {}: {}", file, e);
+            CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(() -> sender), new Notification(
+                    Component.literal("Save failed"), Component.literal("File " + lc + " was not saved!")
+            ));
+        }
+    }
+
+    public void dispatch() {
+        CogwheelExecutor.schedule(() -> {
+            CogScriptEnvironment.dispatchScriptGlobal(lc);
+        });
+    }
+
+    public void flushAndDispatch(@Nullable ServerPlayer sender) {
         try (FileWriter fw = new FileWriter(file)) {
             for (String line : lines) {
                 fw.append(line).append('\n');
@@ -229,8 +297,9 @@ public class DevEditorSession {
                     continue;
                 }
                 ServerPlayer plr = con.get();
+                dispatch();
                 CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(() -> plr), new Notification(
-                        Component.literal("File saved"), Component.literal("File " + lc + " was saved!")
+                        Component.literal("File saved and executed!"), Component.literal("File " + lc + " was saved!")
                 ));
             }
         } catch (Exception e) {

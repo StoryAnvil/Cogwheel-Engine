@@ -96,6 +96,36 @@ public class DevUI implements GuiEventListener {
                 }
             }
         });
+        addWidget(new DWButton(33, 0, 11, 11, 30, 0, 11, 11, Component.translatable("ui.storyanvil_cogwheel.devui.run")){
+            @Override
+            public void press(int btn) {
+                if (btn == GLFW_MOUSE_BUTTON_LEFT) {
+                    DWTabbedView.Tab s = DevUI.instance.tabs.selected;
+                    if (s instanceof DWCodeEditor editor) {
+                        editor.run();
+                    }
+                }
+            }
+        });
+        addWidget(new DWButton(44, 0, 11, 11, 40, 0, 11, 11, Component.translatable("ui.storyanvil_cogwheel.devui.save")){
+            @Override
+            public void press(int btn) {
+                if (btn == GLFW_MOUSE_BUTTON_LEFT) {
+                    DWTabbedView.Tab s = DevUI.instance.tabs.selected;
+                    if (s instanceof DWCodeEditor editor) {
+                        editor.save();
+                    }
+                }
+            }
+        });
+//        addWidget(new DWButton(55, 0, 11, 11, 50, 0, 11, 11, Component.translatable("ui.storyanvil_cogwheel.devui.new")){
+//            @Override
+//            public void press(int btn) {
+//                if (btn == GLFW_MOUSE_BUTTON_LEFT) {
+//
+//                }
+//            }
+//        });
         tabs = addWidget(new DWTabbedView(0, 12, 0, 0){
             @Override
             public void resize(@NotNull Minecraft minecraft, int width, int height) {

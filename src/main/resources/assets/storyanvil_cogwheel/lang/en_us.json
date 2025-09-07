@@ -14,5 +14,8 @@
 
     "ui.storyanvil_cogwheel.devui.fullscreen": "Toggle fullscreen mode",
     "ui.storyanvil_cogwheel.devui.resync": "Resync DevUI",
-    "ui.storyanvil_cogwheel.devui.console": "DevUI Console"
+    "ui.storyanvil_cogwheel.devui.console": "DevUI Console",
+    "ui.storyanvil_cogwheel.devui.run": "Save&Execute File",
+    "ui.storyanvil_cogwheel.devui.save": "Save file",
+    "ui.storyanvil_cogwheel.devui.new": "New File"
 }

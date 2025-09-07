@@ -43,6 +43,7 @@ public record DevOpenFile(ResourceLocation script) implements StoryPacket {
             session.read();
             session.addConnection(ctx.get().getSender());
         } catch (IOException e) {
+            DevNetwork.log.error("Error while starting session", e);
             CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(ctx.get()::getSender), new Notification(
                     Component.literal("File can't be opened!"), Component.literal("Unknown error on serverside!")
             ));

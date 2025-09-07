@@ -91,12 +91,20 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         }
         blinker += partialTick;
         if (blinker > 10f) {blinker = 0f;blink =!blink;}
-        if (blink) {
-            for (int i = 0; i < cursors.size(); i++) {
-                Cursor c = cursors.get(i);
-                int t = ui().font.lineHeight * (c.line - scroll) + top;
-                int drawingLeft = c.drawingLeft + codeLeft;
-                fill(g, drawingLeft, t, drawingLeft + 1, t + ui().font.lineHeight, -939458816);
+        for (int i = 0; i < cursors.size(); i++) {
+            Cursor c = cursors.get(i);
+            int t = ui().font.lineHeight * (c.line - scroll) + top;
+            int drawingLeft = c.drawingLeft + codeLeft;
+            int right1 = drawingLeft + 1;
+            int bottom1 = t + ui().font.lineHeight;
+            if (blink)
+                fill(g, drawingLeft, t, right1, bottom1, c.color);
+            if (StoryUtils.isHovering(mouseX, mouseY, drawingLeft - 2, right1 + 2, t - 2, bottom1 + 2)) {
+                String tooltip = c.name;
+                int tooltipWidth = ui().font.width(tooltip) + 10;
+                int tooltipHeight = ui().font.lineHeight + 10;
+                fill(g, mouseX, mouseY, mouseX + tooltipWidth, mouseY + tooltipHeight, c.color);
+                draw(g, mouseX + 5, mouseY + 5, tooltip, ui().font);
             }
         }
     }
@@ -186,6 +194,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         c.line = delta.line();
         c.pos = delta.pos();
         c.selectNextChars = delta.selected();
+        c.color = delta.color();
     }
 
     @Override
@@ -221,7 +230,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
             mine.setLineSafe(Integer.MAX_VALUE);
             mine.setPosSafe(Integer.MAX_VALUE);
         } else if (code == GLFW.GLFW_KEY_S && (mods & GLFW.GLFW_MOD_CONTROL) == GLFW.GLFW_MOD_CONTROL) {
-            DevNetwork.sendToServer(new DevFlush(rl));
+            save();
             return true;
         }
         return false;
@@ -243,6 +252,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         private int selectNextChars = 0;
         private String name = ">huynya<";
         private Component sup;
+        private int color = 0;
 
         private boolean onEndOfLine = false;
 
@@ -297,11 +307,18 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         public void sync() {
             editor.blink = true;
             editor.blinker = 0f;
-            DevNetwork.sendToServer(new DevEditorUserDelta(editor.rl, line, pos, selectNextChars, editor.myName));
+            DevNetwork.sendToServer(new DevEditorUserDelta(editor.rl, line, pos, selectNextChars, editor.myName, color));
         }
 
         public DevEditorUserDelta toDelta() {
-            return new DevEditorUserDelta(editor.rl, line, pos, selectNextChars, editor.myName);
+            return new DevEditorUserDelta(editor.rl, line, pos, selectNextChars, editor.myName, color);
         }
+    }
+
+    public void run() {
+        DevNetwork.sendToServer(new DevRunAndFlush(rl));
+    }
+    public void save() {
+        DevNetwork.sendToServer(new DevFlush(rl));
     }
 }

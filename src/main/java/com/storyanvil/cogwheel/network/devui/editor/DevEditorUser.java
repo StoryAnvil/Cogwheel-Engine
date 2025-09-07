@@ -27,6 +27,7 @@ public class DevEditorUser {
     private int line = 0;
     private int pos = 0;
     private int selectedChars = 0;
+    private int color = 0;
 
     public DevEditorUser(DevEditorSession session, @NotNull ServerPlayer player) {
         if (player == null) throw new IllegalStateException("Player is null");
@@ -58,7 +59,7 @@ public class DevEditorUser {
     }
 
     public DevEditorUserDelta toDelta() {
-        return new DevEditorUserDelta(session.lc, line, pos, selectedChars, player.get().getScoreboardName());
+        return new DevEditorUserDelta(session.lc, line, pos, selectedChars, player.get().getScoreboardName(), color);
     }
     public void applyDelta(DevEditorUserDelta delta) {
         this.pos = delta.pos();
@@ -88,5 +89,13 @@ public class DevEditorUser {
 
     public void setSelectedChars(int selectedChars) {
         this.selectedChars = selectedChars;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 }

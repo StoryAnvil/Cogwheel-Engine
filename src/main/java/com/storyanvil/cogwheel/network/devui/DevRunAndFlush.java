@@ -13,8 +13,8 @@
 
 package com.storyanvil.cogwheel.network.devui;
 
-import com.storyanvil.cogwheel.client.devui.DWCodeEditor;
 import com.storyanvil.cogwheel.data.StoryCodec;
+import com.storyanvil.cogwheel.data.StoryCodecBuilder;
 import com.storyanvil.cogwheel.data.StoryCodecs;
 import com.storyanvil.cogwheel.data.StoryPacket;
 import com.storyanvil.cogwheel.network.devui.editor.DevEditorSession;
@@ -23,28 +23,11 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-import static com.storyanvil.cogwheel.data.StoryCodecBuilder.*;
-
-public record DevEditorUserDelta(ResourceLocation lc, int line, int pos, int selected, String name, int color) implements StoryPacket {
-    public static final StoryCodec<DevEditorUserDelta> CODEC = build(
-            Prop(DevEditorUserDelta::lc, StoryCodecs.RESOURCE_LOC),
-            Integer(DevEditorUserDelta::line),
-            Integer(DevEditorUserDelta::pos),
-            Integer(DevEditorUserDelta::selected),
-            String(DevEditorUserDelta::name),
-            Integer(DevEditorUserDelta::color),
-            DevEditorUserDelta::new
+public record DevRunAndFlush(ResourceLocation lc) implements StoryPacket {
+    public static final StoryCodec<DevRunAndFlush> CODEC = StoryCodecBuilder.build(
+            StoryCodecBuilder.Prop(DevRunAndFlush::lc, StoryCodecs.RESOURCE_LOC),
+            DevRunAndFlush::new
     );
-
-    @Override
-    public void onClientUnsafe(Supplier<NetworkEvent.Context> ctx) {
-        DWCodeEditor editor = DWCodeEditor.get(lc);
-        if (editor == null) {
-            DevNetwork.sendToServer(new DevEditorState(lc, (byte)-128));
-            return;
-        }
-        editor.handle(this);
-    }
 
     @Override
     public void onServerUnsafe(Supplier<NetworkEvent.Context> ctx) {
@@ -53,6 +36,6 @@ public record DevEditorUserDelta(ResourceLocation lc, int line, int pos, int sel
             error(ctx.get().getSender(), "Invalid session!");
             return;
         }
-        session.updateConnection(ctx.get().getSender(), this);
+        session.flushAndDispatch(ctx.get().getSender());
     }
 }

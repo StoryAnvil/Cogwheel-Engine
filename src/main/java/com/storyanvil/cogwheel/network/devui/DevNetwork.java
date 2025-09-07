@@ -48,6 +48,7 @@ public class DevNetwork {
         register(DevResyncRequest.class, DevResyncRequest.CODEC);
         register(DevTypeCallback.class, DevTypeCallback.CODEC);
         register(DevFlush.class, DevFlush.CODEC);
+        register(DevRunAndFlush.class, DevRunAndFlush.CODEC);
     }
 
     private static <T extends StoryPacket> void register(@NotNull Class<T> clazz, @NotNull StoryCodec<T> codec) {
