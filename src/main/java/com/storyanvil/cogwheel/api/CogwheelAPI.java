@@ -95,6 +95,22 @@ public class CogwheelAPI {
     public static void registerCogComponent(ResourceLocation loc, StoryCodec<AbstractCogComponent> codec) {
         SAUI.registerCogComponent(loc, codec);
     }
+    /**
+     * Registers CogScript ScriptLineHandler.
+     * @apiNote `storyanvil_cogwheel` namespace is not allowed!
+     */
+    @Api.Stable(since = "2.10.0")
+    public static void registerLineHandler(ScriptLineHandler scriptLineHandler) {
+        CogwheelRegistries.register(scriptLineHandler);
+    }
+    /**
+     * Registers CogScript ScriptLineHandler.
+     * @apiNote `storyanvil_cogwheel` namespace is not allowed!
+     */
+    @Api.Stable(since = "2.10.0")
+    public static void registerDefaultVariable(ScriptLineHandler scriptLineHandler) {
+        CogwheelRegistries.register(scriptLineHandler);
+    }
 
     /**
      * Converts objects to their CogScript versions

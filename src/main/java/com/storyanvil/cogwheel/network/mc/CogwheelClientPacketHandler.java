@@ -86,7 +86,7 @@ public class CogwheelClientPacketHandler {
 
     public static Object notification(Notification notification, Supplier<NetworkEvent.Context> contextSupplier) {
         Minecraft.getInstance().getToasts().addToast(new SystemToast(
-                SystemToast.SystemToastIds.PERIODIC_NOTIFICATION, notification.getTitle(), notification.getText()
+                SystemToast.SystemToastIds.PERIODIC_NOTIFICATION, notification.title(), notification.text()
         ));
         return null;
     }

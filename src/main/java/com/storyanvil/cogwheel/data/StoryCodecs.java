@@ -17,7 +17,16 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.storyanvil.cogwheel.util.StoryUtils;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.IForgeRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +41,20 @@ public class StoryCodecs {
     public static final StoryCodec<String> STRING = new StoryCodec<>((a,b)->StoryUtils.encodeString(b,a), StoryUtils::decodeString);
     public static final StoryCodec<JsonObject> JSON = new StoryCodec<>((a, b)->StoryUtils.encodeString(b,a.toString()), b-> JsonParser.parseString(StoryUtils.decodeString(b)).getAsJsonObject());
     public static final StoryCodec<ResourceLocation> RESOURCE_LOC = new StoryCodec<>((a, b)->{StoryUtils.encodeString(b,a.getNamespace());StoryUtils.encodeString(b,a.getPath());}, b->ResourceLocation.fromNamespaceAndPath(StoryUtils.decodeString(b),StoryUtils.decodeString(b)));
+    public static final StoryCodec<Component> COMPONENT = new StoryCodec<>((a, b)->StoryUtils.encodeString(b, Component.Serializer.toStableJson(a)), b->Component.Serializer.fromJson(StoryUtils.decodeString(b)));
+    public static final StoryCodec<Item> ITEM = getRegistryCodec(ForgeRegistries.ITEMS);
+    public static final StoryCodec<Block> BLOCK = getRegistryCodec(ForgeRegistries.BLOCKS);
+    public static final StoryCodec<Biome> BIOME = getRegistryCodec(ForgeRegistries.BIOMES);
+    public static final StoryCodec<EntityType<?>> ENTITY_TYPE = getRegistryCodec(ForgeRegistries.ENTITY_TYPES);
+    public static final StoryCodec<Attribute> ATTRIBUTE = getRegistryCodec(ForgeRegistries.ATTRIBUTES);
+    public static final StoryCodec<Enchantment> ENCHANTMENT = getRegistryCodec(ForgeRegistries.ENCHANTMENTS);
 
     public static <T> StoryCodec<List<T>> getListCodec(StoryCodec<T> codec) {
         return new StoryCodec<>((ts, buf) -> {
             buf.writeInt(ts.size()); for (int i = 0; i < ts.size(); i++) codec.encode(ts.get(i), buf);
             }, buf -> {int l = buf.readInt(); ArrayList<T> q = new ArrayList<>(l); for (int i = 0; i < l; i++) q.add(codec.decode(buf)); return q;});
+    }
+    public static <T> StoryCodec<T> getRegistryCodec(IForgeRegistry<T> registry) {
+        return new StoryCodec<>((a, b)->StoryUtils.encodeString(b, registry.getKey(a).toString()), b->registry.getValue(ResourceLocation.parse(StoryUtils.decodeString(b))));
     }
 }

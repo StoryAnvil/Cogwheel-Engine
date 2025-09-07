@@ -14,9 +14,12 @@
 package com.storyanvil.cogwheel.network.mc;
 
 import com.storyanvil.cogwheel.CogwheelEngine;
+import com.storyanvil.cogwheel.data.StoryCodec;
+import com.storyanvil.cogwheel.data.StoryPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -45,7 +48,11 @@ public class CogwheelPacketHandler {
                 CameraForceBound::encode, CameraForceBound::decode, CameraForceBound::handle);
         DELTA_BRIDGE.registerMessage(PACKET_ID.incrementAndGet(), CameraTransitionBound.class,
                 CameraTransitionBound::encode, CameraTransitionBound::decode, CameraTransitionBound::handle);
-        DELTA_BRIDGE.registerMessage(PACKET_ID.incrementAndGet(), Notification.class,
-                Notification::encode, Notification::decode, Notification::handle);
+        register(Notification.class, Notification.CODEC);
+    }
+
+    private static <T extends StoryPacket> void register(@NotNull Class<T> clazz, @NotNull StoryCodec<T> codec) {
+        DELTA_BRIDGE.registerMessage(PACKET_ID.incrementAndGet(), clazz,
+                codec.encoder(), codec.decoder(), T::handle);
     }
 }
