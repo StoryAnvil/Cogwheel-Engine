@@ -11,7 +11,12 @@
 
 package com.storyanvil.cogwheel.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.storyanvil.cogwheel.api.Api;
+import net.minecraft.nbt.*;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -163,4 +168,79 @@ public class StoryUtils {
         return c;
     }
 
+    @Api.Stable(since = "2.10.1")
+    public static JsonObject toCompoundJSON(CompoundTag tag) {
+        JsonObject root = new JsonObject();
+        for (String key : tag.getAllKeys()) {
+            Tag t = tag.get(key);
+            JsonElement e = toElement(t);
+            if (e != null)
+                root.add(key, e);
+        }
+        return root;
+    }
+    @Api.Stable(since = "2.10.1")
+    public static JsonArray toCompoundJSON(CollectionTag<?> tag) {
+        JsonArray root = new JsonArray();
+        for (int i = 0; i < root.size(); i++) {
+            JsonElement e = toElement(tag.get(i));
+            if (e != null)
+                root.add(e);
+        }
+        return root;
+    }
+
+    @Api.Stable(since = "2.10.1")
+    public static JsonElement toElement(Tag t) {
+        if (t instanceof NumericTag) {
+            if (t instanceof ShortTag T) return toJSON(T);
+            if (t instanceof DoubleTag T) return toJSON(T);
+            if (t instanceof FloatTag T) return toJSON(T);
+            if (t instanceof ByteTag T) return toJSON(T);
+            if (t instanceof IntTag T) return toJSON(T);
+            if (t instanceof LongTag T) return toJSON(T);
+        } else if (t instanceof CompoundTag T) {
+            return toCompoundJSON(T);
+        } else if (t instanceof CollectionTag<?> T) {
+            return toCompoundJSON(T);
+        } else if (t instanceof StringTag T) {
+            return toJSON(T);
+        }
+        return null;
+    }
+
+    @Api.Stable(since = "2.10.1")
+    public static JsonPrimitive toJSON(StringTag tag) {
+        return new JsonPrimitive(tag.getAsString());
+    }
+
+    @Api.Stable(since = "2.10.1")
+    public static JsonPrimitive toJSON(ShortTag tag) {
+        return new JsonPrimitive(tag.getAsShort());
+    }
+
+    @Api.Stable(since = "2.10.1")
+    public static JsonPrimitive toJSON(DoubleTag tag) {
+        return new JsonPrimitive(tag.getAsDouble());
+    }
+
+    @Api.Stable(since = "2.10.1")
+    public static JsonPrimitive toJSON(FloatTag tag) {
+        return new JsonPrimitive(tag.getAsFloat());
+    }
+
+    @Api.Stable(since = "2.10.1")
+    public static JsonPrimitive toJSON(ByteTag tag) {
+        return new JsonPrimitive(tag.getAsByte());
+    }
+
+    @Api.Stable(since = "2.10.1")
+    public static JsonPrimitive toJSON(IntTag tag) {
+        return new JsonPrimitive(tag.getAsInt());
+    }
+
+    @Api.Stable(since = "2.10.1")
+    public static JsonPrimitive toJSON(LongTag tag) {
+        return new JsonPrimitive(tag.getAsLong());
+    }
 }

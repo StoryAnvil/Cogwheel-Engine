@@ -11,12 +11,10 @@
  *
  */
 
-package com.storyanvil.cogwheel.items;
+package com.storyanvil.cogwheel.util;
 
-import net.minecraft.world.item.Item;
+import com.google.gson.JsonObject;
 
-public class CustomItem extends Item {
-    public CustomItem(Properties pProperties) {
-        super(pProperties);
-    }
+public interface JsonLike {
+    JsonObject toJSON();
 }

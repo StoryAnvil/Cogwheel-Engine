@@ -181,7 +181,7 @@ public final class StoryCodecBuilder {
     }
 
     @Api.Experimental(since = "2.10.0")
-    public static <R,T> P<R, T> Prop(Function<R, T> getter, StoryCodec<T> codec) {
+    public static <R,Y> P<R, Y> Prop(Function<R, Y> getter, StoryCodec<Y> codec) {
         return new P<>(getter, codec);
     }
 

@@ -94,10 +94,7 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
             return sl.addChained(new StoryAction.Instant<StoryLevel>() {
                 @Override
                 public void proceed(StoryLevel myself) {
-                    myself.level.getServer().getCommands().performPrefixedCommand(
-                            new CommandSourceStack(CommandSource.NULL, new Vec3(0, 0, 0),
-                                    new Vec2(0, 0), myself.level, 4, "COGWHEEL", Component.literal("COGWHEEL"), myself.level.getServer(), null),
-                            args.getString(0));
+                    executeCommand(myself, args.getString(0));
                 }
             });
         });
@@ -123,6 +120,13 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
         manager.reg("get", (name, args, script, o) -> {
             return script.getEnvironment().getData().get(args.getString(0));
         });
+    }
+
+    public static void executeCommand(StoryLevel myself, String command) {
+        myself.level.getServer().getCommands().performPrefixedCommand(
+                new CommandSourceStack(CommandSource.NULL, new Vec3(0, 0, 0),
+                        new Vec2(0, 0), myself.level, 4, "COGWHEEL", Component.literal("COGWHEEL"), myself.level.getServer(), null),
+                command);
     }
 
     @Override

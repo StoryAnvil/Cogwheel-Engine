@@ -45,13 +45,13 @@ public final class Api {
     /**
      * This annotation is used to mark methods where mixins are welcomed.
      */
-    @Documented @Retention(RetentionPolicy.CLASS) @ApiStatus.Internal
+    @Documented @Retention(RetentionPolicy.CLASS)
     public @interface MixinIntoHere {}
 
     /**
      * This annotation is used to mark methods where mixins are not allowed. See {@link MixinsNotAllowed#where()} to know where you can mixin to change this method
      */
-    @Documented @Retention(RetentionPolicy.CLASS) @ApiStatus.Internal
+    @Documented @Retention(RetentionPolicy.CLASS)
     public @interface MixinsNotAllowed {
         String where() default "UNSPECIFIED";
     }

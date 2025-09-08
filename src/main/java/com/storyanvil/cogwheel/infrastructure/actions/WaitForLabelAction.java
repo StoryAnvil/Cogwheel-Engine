@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.infrastructure.actions;
 
+import com.google.gson.JsonObject;
 import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.util.LabelCloseable;
@@ -45,5 +46,12 @@ public class WaitForLabelAction extends StoryAction<Object> implements LabelClos
     public void close(String label, StoryAction<?> host) {
         amount--;
         if (amount <= 0) this.label = null;
+    }
+
+    @Override
+    protected void toJSON(JsonObject obj) {
+        super.toJSON(obj);
+        obj.addProperty("label", label);
+        obj.addProperty("amount", amount);
     }
 }
