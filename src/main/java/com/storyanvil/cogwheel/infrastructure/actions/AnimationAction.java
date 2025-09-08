@@ -13,6 +13,7 @@
 
 package com.storyanvil.cogwheel.infrastructure.actions;
 
+import com.google.gson.JsonObject;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.abilities.StoryAnimator;
 import com.storyanvil.cogwheel.network.mc.AnimationBound;
@@ -42,5 +43,12 @@ public class AnimationAction extends StoryAction<StoryAnimator> {
             return true;
         }
         return false;
+    }
+
+    @Override
+    protected void toJSON(JsonObject obj) {
+        super.toJSON(obj);
+        obj.addProperty("ticks", ticks);
+        obj.addProperty("animationName", animation);
     }
 }

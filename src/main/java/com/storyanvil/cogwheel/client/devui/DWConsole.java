@@ -13,13 +13,11 @@
 
 package com.storyanvil.cogwheel.client.devui;
 
-import com.storyanvil.cogwheel.network.devui.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
@@ -27,29 +25,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DWConsole extends DevWidget {
-    private StringBuilder query = new StringBuilder();
-    private String queryReady = "";
-    private int pos = 0;
-    private int coords = 0;
-    private int textWidth = 0;
-    private int maxTextWidth = 0;
-
-    private EditBox editBox;
-    private List<Component> tips = List.of();
+    final EditBox editBox;
+    private List<Component> tips = new ArrayList<>();
 
     public DWConsole() {
+        DWConsoleAutoComplete.init();
         editBox = new EditBox(ui().font, 0, 0, 0, 0, Component.literal("")){
             @Override
             public void insertText(String pTextToWrite) {
                 super.insertText(pTextToWrite);
-                computeTips(getValue());
+                DWConsoleAutoComplete.update(getValue());
             }
         };
         editBox.setEditable(true);
         editBox.setFocused(true);
         editBox.setCanLoseFocus(false);
-//        editBox.setBordered(false);
-        computeTips(editBox.getValue());
+        DWConsoleAutoComplete.update(editBox.getValue());
     }
 
     @Override
@@ -83,19 +74,11 @@ public class DWConsole extends DevWidget {
         setTop(height / 2 - hh);
         setHeight(h);
         setWidth(w);
-        coords = ui().font.width(query.substring(0, pos));
-        maxTextWidth = w - 6;
         editBox.setX(getLeft());
         editBox.setY(getTop());
         editBox.setWidth(getWidth());
         editBox.setHeight(getHeight());
     }
-    /*
-    * if (scancode == GLFW.GLFW_KEY_GRAVE_ACCENT) {
-            ui().drawConsole = false;
-            return true;
-        }
-    * */
 
     @Override
     public boolean isHovered(int mouseX, int mouseY) {
@@ -145,14 +128,12 @@ public class DWConsole extends DevWidget {
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if (pKeyCode == GLFW.GLFW_KEY_ENTER) {
-            executeCommand(editBox.getValue());
-            computeTips(editBox.getValue());
-            tips = List.of();
+            DWConsoleAutoComplete.execute(editBox.getValue());
             return true;
         }
         boolean c = editBox.keyPressed(pKeyCode, pScanCode, pModifiers);
         if (c)
-            computeTips(editBox.getValue());
+            DWConsoleAutoComplete.update(editBox.getValue());
         return c;
     }
 
@@ -163,39 +144,6 @@ public class DWConsole extends DevWidget {
             return true;
         }
         return editBox.charTyped(pCodePoint, pModifiers);
-    }
-
-    public void computeTips(String query) { //TODO: make this use math tree to search for options
-        synchronized (this) {
-            boolean empty = query.isBlank();
-            ArrayList<Component> tips = new ArrayList<>();
-            if (query.startsWith("!") || empty) {
-                tips.add(
-                        Component.literal("!").withStyle(ChatFormatting.YELLOW).append(
-                                Component.literal("<cogscript>").withStyle(ChatFormatting.DARK_GRAY)).append(
-                                        Component.literal(" - Run CogScript code"))
-                );
-            }
-            if (query.startsWith(">") || empty) {
-                tips.add(
-                        Component.literal(">").withStyle(ChatFormatting.YELLOW).append(
-                                Component.literal("<env>:<script name>").withStyle(ChatFormatting.DARK_GRAY)).append(
-                                Component.literal(" - Open script file"))
-                );
-            }
-            if (empty) {
-                tips.add(
-                        Component.literal("... some option may be hidden").withStyle(ChatFormatting.DARK_GRAY)
-                );
-            } else {
-                compute(tips, query, "fullscreen", "Toggle fullscreen");
-                compute(tips, query, "resync", "Request DevUI resync");
-            }
-            this.tips = tips;
-        }
-    }
-    private void compute(ArrayList<Component> tips, String q, String cmd, String desc) {
-        compute(tips, q, cmd, "", desc);
     }
     private void compute(ArrayList<Component> tips, String q, String cmd, String arg, String desc) {
         if (cmd.startsWith(q)) {
@@ -209,19 +157,12 @@ public class DWConsole extends DevWidget {
         }
     }
 
-    private void executeCommand(String query) {
-        editBox.setValue("");
-        ui().drawConsole = false;
-        if (query.startsWith("!")) {
-            DevNetwork.sendToServer(new DevConsoleCode(query.substring(1)));
-        } else if (query.startsWith(">")) {
-            DevNetwork.sendToServer(new DevOpenFile(ResourceLocation.parse(query.substring(1))));
-        } else if (query.equals("fullscreen")) {
-            ui().fullscreen = !ui().fullscreen;
-            ui().scheduleResize();
-        } else if (query.equals("resync")) {
-            DevNetwork.sendToServer(new DevEarlySyncPacket(true, false));
-            DevNetwork.sendToServer(new DevResyncRequest());
-        }
+    public List<Component> getTips() {
+        return tips;
+    }
+
+    public void setEditable(boolean pEnabled) {
+        if (editBox == null) return;
+        editBox.setEditable(pEnabled);
     }
 }

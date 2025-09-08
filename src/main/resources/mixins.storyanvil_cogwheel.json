@@ -5,7 +5,8 @@
     "refmap": "mixins.storyanvil_cogwheel.refmap.json",
     "mixins": [
         "CameraMixin",
-        "RenderMixin"
+        "RenderMixin",
+        "BaseEntityBlockMixin"
     ],
     "minVersion": "0.8"
 }

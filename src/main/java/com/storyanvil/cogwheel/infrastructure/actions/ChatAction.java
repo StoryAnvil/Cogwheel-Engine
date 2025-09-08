@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.infrastructure.actions;
 
+import com.google.gson.JsonObject;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.abilities.StoryChatter;
 import org.jetbrains.annotations.NotNull;
@@ -32,5 +33,11 @@ public class ChatAction extends StoryAction<StoryChatter> {
     public boolean freeToGo(StoryChatter myself) {
         super.hitLabel();
         return true;
+    }
+
+    @Override
+    protected void toJSON(JsonObject obj) {
+        super.toJSON(obj);
+        obj.addProperty("text", text);
     }
 }

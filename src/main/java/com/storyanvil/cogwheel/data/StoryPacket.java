@@ -48,4 +48,9 @@ public interface StoryPacket {
                 Component.literal("Invalid Packet"), Component.literal(err)
         ));
     }
+    default void clientError(Supplier<NetworkEvent.Context> ctx, String err) {
+        new Notification(
+                Component.literal("Invalid Packet"), Component.literal(err)
+        ).onClientUnsafe(ctx);
+    }
 }

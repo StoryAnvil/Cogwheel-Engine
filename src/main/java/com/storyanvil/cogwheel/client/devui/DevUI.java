@@ -64,7 +64,7 @@ public class DevUI implements GuiEventListener {
     protected int panelTop = 0;
 
     protected boolean drawConsole = false;
-    private DWConsole console;
+    DWConsole console;
     DWTabbedView tabs;
 
     public DevUI() {
@@ -135,6 +135,11 @@ public class DevUI implements GuiEventListener {
             }
         });
         console = addWidget(new DWConsole());
+        DWConsoleAutoComplete.update(console.editBox.getValue());
+    }
+
+    public static DevUI getInstance() {
+        return instance;
     }
 
     public void openConsole() {
@@ -257,5 +262,9 @@ public class DevUI implements GuiEventListener {
     @Override
     public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
         return hovered != null && hovered.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+    }
+
+    public void addTab(DWCodeViewer viewer) {
+        this.tabs.openAndSelect(viewer);
     }
 }

@@ -50,20 +50,26 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         this.name = rl.toString();
 
         String path = rl.getPath();
-        if (path.endsWith(".sad")) {
-            highlighter = new DevHighlighters.StoryAnvilDialog();
-        } else if (path.endsWith(".sa")) {
-            highlighter = new DevHighlighters.CogScript();
-        } else {
-            highlighter = new DevHighlighters.Empty();
-        }
+        highlighter = getHighlighterByFileName(path);
         myName = Minecraft.getInstance().player.getScoreboardName();
+    }
+
+    public static Highlighter getHighlighterByFileName(String name) {
+        if (name.endsWith(".sad")) {
+            return new DevHighlighters.StoryAnvilDialog();
+        } else if (name.endsWith(".sa")) {
+            return new DevHighlighters.CogScript();
+        } else {
+            return new DevHighlighters.Empty();
+        }
     }
 
     private ArrayList<Bi<String, MutableComponent>> code = new ArrayList<>();
     private ArrayList<Cursor> cursors = new ArrayList<>();
     private int scroll = 0;
     private int codeLeft = 0;
+    private int scrollHor = 0;
+    private boolean shift = false;
     private Highlighter highlighter;
     private String myName;
     private Cursor mine = null;
@@ -84,11 +90,14 @@ public class DWCodeEditor extends DWTabbedView.Tab {
     @Override
     public void renderS(@NotNull GuiGraphics g, int mouseX, int mouseY, float partialTick, boolean isHovered, float timeHovered, int top, int left, int right, int bottom) {
         int y = top;
+        g.enableScissor(left, top, right, bottom);
+        int codeLeftt = codeLeft - scrollHor;
         for (int i = scroll; i < code.size(); i++) {
             MutableComponent b = code.get(i).getB();
-            draw(g, codeLeft, y, b == null ? EMPTY : b, ui().font);
+            draw(g, codeLeftt, y, b == null ? EMPTY : b, ui().font);
             y += ui().font.lineHeight;
         }
+        g.disableScissor();
         blinker += partialTick;
         if (blinker > 10f) {blinker = 0f;blink =!blink;}
         for (int i = 0; i < cursors.size(); i++) {
@@ -111,7 +120,10 @@ public class DWCodeEditor extends DWTabbedView.Tab {
 
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
-        scroll = Mth.clamp(scroll + (pDelta > 0 ? -1 : 1), 0, code.size() - 1);
+        if (shift)
+            scroll = Mth.clamp(scroll + (pDelta > 0 ? -1 : 1), 0, code.size() - 1);
+        else
+            scrollHor = Math.max(scrollHor + (pDelta > 0 ? -4 : 4), 0);
         return true;
     }
 
@@ -205,6 +217,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
 
     @Override
     public boolean keyPressed(int code, int scanCode, int mods) {
+        shift = (mods & GLFW.GLFW_MOD_SHIFT) == GLFW.GLFW_MOD_SHIFT;
         if (code == GLFW.GLFW_KEY_LEFT) {
             mine.setPosSafe(mine.pos - 1);
             mine.wrapLeft();
@@ -233,6 +246,12 @@ public class DWCodeEditor extends DWTabbedView.Tab {
             save();
             return true;
         }
+        return false;
+    }
+
+    @Override
+    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+        shift = (pModifiers & GLFW.GLFW_MOD_SHIFT) != GLFW.GLFW_MOD_SHIFT;
         return false;
     }
 

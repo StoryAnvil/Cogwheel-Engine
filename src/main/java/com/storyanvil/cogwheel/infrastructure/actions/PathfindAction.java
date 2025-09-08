@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.infrastructure.actions;
 
+import com.google.gson.JsonObject;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.abilities.StoryNavigator;
 import net.minecraft.core.BlockPos;
@@ -38,5 +39,13 @@ public class PathfindAction extends StoryAction<StoryNavigator> {
         boolean done = myself.getNavigation().isDone();
         if (done) hitLabel();
         return done;
+    }
+
+    @Override
+    protected void toJSON(JsonObject obj) {
+        super.toJSON(obj);
+        obj.addProperty("x", target.getX());
+        obj.addProperty("y", target.getY());
+        obj.addProperty("z", target.getZ());
     }
 }

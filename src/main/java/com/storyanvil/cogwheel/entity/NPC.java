@@ -11,6 +11,10 @@
 
 package com.storyanvil.cogwheel.entity;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.internal.Streams;
+import com.google.gson.stream.JsonWriter;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
@@ -23,6 +27,9 @@ import com.storyanvil.cogwheel.infrastructure.actions.AnimationAction;
 import com.storyanvil.cogwheel.infrastructure.actions.PathfindAction;
 import com.storyanvil.cogwheel.infrastructure.actions.WaitForLabelAction;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
+import com.storyanvil.cogwheel.network.devui.DevNetwork;
+import com.storyanvil.cogwheel.network.devui.DevOpenViewer;
+import com.storyanvil.cogwheel.network.devui.inspector.InspectableEntity;
 import com.storyanvil.cogwheel.network.mc.AnimationBound;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.network.mc.DialogBound;
@@ -42,6 +49,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
@@ -60,10 +68,9 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.ArrayDeque;
-import java.util.List;
-import java.util.Queue;
-import java.util.UUID;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -71,7 +78,7 @@ import java.util.stream.Collectors;
 public class NPC extends Animal implements
         StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder,
         StoryNavigator, ObjectMonitor.IMonitored, CogPropertyManager,
-        StoryAnimator, GeoEntity, StoryModel, DialogTarget {
+        StoryAnimator, GeoEntity, StoryModel, DialogTarget, InspectableEntity {
     private static final ObjectMonitor<NPC> MONITOR = new ObjectMonitor<>();
     public NPC(EntityType<? extends Animal> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -212,7 +219,7 @@ public class NPC extends Animal implements
     }
 
     @Api.Stable(since = "2.0.0")
-    public <R> void addStoryAction(StoryAction<R> action) {
+    public synchronized <R> void addStoryAction(StoryAction<R> action) {
         actionQueue.add((StoryAction<? extends NPC>) action);
     }
 
@@ -528,5 +535,35 @@ public class NPC extends Animal implements
     @Override
     public String d$name() {
         return getCogName();
+    }
+
+    @Override
+    public synchronized boolean tryToInspect(@NotNull ServerLevel level, @NotNull ServerPlayer player) {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("uuid", getStringUUID());
+        obj.addProperty("animatorID", getAnimatorID());
+        obj.addProperty("skinID", getSkin());
+        obj.addProperty("modelID", getStoryModelID());
+        JsonArray array = new JsonArray();
+        for (StoryAction<?> action : actionQueue) {
+            array.add(action.toJSON());
+        }
+        obj.add("storyActions", array);
+        if (current != null) {
+            obj.add("currentStoryAction", current.toJSON());
+        } else obj.add("currentStoryAction", null);
+
+        try {
+            StringWriter stringWriter = new StringWriter();
+            JsonWriter jsonWriter = new JsonWriter(stringWriter);
+            jsonWriter.setLenient(true);
+            jsonWriter.setIndent("    ");
+            jsonWriter.setSerializeNulls(true);
+            Streams.write(obj, jsonWriter);
+            DevNetwork.sendFromServer(player, new DevOpenViewer("npc.json", stringWriter.toString()));
+            return true;
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
     }
 }

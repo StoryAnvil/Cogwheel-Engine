@@ -302,6 +302,10 @@ public class CogMaster implements CogPropertyManager {
             int b = args.requireInt(0);
             return args.get(b + 1);
         });
+        manager.reg("executeCommand", (name, args, script, o) -> {
+            StoryLevel.executeCommand(EventBus.getStoryLevel(), args.getString(0));
+            return null;
+        });
     }
 
     @Override

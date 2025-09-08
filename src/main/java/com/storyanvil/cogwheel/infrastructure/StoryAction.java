@@ -11,6 +11,7 @@
 
 package com.storyanvil.cogwheel.infrastructure;
 
+import com.google.gson.JsonObject;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrastructure.cog.CogString;
@@ -18,11 +19,12 @@ import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
 import com.storyanvil.cogwheel.infrastructure.cog.SubCallPostPrevention;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import com.storyanvil.cogwheel.util.JsonLike;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPropertyManager {
+public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPropertyManager, JsonLike {
     private static final ObjectMonitor<StoryAction<?>> MONITOR = new ObjectMonitor<>();
     private String actionLabel = null;
     public abstract void proceed(T myself);
@@ -120,6 +122,15 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPro
         return o == this;
     }
 
+    @Override
+    public final JsonObject toJSON() {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("type", this.getClass().getCanonicalName());
+        return obj;
+    }
+
+    protected void toJSON(JsonObject obj) {}
+
     public abstract static class Instant<T> extends StoryAction<T> {
         public Instant() {
             super();
@@ -150,5 +161,11 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CogPro
         }
 
         public void onEnding() {}
+
+        @Override
+        protected void toJSON(JsonObject obj) {
+            super.toJSON(obj);
+            obj.addProperty("ticksLeft", ticksLeft);
+        }
     }
 }
