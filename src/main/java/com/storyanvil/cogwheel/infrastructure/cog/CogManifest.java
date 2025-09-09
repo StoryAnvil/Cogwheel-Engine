@@ -16,6 +16,7 @@ package com.storyanvil.cogwheel.infrastructure.cog;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrastructure.env.LibraryEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.util.CogExpressionFailure;
@@ -51,7 +52,7 @@ public class CogManifest implements CogPropertyManager {
             return null;
         });
         manager.reg("requireLibrary", (name, args, script, o) -> {
-            CogScriptEnvironment.LibraryEnvironment env = CogScriptEnvironment.getLibEnvironment(args.getString(0));
+            LibraryEnvironment env = CogScriptEnvironment.getLibEnvironment(args.getString(0));
             if (env == null) {
                 script.haltExecution();
                 throw new CogExpressionFailure("Library \"" + args.getString(0) + "\" required by " + script.getEnvironment().getUniqueIdentifier() + " environment but it does not present!");

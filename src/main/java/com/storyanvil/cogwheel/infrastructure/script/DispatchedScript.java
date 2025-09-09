@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.function.Consumer;
 
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
@@ -49,7 +50,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         this.storage = new ScriptStorage();
         this.environment = environment;
         this.additionalLineHandlers = new HashMap<>();
-        CogwheelRegistries.putDefaults(storage, this);
+        environment.defaultVariablesFactory(this.storage, this);
     }
     public DispatchedScript(ArrayList<String> linesToExecute, ScriptStorage storage, CogScriptEnvironment environment) {
         MONITOR.register(this);
@@ -57,7 +58,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         this.storage = storage;
         this.environment = environment;
         this.additionalLineHandlers = new HashMap<>();
-        CogwheelRegistries.putDefaults(this.storage, this);
+        environment.defaultVariablesFactory(this.storage, this);
     }
 
     @ApiStatus.Internal
@@ -101,7 +102,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
         }
         return lineDispatcherInternal();
     }
-    private boolean lineDispatcherInternal() {
+    protected boolean lineDispatcherInternal() {
         try {
             while (!linesToExecute.isEmpty()) {
                 String line;
@@ -131,7 +132,8 @@ public class DispatchedScript implements ObjectMonitor.IMonitored {
             log.error("FATAL LINE DISPATCHER FAILURE!", a);
             throw a;
         }
-        onEnd();
+        if (linesToExecute.isEmpty())
+            onEnd();
         return false;
     }
 

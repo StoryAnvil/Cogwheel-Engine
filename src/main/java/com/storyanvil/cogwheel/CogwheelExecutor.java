@@ -15,7 +15,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
-import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.infrastructure.env.DefaultEnvironment;
+import com.storyanvil.cogwheel.infrastructure.env.LibraryEnvironment;
+import com.storyanvil.cogwheel.infrastructure.env.WorldEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.StreamExecutionScript;
 import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.StoryUtils;
@@ -28,12 +30,10 @@ import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
 
 import java.io.File;
 import java.io.IOException;
@@ -130,16 +130,16 @@ public class CogwheelExecutor {
         beltThread.schedule(task, ms, TimeUnit.MILLISECONDS);
     }
 
-    private static CogScriptEnvironment.DefaultEnvironment defaultEnvironment;
-    private static HashMap<String, CogScriptEnvironment.LibraryEnvironment> libraryEnvironments;
-    private static CogScriptEnvironment.WorldEnvironment worldEnvironment;
+    private static DefaultEnvironment defaultEnvironment;
+    private static HashMap<String, LibraryEnvironment> libraryEnvironments;
+    private static WorldEnvironment worldEnvironment;
     private static StreamExecutionScript chatConsole;
 
     @SubscribeEvent @Api.Internal @ApiStatus.Internal
     public static void serverStart(ServerStartingEvent event) {
         log.info("Creating CogScript default environments...");
-        defaultEnvironment = new CogScriptEnvironment.DefaultEnvironment();
-        worldEnvironment = new CogScriptEnvironment.WorldEnvironment();
+        defaultEnvironment = new DefaultEnvironment();
+        worldEnvironment = new WorldEnvironment();
         if (libraryEnvironments != null) {
             libraryEnvironments.clear();
         }
@@ -174,14 +174,14 @@ public class CogwheelExecutor {
             }
         }
         for (String library : libraryNames) {
-            CogScriptEnvironment.LibraryEnvironment environment = new CogScriptEnvironment.LibraryEnvironment(library);
+            LibraryEnvironment environment = new LibraryEnvironment(library);
             libraryEnvironments.put(library, environment);
         }
 
         log.info("Environments will be notified of initialization");
         defaultEnvironment.dispatchScript("init.sa");
         worldEnvironment.dispatchScript("init.sa");
-        for (CogScriptEnvironment.LibraryEnvironment environment : libraryEnvironments.values()) {
+        for (LibraryEnvironment environment : libraryEnvironments.values()) {
             if (!environment.init(new File(unpackedLibraries, environment.getUniqueIdentifier()))) {
                 libraryEnvironments.remove(environment.getUniqueIdentifier());
                 environment.dispose();
@@ -246,29 +246,29 @@ public class CogwheelExecutor {
         defaultEnvironment = null;
         worldEnvironment.dispose();
         worldEnvironment = null;
-        for (CogScriptEnvironment.LibraryEnvironment environment : libraryEnvironments.values()) {
+        for (LibraryEnvironment environment : libraryEnvironments.values()) {
             environment.dispose();
         }
         libraryEnvironments = null;
     }
 
     @Api.Stable(since = "2.0.0")
-    public static CogScriptEnvironment.DefaultEnvironment getDefaultEnvironment() {
+    public static DefaultEnvironment getDefaultEnvironment() {
         return defaultEnvironment;
     }
 
     @Api.Stable(since = "2.1.0")
-    public static CogScriptEnvironment.WorldEnvironment getWorldEnvironment() {
+    public static WorldEnvironment getWorldEnvironment() {
         return worldEnvironment;
     }
 
     @Api.Stable(since = "2.0.0")
-    public static CogScriptEnvironment.LibraryEnvironment getLibraryEnvironment(String namespace) {
+    public static LibraryEnvironment getLibraryEnvironment(String namespace) {
         return libraryEnvironments.get(namespace);
     }
 
     @Api.Experimental(since = "2.0.0")
-    public static Collection<CogScriptEnvironment.LibraryEnvironment> getLibraryEnvironments() {
+    public static Collection<LibraryEnvironment> getLibraryEnvironments() {
         return libraryEnvironments.values();
     }
 }

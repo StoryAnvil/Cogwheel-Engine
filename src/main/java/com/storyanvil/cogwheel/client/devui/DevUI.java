@@ -15,6 +15,7 @@ package com.storyanvil.cogwheel.client.devui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.storyanvil.cogwheel.CogwheelEngine;
+import com.storyanvil.cogwheel.config.CogwheelClientConfig;
 import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import com.storyanvil.cogwheel.network.devui.DevNetwork;
 import com.storyanvil.cogwheel.network.devui.DevResyncRequest;
@@ -45,7 +46,9 @@ public class DevUI implements GuiEventListener {
     public static final int ATLAS_SIZE = 256;
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
-        event.register(OPEN_DEVUI.get());
+        if (CogwheelClientConfig.isDisableDevUI()) {
+            event.register(OPEN_DEVUI.get());
+        }
     }
     protected static DevUI instance;
     public static boolean permitted = false;

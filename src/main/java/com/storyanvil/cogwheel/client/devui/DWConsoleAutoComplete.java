@@ -50,6 +50,7 @@ public class DWConsoleAutoComplete {
         register("gmc", "Sets gamemode to creative", Actions::creative);
         register("gms", "Sets gamemode to survival", Actions::survival);
         register("gma", "Sets gamemode to adventure", Actions::adventure);
+        register("closeall", "Closes all tabs", Actions::closeall);
     }
 
     public static void register(String mask, String args, String desc, Consumer<String> executor) {
@@ -134,7 +135,7 @@ public class DWConsoleAutoComplete {
         for (DWConsoleChoice choice : fullChoicePool) {
             if (choice.getMask().startsWith(eraseMask)) {
                 eraseApplicable.add(choice);
-                if (choice.getMask().charAt(checkPos) == check) {
+                if (choice.getMask().length() > checkPos && choice.getMask().charAt(checkPos) == check) {
                     nextApplicable.add(choice);
                 }
             }
@@ -192,7 +193,7 @@ public class DWConsoleAutoComplete {
         }
 
         public static void openFile(String s) {
-            DevNetwork.sendToServer(new DevOpenFile(ResourceLocation.parse(s)));
+            DevNetwork.sendToServer(new DevOpenFile(ResourceLocation.parse(s.trim())));
         }
 
         public static void save(String s) {
@@ -217,6 +218,10 @@ public class DWConsoleAutoComplete {
 
         public static void adventure(String s) {
             DevNetwork.sendToServer(new DevConsoleCode("Cogwheel.executeCommand(\"gamemode adventure " + Minecraft.getInstance().player.getScoreboardName() + "\")"));
+        }
+
+        public static void closeall(String s) {
+            ui().tabs.closeAll();
         }
     }
 }

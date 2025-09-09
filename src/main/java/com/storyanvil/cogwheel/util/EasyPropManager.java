@@ -18,42 +18,61 @@ import com.storyanvil.cogwheel.infrastructure.cog.CogInvoker;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.CogBool;
 import com.storyanvil.cogwheel.infrastructure.cog.PropertyHandler;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @Api.Internal @ApiStatus.Internal
 public class EasyPropManager {
-    private static final HashMap<String, PropertyHandler> handlers = new HashMap<>();
-    private String manager;
-    private final Registrar registrar;
+    public static final HashMap<String, PropertyHandler> allHandlers = new HashMap<>();
 
-    @Contract(pure = true) @Api.Internal @ApiStatus.Internal
-    public EasyPropManager(String manager, Registrar registrar) {
-        this.manager = ">" + manager;
-        this.registrar = registrar;
+    static {
+        defaultMethods(allHandlers);
+    }
+
+    public static void defaultMethods(@NotNull HashMap<String, PropertyHandler> handlers) {
+        handlers.put(PropertyLocation.fromNamespaceAndPath("any", "toString"), (name, args, script, o) -> {
+            return ((CogPropertyManager) o).convertToCogString();
+        });
+        handlers.put(PropertyLocation.fromNamespaceAndPath("any", "equals"), (name, args, script, o) -> {
+            return CogBool.getInstance(((CogPropertyManager) o).equalsTo(args.get(0)));
+        });
+        handlers.put(PropertyLocation.fromNamespaceAndPath("any", "asInvoker"), (name, args, script, o) -> {
+            CogPropertyManager m = (CogPropertyManager) o;
+            return CogInvoker.genericInvoker(m, args.getString(0));
+        });
+    }
+
+    private final String manager;
+    private final WeakReference<HashMap<String, PropertyHandler>> handlers;
+
+    @Api.Internal @ApiStatus.Internal
+    public EasyPropManager(String manager, @NotNull Registrar registrar) {
+        this.manager = manager;
+        this.handlers = new WeakReference<>(allHandlers);
+        registrar.register(this);
+    }
+
+    @Api.Internal @ApiStatus.Internal
+    public EasyPropManager(String manager, @NotNull Registrar registrar, @NotNull HashMap<String, PropertyHandler> h) {
+        this.manager = manager;
+        this.handlers = new WeakReference<>(h);
+        registrar.register(this);
     }
 
     @Api.Internal @ApiStatus.Internal
     public boolean hasOwnProperty(String name) {
-        if (this.manager.charAt(0) != '<') {
-            this.manager = "<" + this.manager;
-            this.reg("toString", (__, args, script, o) -> {
-                return ((CogPropertyManager) o).convertToCogString();
-            });
-            this.reg("equals", (__, args, script, o) -> {
-                return CogBool.getInstance(((CogPropertyManager) o).equalsTo(args.get(0)));
-            });
-            this.reg("asInvoker", (__, args, script, o) -> {
-                CogPropertyManager m = (CogPropertyManager) o;
-                return CogInvoker.genericInvoker(m, args.getString(0));
-            });
-            registrar.register(this);
-        }
-        return handlers.containsKey(manager + name);
+        //noinspection DataFlowIssue
+        return this.handlers.get().containsKey(PropertyLocation.fromNamespaceAndPath(this.manager, name)) || this.handlers.get().containsKey(PropertyLocation.fromNamespaceAndPath("any", name));
     }
 
     @Api.Internal @ApiStatus.Internal
@@ -63,7 +82,9 @@ public class EasyPropManager {
 
     @Api.Internal @ApiStatus.Internal
     public PropertyHandler get(String name) {
-        return handlers.get(manager + name);
+        PropertyHandler h = this.handlers.get().get(PropertyLocation.fromNamespaceAndPath(manager, name));
+        if (h != null) return h;
+        return this.handlers.get().get(PropertyLocation.fromNamespaceAndPath("any", name));
     }
     @Api.Internal @ApiStatus.Internal
     public PropertyHandler get(String name, Function<String,PropertyHandler> alt) {
@@ -85,8 +106,23 @@ public class EasyPropManager {
 
     @Api.Internal @ApiStatus.Internal
     public void reg(String name, PropertyHandler handler) {
-        handlers.put(manager + name, handler);
+        handlers.get().put(PropertyLocation.fromNamespaceAndPath(manager, name), handler);
     }
+
+//    public static void dispose(String manager) {
+//        for (Map.Entry<ResourceLocation, PropertyHandler> handlerEntry : Set.copyOf(handlers.entrySet())) {
+//            if (handlerEntry.getKey().getNamespace().equals(manager)) {
+//                handlers.remove(handlerEntry.getKey());
+//            }
+//        }
+//    }
+//    public static void dispose(Predicate<String> remove) {
+//        for (Map.Entry<ResourceLocation, PropertyHandler> handlerEntry : Set.copyOf(handlers.entrySet())) {
+//            if (remove.test(handlerEntry.getKey().getNamespace())) {
+//                handlers.remove(handlerEntry.getKey());
+//            }
+//        }
+//    }
 
     @Api.Internal @ApiStatus.Internal
     public interface Registrar {

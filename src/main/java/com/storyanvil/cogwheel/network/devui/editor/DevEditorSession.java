@@ -14,6 +14,7 @@
 package com.storyanvil.cogwheel.network.devui.editor;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.data.SyncArray;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.network.devui.*;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
@@ -80,7 +81,7 @@ public class DevEditorSession {
     private CogScriptEnvironment env;
     protected ResourceLocation lc;
     private File file;
-    protected ArrayList<String> lines = new ArrayList<>();
+    protected SyncArray<String> lines = new SyncArray<>();
     protected ArrayList<DevEditorUser> connections = new ArrayList<>();
     private DevEditorSession(ResourceLocation lc) {
         this.lc = lc;
@@ -121,6 +122,7 @@ public class DevEditorSession {
             throw new IOException("Scripts in environment \"" + env.toString() + "\" does not allow script editing");
         if (!file.exists()) {
             lines.clear();
+            lines.add("");
             resyncAll();
             return;
         }
@@ -228,8 +230,13 @@ public class DevEditorSession {
             if (user.getPos() <= 0) return;
             diff.deleteCharAt(user.getPos() - 1);
         } else {
-            diff.insert(user.getPos() - 1, callback.typed());
-            user.setPos(user.getPos() + 1);
+            if (diff.isEmpty()) {
+                diff.append(callback.typed());
+                user.setPos(user.getPos() + callback.typed().length() + 1);
+            } else {
+                diff.insert(user.getPos() == 0 ? 0 : user.getPos() - 1, callback.typed());
+                user.setPos(user.getPos() + 1);
+            }
         }
         lines.set(user.getLine(), diff.toString());
         DevEditorUserDelta safeDelta = user.toDelta();
@@ -242,8 +249,8 @@ public class DevEditorSession {
                 continue;
             }
             ServerPlayer plr = con.get();
-            DevNetwork.sendFromServer(plr, safeDelta);
             DevNetwork.sendFromServer(plr, lineDelta);
+            DevNetwork.sendFromServer(plr, safeDelta);
         }
     }
 
@@ -283,7 +290,7 @@ public class DevEditorSession {
         });
     }
 
-    public void flushAndDispatch(@Nullable ServerPlayer sender) {
+    public synchronized void flushAndDispatch(@Nullable ServerPlayer sender) {
         try (FileWriter fw = new FileWriter(file)) {
             for (String line : lines) {
                 fw.append(line).append('\n');
@@ -307,6 +314,43 @@ public class DevEditorSession {
             CogwheelPacketHandler.DELTA_BRIDGE.send(PacketDistributor.PLAYER.with(() -> sender), new Notification(
                     Component.literal("Save failed"), Component.literal("File " + lc + " was not saved!")
             ));
+        }
+    }
+
+    public synchronized void typeCallback(@Nullable ServerPlayer sender, DevEnterCallback callback) {
+        if (callback.typed().equals("enter")) {
+            DevEditorUser user = getConnection(sender);
+            if (user == null) {
+                if (sender != null)
+                    DevNetwork.sendFromServer(sender, new DevEditorState(lc, (byte) -128));
+                return;
+            }
+            DevInsertLine delta1;
+            DevEditorLine delta2 = null;
+            user.applyDelta(callback.delta());
+            String line = lines.get(user.getLine());
+            if (user.getPos() == line.length() + 1) {
+                delta1 = new DevInsertLine(lc, user.getLine(), "");
+            } else {
+                delta1 = new DevInsertLine(lc, user.getLine(), line.substring(user.getPos()));
+                delta2 = new DevEditorLine(lc, user.getLine(), line.substring(0, user.getPos() + 1), lines.size() + 1);
+            }
+            lines.add(delta1.lineBefore() + 1, delta1.contents());
+            user.setLine(user.getLine() + 1);
+            user.setPos(0);
+            DevEditorUserDelta delta3 = user.toDelta();
+            for (int i = 0; i < connections.size(); i++) {
+                DevEditorUser con = connections.get(i);
+                if (con.isInvalid()) {
+                    i--;
+                    connections.remove(i);
+                    continue;
+                }
+                ServerPlayer plr = con.get();
+                DevNetwork.sendFromServer(plr, delta1);
+                DevNetwork.sendFromServer(plr, delta2);
+                DevNetwork.sendFromServer(plr, delta3);
+            }
         }
     }
 }

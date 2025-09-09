@@ -137,7 +137,6 @@ public class ArgumentData {
             }
         }
         expressions.add(str.substring(start));
-//        System.out.println(String.join("<|>", expressions) + "<---");
         CogPropertyManager[] managers = new CogPropertyManager[expressions.size()];
         for (int i = 0; i < managers.length; i++) {
             managers[i] = CogwheelRegistries.expressionHandler(expressions.get(i), script, false).getB();

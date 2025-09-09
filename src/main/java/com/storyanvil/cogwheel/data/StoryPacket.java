@@ -27,17 +27,17 @@ import java.util.function.Supplier;
 @Api.Experimental(since = "2.10.0")
 public interface StoryPacket {
     default void handle(Supplier<NetworkEvent.Context> ctx) {
-        try {
-            ctx.get().enqueueWork(() -> {
+        ctx.get().enqueueWork(() -> {
+            try {
                 DevNetwork.log.debug("Handling {} as {}", this.toString(), this.getClass().getCanonicalName());
                 if (ctx.get().getDirection().getReceptionSide().isServer()) onServerUnsafe(ctx);
                 else onClientUnsafe(ctx);
-            });
-            ctx.get().setPacketHandled(true);
-        } catch (Exception e) {
-            DevNetwork.log.error("Exception while handling packet {}", this.getClass().getCanonicalName(), e);
-            throw e;
-        }
+            } catch (Exception e) {
+                DevNetwork.log.error("Exception while handling packet {}", this.getClass().getCanonicalName(), e);
+                throw e;
+            }
+        });
+        ctx.get().setPacketHandled(true);
     };
 
     default void onClientUnsafe(Supplier<NetworkEvent.Context> ctx) {};

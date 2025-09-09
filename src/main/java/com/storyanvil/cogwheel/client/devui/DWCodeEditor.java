@@ -58,7 +58,9 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         if (name.endsWith(".sad")) {
             return new DevHighlighters.StoryAnvilDialog();
         } else if (name.endsWith(".sa")) {
-            return new DevHighlighters.CogScript();
+            return new DevHighlighters.JSON();
+        } else if (name.endsWith(".json") || name.endsWith(".saui")) {
+            return new DevHighlighters.JSON();
         } else {
             return new DevHighlighters.Empty();
         }
@@ -183,13 +185,14 @@ public class DWCodeEditor extends DWTabbedView.Tab {
                 return;
             } else {
                 while (code.size() < devEditorLine.linesTotal())
-                    code.add(new Bi<>("", NODATA));
+                    code.add(new Bi<>("", Component.empty()));
             }
         }
         Bi<String, MutableComponent> line = code.get(devEditorLine.lineNumber());
         if (line.getA().equals(devEditorLine.line())) return;
         line.setA(devEditorLine.line());
         highlight(devEditorLine.lineNumber());
+        recomputeCursors();
     }
 
     public synchronized void handle(DevEditorUserDelta delta) {
@@ -204,9 +207,17 @@ public class DWCodeEditor extends DWTabbedView.Tab {
             }
         }
         c.line = delta.line();
-        c.pos = delta.pos();
+        c.pos = Mth.clamp(delta.pos(), 0, code.get(delta.line()).getA().length() + 1);
         c.selectNextChars = delta.selected();
         c.color = delta.color();
+        c.compute(code.get(c.line));
+    }
+
+    public synchronized void recomputeCursors() {
+        for (int i = 0; i < cursors.size(); i++) {
+            Cursor c = cursors.get(i);
+            c.compute(code.get(c.line));
+        }
     }
 
     @Override
@@ -245,6 +256,8 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         } else if (code == GLFW.GLFW_KEY_S && (mods & GLFW.GLFW_MOD_CONTROL) == GLFW.GLFW_MOD_CONTROL) {
             save();
             return true;
+        } else if (code == GLFW.GLFW_KEY_ENTER) {
+            DevNetwork.sendToServer(new DevEnterCallback(rl, "enter", mine.toDelta()));
         }
         return false;
     }
@@ -259,6 +272,12 @@ public class DWCodeEditor extends DWTabbedView.Tab {
     public boolean charTyped(char c, int mods) {
         DevNetwork.sendToServer(new DevTypeCallback(rl, ""+c, mine.toDelta()));
         return true;
+    }
+
+    public synchronized void handle(DevInsertLine delta) {
+        code.add(delta.lineBefore() + 1, new Bi<>(delta.contents(), Component.empty()));
+        highlight(delta.lineBefore() + 1);
+        recomputeCursors();
     }
 
     public abstract static class Highlighter {

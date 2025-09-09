@@ -20,6 +20,7 @@ import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.module.CMA;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
+import com.storyanvil.cogwheel.util.ScriptStorage;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +69,12 @@ public class CogInvoker implements CogPropertyManager {
     public static CogInvoker scriptInvoker(ResourceLocation scriptName) {
         return new CogInvoker((name, args, script, o) -> {
             CogScriptEnvironment.dispatchScriptGlobal(scriptName);
+            return null;
+        });
+    }
+    public static CogInvoker eventScriptInvoker(ResourceLocation scriptName) {
+        return new CogInvoker((name, args, script, o) -> {
+            CogScriptEnvironment.dispatchScriptGlobal(scriptName, (ScriptStorage) args.get(0));
             return null;
         });
     }

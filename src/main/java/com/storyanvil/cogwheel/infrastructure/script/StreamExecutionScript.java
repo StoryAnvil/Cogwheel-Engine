@@ -20,6 +20,7 @@ import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 
+import javax.naming.OperationNotSupportedException;
 import java.util.ArrayList;
 
 public class StreamExecutionScript extends DispatchedScript {
