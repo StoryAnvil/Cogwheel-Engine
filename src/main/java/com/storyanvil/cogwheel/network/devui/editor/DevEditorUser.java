@@ -72,6 +72,7 @@ public class DevEditorUser {
     }
 
     public void setLine(int line) {
+        if (line < 0) {this.line = 0; return;}
         this.line = line;
     }
 
@@ -80,6 +81,7 @@ public class DevEditorUser {
     }
 
     public void setPos(int pos) {
+        if (pos <= 0) {this.pos = 0; return;}
         this.pos = pos;
     }
 

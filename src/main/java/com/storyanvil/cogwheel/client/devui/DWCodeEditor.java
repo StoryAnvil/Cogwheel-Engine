@@ -161,12 +161,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
             CogwheelExecutor.log.error("Trying to highlight line \"{}\" with {}", code.get(line).getA(), highlighter.getClass().getCanonicalName(), e);
             this.code.get(line).setB(FAILURE);
         }
-        for (int i = 0; i < cursors.size(); i++) {
-            Cursor c = cursors.get(i);
-            if (c.line == line) {
-                c.compute(this.code.get(line));
-            }
-        }
+        recomputeCursors();
     }
 
     private synchronized Cursor getCursor(String name) {
@@ -207,10 +202,11 @@ public class DWCodeEditor extends DWTabbedView.Tab {
             }
         }
         c.line = delta.line();
-        c.pos = Mth.clamp(delta.pos(), 0, code.get(delta.line()).getA().length() + 1);
+        c.pos = Mth.clamp(delta.pos(), 0, code.get(delta.line()).getA().length());
         c.selectNextChars = delta.selected();
         c.color = delta.color();
-        c.compute(code.get(c.line));
+//        c.compute(code.get(c.line));
+        recomputeCursors();
     }
 
     public synchronized void recomputeCursors() {
@@ -230,11 +226,11 @@ public class DWCodeEditor extends DWTabbedView.Tab {
     public boolean keyPressed(int code, int scanCode, int mods) {
         shift = (mods & GLFW.GLFW_MOD_SHIFT) == GLFW.GLFW_MOD_SHIFT;
         if (code == GLFW.GLFW_KEY_LEFT) {
-            mine.setPosSafe(mine.pos - 1);
-            mine.wrapLeft();
+            if (mine.wrapLeft())
+                mine.setPosSafe(mine.pos - 1);
         } else if (code == GLFW.GLFW_KEY_RIGHT) {
-            mine.setPosSafe(mine.pos + 1);
-            mine.wrapRight();
+            if (mine.wrapRight())
+                mine.setPosSafe(mine.pos + 1);
         } else if (code == GLFW.GLFW_KEY_UP) {
             mine.setLineSafe(mine.line - 1);
         } else if (code == GLFW.GLFW_KEY_DOWN) {
@@ -270,6 +266,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
 
     @Override
     public boolean charTyped(char c, int mods) {
+        if (c == '`') return true;
         DevNetwork.sendToServer(new DevTypeCallback(rl, ""+c, mine.toDelta()));
         return true;
     }
@@ -277,6 +274,11 @@ public class DWCodeEditor extends DWTabbedView.Tab {
     public synchronized void handle(DevInsertLine delta) {
         code.add(delta.lineBefore() + 1, new Bi<>(delta.contents(), Component.empty()));
         highlight(delta.lineBefore() + 1);
+        recomputeCursors();
+    }
+
+    public void handle(DevDeleteLine delta) {
+        code.remove(delta.line());
         recomputeCursors();
     }
 
@@ -308,30 +310,34 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         }
 
         public void compute(Bi<String, MutableComponent> line) {
-            sup = StoryUtils.subComponent(line.getB(), 0, pos);
+            sup = StoryUtils.subComponent(line.getB(), 0, pos + 1);
             drawingLeft = editor.ui().font.width(sup);
-            onEndOfLine = pos == line.getA().length() + 1;
+            onEndOfLine = pos == line.getA().length();
         }
 
-        public void wrapRight() {
+        public boolean wrapRight() {
             if (onEndOfLine) {
                 pos = 0;
                 setLineSafe(line + 1);
+                return false;
             }
+            return true;
         }
-        public void wrapLeft() {
+        public boolean wrapLeft() {
             if (pos == 0 && line > 0) {
                 line--;
                 Bi<String, MutableComponent> prv = editor.code.get(line);
-                pos = prv.getA().length() + 1;
+                pos = prv.getA().length();
                 compute(prv);
                 sync();
+                return false;
             }
+            return true;
         }
 
         public void setPosSafe(int pos) {
             Bi<String, MutableComponent> line = editor.code.get(this.line);
-            this.pos = Mth.clamp(pos, 0, line.getA().length() + 1);
+            this.pos = Mth.clamp(pos, 0, line.getA().length());
             compute(line);
             sync();
         }

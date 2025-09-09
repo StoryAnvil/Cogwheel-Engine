@@ -221,20 +221,48 @@ public class DevEditorSession {
             return;
         }
         user.applyDelta(callback.delta());
+
+        if (user.getPos() <= 0 && callback.typed().equals("<backspace>")) {
+            if (user.getLine() <= 0) return;
+            user.setPos(0);
+            DevDeleteLine delta1 = new DevDeleteLine(lc, user.getLine());
+            int last = user.getLine() - 1;
+            String line = lines.get(last) + lines.get(user.getLine());
+            DevEditorLine delta2 = new DevEditorLine(lc, last, line, lines.size() - 1);
+            user.setLine(user.getLine() - 1);
+            user.setPos(line.length() + 1);
+            DevEditorUserDelta delta = user.toDelta();
+            lines.remove(user.getLine());
+            lines.set(last, line);
+            for (int i = 0; i < connections.size(); i++) {
+                DevEditorUser con = connections.get(i);
+                if (con.isInvalid()) {
+                    i--;
+                    connections.remove(i);
+                    continue;
+                }
+                ServerPlayer plr = con.get();
+                DevNetwork.sendFromServer(plr, delta);
+                DevNetwork.sendFromServer(plr, delta1);
+                DevNetwork.sendFromServer(plr, delta2);
+            }
+            return;
+        }
+
         StringBuilder diff = new StringBuilder(lines.get(user.getLine()));
         if (callback.typed().equals("<backspace>")) {
             if (user.getPos() <= 0) return;
-            diff.deleteCharAt(user.getPos() - 2);
+            diff.deleteCharAt(user.getPos() - 1);
             user.setPos(user.getPos() - 1);
         } else if (callback.typed().equals("<delete>")) {
-            if (user.getPos() <= 0) return;
-            diff.deleteCharAt(user.getPos() - 1);
+            if (user.getPos() < 0) return;
+            diff.deleteCharAt(user.getPos());
         } else {
             if (diff.isEmpty()) {
                 diff.append(callback.typed());
                 user.setPos(user.getPos() + callback.typed().length() + 1);
             } else {
-                diff.insert(user.getPos() == 0 ? 0 : user.getPos() - 1, callback.typed());
+                diff.insert(user.getPos(), callback.typed());
                 user.setPos(user.getPos() + 1);
             }
         }
@@ -333,9 +361,11 @@ public class DevEditorSession {
                 delta1 = new DevInsertLine(lc, user.getLine(), "");
             } else {
                 delta1 = new DevInsertLine(lc, user.getLine(), line.substring(user.getPos()));
-                delta2 = new DevEditorLine(lc, user.getLine(), line.substring(0, user.getPos() + 1), lines.size() + 1);
+                delta2 = new DevEditorLine(lc, user.getLine(), line.substring(0, user.getPos()), lines.size() + 1);
             }
             lines.add(delta1.lineBefore() + 1, delta1.contents());
+            if (delta2 != null)
+                lines.set(delta2.lineNumber(), delta2.line());
             user.setLine(user.getLine() + 1);
             user.setPos(0);
             DevEditorUserDelta delta3 = user.toDelta();

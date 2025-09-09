@@ -20,6 +20,7 @@ import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.CogPropertyManager;
+import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.abilities.*;
@@ -34,10 +35,7 @@ import com.storyanvil.cogwheel.network.mc.AnimationBound;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
 import com.storyanvil.cogwheel.network.mc.DialogBound;
 import com.storyanvil.cogwheel.network.mc.DialogChoiceBound;
-import com.storyanvil.cogwheel.util.DataStorage;
-import com.storyanvil.cogwheel.util.EasyPropManager;
-import com.storyanvil.cogwheel.util.ObjectMonitor;
-import com.storyanvil.cogwheel.util.StoryUtils;
+import com.storyanvil.cogwheel.util.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.ClickEvent;
@@ -47,12 +45,16 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.ApiStatus;
@@ -70,6 +72,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -88,6 +91,8 @@ public class NPC extends Animal implements
             setSkin(DataStorage.getString(this, "skin", "test"));
             setCustomName(DataStorage.getString(this, "name", "NPC"));
             setStoryModelID(DataStorage.getString(this, "model", "npc"));
+            this.entityData.set(RIGHT_CLICK, DataStorage.getString(this, "rc", ""));
+            this.entityData.set(LEFT_CLICK, DataStorage.getString(this, "lc", ""));
         }
     }
 
@@ -98,6 +103,30 @@ public class NPC extends Animal implements
     private static final EntityDataAccessor<String> SKIN = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> MODEL = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<String> RIGHT_CLICK = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<String> LEFT_CLICK = SynchedEntityData.defineId(NPC.class, EntityDataSerializers.STRING);
+
+    @Override
+    public @NotNull InteractionResult mobInteract(@NotNull Player plr, @NotNull InteractionHand hand) {
+        String action = this.entityData.get(RIGHT_CLICK);
+        if (plr instanceof ServerPlayer player && !action.isEmpty()) {
+            CogScriptEnvironment.dispatchScriptGlobal(action, new ScriptStorage()
+                    .append("internal_callback", new CogEventCallback())
+                    .append("event_player", new CogPlayer(new WeakReference<>(player)))
+                    .append("event_npc", this));
+            return InteractionResult.CONSUME;
+        }
+        return super.mobInteract(plr, hand);
+    }
+
+    public void interact(ServerPlayer plr) {
+        String action = this.entityData.get(LEFT_CLICK);
+        if (action.isEmpty()) return;
+        CogScriptEnvironment.dispatchScriptGlobal(action, new ScriptStorage()
+                .append("internal_callback", new CogEventCallback())
+                .append("event_player", new CogPlayer(new WeakReference<>(plr)))
+                .append("event_npc", this));
+    }
 
     @Override
     public void tick() {
@@ -188,6 +217,8 @@ public class NPC extends Animal implements
         this.entityData.define(SKIN, "test");
         this.entityData.define(NAME, "NPC");
         this.entityData.define(MODEL, "npc");
+        this.entityData.define(RIGHT_CLICK, "");
+        this.entityData.define(LEFT_CLICK, "");
     }
 
     @Override
@@ -544,6 +575,8 @@ public class NPC extends Animal implements
         obj.addProperty("animatorID", getAnimatorID());
         obj.addProperty("skinID", getSkin());
         obj.addProperty("modelID", getStoryModelID());
+        obj.addProperty("rightClick", this.entityData.get(RIGHT_CLICK));
+        obj.addProperty("leftClick", this.entityData.get(LEFT_CLICK));
         JsonArray array = new JsonArray();
         for (StoryAction<?> action : actionQueue) {
             array.add(action.toJSON());

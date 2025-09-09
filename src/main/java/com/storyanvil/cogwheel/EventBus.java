@@ -15,6 +15,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
+import com.storyanvil.cogwheel.entity.NPC;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
 import com.storyanvil.cogwheel.infrastructure.cog.StoryLevel;
@@ -45,6 +46,7 @@ import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -347,11 +349,14 @@ public class EventBus {
     }
 
     @SubscribeEvent
-    public static void onLivingAttack(LivingAttackEvent event) {
-        if (event.getSource().getDirectEntity() instanceof ServerPlayer plr) {
+    public static void onLivingAttack(AttackEntityEvent event) {
+        if (event.getEntity() instanceof ServerPlayer plr) {
             if (plr.getItemBySlot(EquipmentSlot.MAINHAND).is(CogwheelItems.INSPECTOR.get()) && plr.isCrouching()) {
                 event.setCanceled(true);
-                event.getEntity().kill();
+                event.getTarget().kill();
+            } else if (event.getTarget() instanceof NPC npc) {
+                event.setCanceled(true);
+                npc.interact(plr);
             }
         }
     }
