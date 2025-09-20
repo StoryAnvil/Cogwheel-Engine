@@ -4,6 +4,7 @@
     "ui.storyanvil_cogwheel.dialog_choice": "Dialog Choice",
     "ui.storyanvil_cogwheel": "Cogwheel Engine",
     "ui.storyanvil_cogwheel.dev_ui": "Open Dev UI",
+    "ui.storyanvil_cogwheel.quest_ui": "Open Quests",
     "ui.storyanvil_cogwheel.notif_sync": "DevUI Early Sync Finished",
     "ui.storyanvil_cogwheel.notif_sync_msg": "DevUI completed early resync",
     "ui.storyanvil_cogwheel.notif_fsync": "DevUI Full Sync Finished",
@@ -18,5 +19,6 @@
     "ui.storyanvil_cogwheel.devui.console": "DevUI Console",
     "ui.storyanvil_cogwheel.devui.run": "Save&Execute File",
     "ui.storyanvil_cogwheel.devui.save": "Save file",
+    "ui.storyanvil_cogwheel.devui.quests": "Quest menu",
     "ui.storyanvil_cogwheel.devui.new": "New File"
 }

@@ -13,15 +13,13 @@
 
 package com.storyanvil.cogwheel.infrastructure.env;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.infrastructure.module.CogModule;
 import com.storyanvil.cogwheel.infrastructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
+import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 import com.storyanvil.cogwheel.util.WeakList;
 import net.minecraft.client.Minecraft;
@@ -33,13 +31,10 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
@@ -118,6 +113,9 @@ public abstract class CogScriptEnvironment {
     public abstract void dispatchScript(String name);
     public abstract void dispatchScript(String name, ScriptStorage storage);
     public abstract String getScript(String name);
+    public void defaultVariablesFactory(ScriptStorage storage, DispatchedScript script) {
+        CogwheelRegistries.putDefaults(storage, script);
+    }
 
     /**
      * Finds correct CogScriptEnvironment and dispatched script.
@@ -187,147 +185,6 @@ public abstract class CogScriptEnvironment {
         return "CogScriptEnvironment{name=" + getUniqueIdentifier() + "}";
     }
 
-    public static class DefaultEnvironment extends CogScriptEnvironment {
-        private final HashMap<String, Consumer<Integer>> dialogs;
-        private final HashMap<ResourceLocation, CogModule> moduleMap = new HashMap<>();
-
-        public DefaultEnvironment() {
-            super();
-            dialogs = new HashMap<>();
-            log.info("Default Environment {} initialized!", getUniqueIdentifier());
-        }
-
-        @Override
-        public void dispatchScript(String name) {
-            CogScriptDispatcher.dispatch("cog/" + name, this);
-        }
-
-        @Override
-        public void dispatchScript(String name, ScriptStorage storage) {
-            CogScriptDispatcher.dispatch("cog/" + name, storage, this);
-        }
-
-        @Override
-        public String getScript(String name) {
-            return "cog/" + name;
-        }
-
-        @Override
-        public String getUniqueIdentifier() {
-            return "default_environment";
-        }
-
-        public void registerDialog(String id, Consumer<Integer> callback) {
-            dialogs.put(id, callback);
-        }
-        public HashMap<String, Consumer<Integer>> getDialogs() {
-            return dialogs;
-        }
-
-        public void putModule(ResourceLocation loc, CogModule module) {
-            moduleMap.put(loc, module);
-        }
-        public CogModule getModule(ResourceLocation loc) {
-            return moduleMap.get(loc);
-        }
-        public ResourceLocation getModuleLoc(CogScriptEnvironment env, String script) {
-            return ResourceLocation.fromNamespaceAndPath(env.getUniqueIdentifier(), script);
-        }
-
-        @Override
-        public boolean canBeEdited() {
-            return true;
-        }
-    }
-    public static class LibraryEnvironment extends CogScriptEnvironment {
-        private final String name;
-
-        public LibraryEnvironment(String name) {
-            super();
-            this.name = name;
-            log.info("Library Environment {} initialized!", getUniqueIdentifier());
-        }
-
-        @ApiStatus.Internal
-        public boolean init(File dotCog) {
-            try {
-                File manifest = new File(dotCog, "manifest.json");
-                JsonObject obj = JsonParser.parseReader(new FileReader(manifest)).getAsJsonObject();
-                String name = obj.get("name").getAsJsonPrimitive().getAsString();
-                if (!name.equals(this.name)) throw new IllegalStateException("Library names does not match!");
-            } catch (FileNotFoundException | IllegalStateException e) {
-                log.info("Library \"{}\" does not have manifest.json or its manifest.json is invalid. Library won't be loaded", name);
-                log.info("Exception for " + name, (Exception) e);
-                return false;
-            }
-            return true;
-        }
-
-        @Override
-        public void dispatchScript(String name) {
-            CogScriptDispatcher.dispatch("cog-libs/.cog/" + this.name + "/" + name, this);
-        }
-
-        @Override
-        public void dispatchScript(String name, ScriptStorage storage) {
-            CogScriptDispatcher.dispatch("cog-libs/.cog/" + this.name + "/" + name, storage, this);
-        }
-
-        @Override
-        public String getScript(String name) {
-            return "cog-libs/.cog/" + this.name + "/" + name;
-        }
-
-        @Override
-        public String getUniqueIdentifier() {
-            return name;
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
-    public static class TestEnvironment extends LibraryEnvironment {
-        public TestEnvironment() {
-            super("test_environment");
-        }
-
-        @Override
-        public void dispatchScript(String name) {
-            CogScriptDispatcher.dispatch("cog/test." + name, this);
-        }
-
-        @Override
-        public void dispatchScript(String name, ScriptStorage storage) {
-            CogScriptDispatcher.dispatch("cog/test." + name, storage, this);
-        }
-
-        @Override
-        public String getScript(String name) {
-            return "cog/test." + name;
-        }
-    }
-    public static class WorldEnvironment extends CogScriptEnvironment {
-        @Override
-        public void dispatchScript(String name) {
-
-        }
-
-        @Override
-        public void dispatchScript(String name, ScriptStorage storage) {
-
-        }
-
-        @Override
-        public String getScript(String name) {
-            return "";
-        }
-
-        @Override
-        public String getUniqueIdentifier() {
-            return "world_environment";
-        }
-    }
     public static class EnvironmentData extends SavedData {
         private EnvironmentData() {
             super();

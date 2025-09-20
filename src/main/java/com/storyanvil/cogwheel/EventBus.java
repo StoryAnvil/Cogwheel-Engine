@@ -15,16 +15,19 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
+import com.storyanvil.cogwheel.entity.NPC;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
 import com.storyanvil.cogwheel.infrastructure.cog.StoryLevel;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.infrastructure.env.TestEnvironment;
 import com.storyanvil.cogwheel.network.belt.BeltCommunications;
 import com.storyanvil.cogwheel.network.belt.BeltPacket;
 import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import com.storyanvil.cogwheel.network.devui.editor.DevEditorSession;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
 import com.storyanvil.cogwheel.network.mc.CogwheelPacketHandler;
+import com.storyanvil.cogwheel.registry.CogwheelItems;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.ChatFormatting;
@@ -38,9 +41,12 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -117,7 +123,7 @@ public class EventBus {
                 )
                 .then(Commands.literal("run-tests").executes(ctx -> {
                     CogwheelExecutor.schedule(() -> {
-                        CogScriptEnvironment.TestEnvironment environment = new CogScriptEnvironment.TestEnvironment();
+                        TestEnvironment environment = new TestEnvironment();
                         File scripts = new File(Minecraft.getInstance().gameDirectory, "config/cog");
                         for (File f : Objects.requireNonNull(scripts.listFiles(), "No scripts available")) {
                             String name = f.getName();
@@ -148,7 +154,7 @@ public class EventBus {
                 }))
                 .then(Commands.literal("run-all-tests").executes(ctx -> {
                     CogwheelExecutor.schedule(() -> {
-                        CogScriptEnvironment.TestEnvironment environment = new CogScriptEnvironment.TestEnvironment();
+                        TestEnvironment environment = new TestEnvironment();
                         File scripts = new File(Minecraft.getInstance().gameDirectory, "config/cog");
                         for (File f : Objects.requireNonNull(scripts.listFiles(), "No scripts available")) {
                             String name = f.getName();
@@ -336,11 +342,25 @@ public class EventBus {
         }
     }
     @SubscribeEvent @Api.Internal @ApiStatus.Internal
-    public static void boundEvent(PlayerEvent.@NotNull PlayerLoggedOutEvent event) {
+    public static void unboundEvent(PlayerEvent.@NotNull PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             DevEditorSession.unboundColorFrom(player);
         }
     }
+
+    @SubscribeEvent
+    public static void onLivingAttack(AttackEntityEvent event) {
+        if (event.getEntity() instanceof ServerPlayer plr) {
+            if (plr.getItemBySlot(EquipmentSlot.MAINHAND).is(CogwheelItems.INSPECTOR.get()) && plr.isCrouching()) {
+                event.setCanceled(true);
+                event.getTarget().kill();
+            } else if (event.getTarget() instanceof NPC npc) {
+                event.setCanceled(true);
+                npc.interact(plr);
+            }
+        }
+    }
+
 
     @Api.Internal @ApiStatus.Internal
     public static ArrayList<ResourceLocation> serverSideAnimations = new ArrayList<>();

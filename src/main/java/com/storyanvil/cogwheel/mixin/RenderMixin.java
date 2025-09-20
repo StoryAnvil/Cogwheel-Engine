@@ -24,7 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
 public class RenderMixin {
-
     @Inject(method = "renderItemInHand", at = @At("HEAD"), cancellable = true)
     public void renderItemInHand(PoseStack poseStack, Camera activeRenderInfo, float partialTicks, CallbackInfo ci) {
         if (!CutSceneManagement.isRenderHand()) {

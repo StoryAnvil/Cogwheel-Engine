@@ -13,7 +13,6 @@
 
 package com.storyanvil.cogwheel.client.devui;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.util.Bi;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -41,6 +40,9 @@ public class DevHighlighters {
                 colors[i] = color;
             }
         }
+        public void colorSingle(int i, ColorSup colorSup) {
+            colors[i] = colorSup;
+        }
         public MutableComponent compile() {
             MutableComponent cp = Component.empty().withStyle(ChatFormatting.RESET);
             Integer color = null;
@@ -66,9 +68,11 @@ public class DevHighlighters {
                 }
             }
             MutableComponent n = Component.literal(line.substring(from));
-            Integer finalColor = color;
-            ColorSup finalSup1 = sup;
-            n.withStyle(s -> finalSup1.apply(s).withColor(finalColor));
+            if (sup != null) {
+                Integer finalColor = color;
+                ColorSup finalSup1 = sup;
+                n.withStyle(s -> finalSup1.apply(s).withColor(finalColor));
+            }
             cp.append(Component.empty().withStyle(ChatFormatting.RESET)).append(n);
             return cp;
         }
@@ -92,7 +96,7 @@ public class DevHighlighters {
         },
         KEYWORD(ChatFormatting.GOLD.getColor()),
         SPECIAL(ChatFormatting.AQUA.getColor()),
-        ;
+        NUMBER(ChatFormatting.DARK_AQUA.getColor());
         public final int color;
         CodeColor(int color) {
             this.color = color;
@@ -159,7 +163,41 @@ public class DevHighlighters {
 
         public static void process(ColorHelper helper, int from, int to, String fullLine) {
             String sub = fullLine.substring(from, to);
-            helper.color(from, to, CodeColor.ERROR);
+//            helper.color(from, to, CodeColor.ERROR);
+        }
+    }
+    public static class JSON extends DWCodeEditor.Highlighter {
+        @Override
+        public MutableComponent highlight(int lineNumber, ArrayList<Bi<String, MutableComponent>> code, String line) {
+            ColorHelper helper = new ColorHelper(line);
+            char prv = ' ';
+            for (int i = 0; i < line.length(); i++) {
+                char c = line.charAt(i);
+                if (c == '"' && prv != '\\') {
+                    char prv2 = ' ';
+                    int ii;
+                    for (ii = i + 1; ii < line.length(); ii++) {
+                        char c2 = line.charAt(ii);
+                        if (c2 == '"' && prv2 != '\\') {
+                            break;
+                        }
+                        prv2 = c2;
+                    }
+                    ii++;
+                    helper.color(i, ii, CodeColor.STRING);
+                    i = ii;
+                    prv = c;
+                    continue;
+                } else if (Character.isDigit(c)) {
+                    helper.colorSingle(i, CodeColor.NUMBER);
+                } else if (c == 'l') {
+                    if (line.substring(i - 4, i + 1).equals(" null")) {
+                        helper.color(i - 4, i + 1, CodeColor.KEYWORD);
+                    }
+                }
+                prv = c;
+            }
+            return helper.compile();
         }
     }
 }

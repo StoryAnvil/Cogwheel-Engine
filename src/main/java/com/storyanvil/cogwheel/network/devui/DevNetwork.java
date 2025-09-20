@@ -50,6 +50,9 @@ public class DevNetwork {
         register(DevFlush.class, DevFlush.CODEC);
         register(DevRunAndFlush.class, DevRunAndFlush.CODEC);
         register(DevOpenViewer.class, DevOpenViewer.CODEC);
+        register(DevEnterCallback.class, DevEnterCallback.CODEC);
+        register(DevInsertLine.class, DevInsertLine.CODEC);
+        register(DevDeleteLine.class, DevDeleteLine.CODEC);
     }
 
     private static <T extends StoryPacket> void register(@NotNull Class<T> clazz, @NotNull StoryCodec<T> codec) {
@@ -58,12 +61,15 @@ public class DevNetwork {
     }
 
     public static void sendToServer(StoryPacket msg) {
+        if (msg == null) return;
         DEV_BRIDGE.sendToServer(msg);
     }
     public static void sendFromServer(StoryPacket msg) {
+        if (msg == null) return;
         DEV_BRIDGE.send(PacketDistributor.ALL.noArg(), msg);
     }
     public static void sendFromServer(ServerPlayer plr, StoryPacket msg) {
+        if (msg == null) return;
         DEV_BRIDGE.send(PacketDistributor.PLAYER.with(() -> plr), msg);
     }
 }

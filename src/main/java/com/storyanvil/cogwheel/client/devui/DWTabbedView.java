@@ -35,9 +35,11 @@ public class DWTabbedView extends DevWidget {
         selected = tab;
     }
     public void close(Tab tab) {
-        tabs.remove(tab);
-        if (selected == tab) {
-            selected = tabs.isEmpty() ? null : tabs.get(0);
+        if (tab.closingRequest()) {
+            tabs.remove(tab);
+            if (selected == tab) {
+                selected = tabs.isEmpty() ? null : tabs.get(0);
+            }
         }
     }
 
@@ -152,7 +154,19 @@ public class DWTabbedView extends DevWidget {
         selected.mouseMoved(pMouseX, pMouseY);
     }
 
+    public void closeAll() {
+        for (int i = 0; i < tabs.size(); i++) {
+            close(tabs.get(i));
+        }
+    }
+
     public abstract static class Tab extends DevWidget {
+        public Tab() {}
+
+        public Tab(int left, int top, int width, int height) {
+            super(left, top, width, height);
+        }
+
         private int tabWidth = 0;
 
         public void compute(@NotNull DWTabbedView view) {

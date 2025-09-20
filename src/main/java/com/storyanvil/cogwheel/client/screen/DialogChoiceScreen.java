@@ -131,7 +131,6 @@ public class DialogChoiceScreen extends Screen {
         if (selectedButton == -1) {
             return super.mouseClicked(pMouseX, pMouseY, pButton);
         }
-//        System.out.println(bound.getOptions()[selectedButton]);
         CogwheelPacketHandler.DELTA_BRIDGE.sendToServer(new DialogResponseBound(bound.getDialogId(), selectedButton));
         return true;
     }
