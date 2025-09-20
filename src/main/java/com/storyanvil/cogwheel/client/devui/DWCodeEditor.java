@@ -58,7 +58,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         if (name.endsWith(".sad")) {
             return new DevHighlighters.StoryAnvilDialog();
         } else if (name.endsWith(".sa")) {
-            return new DevHighlighters.JSON();
+            return new DevHighlighters.CogScript();
         } else if (name.endsWith(".json") || name.endsWith(".saui")) {
             return new DevHighlighters.JSON();
         } else {

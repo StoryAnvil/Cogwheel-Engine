@@ -392,7 +392,6 @@ public class NPC extends Animal implements
         manager.reg("dialogNonBlocking", (name, args, script, o) -> {
             NPC npc = (NPC) o;
             DialogBound bound = DialogBound.tell(args.getString(0), npc.getCogName(), args.getString(1));
-            // TODO add to wiki
             return npc.addChained(new StoryAction.Ticking<NPC>(args.requireInt(2)) {
                 @Override
                 public void proceed(NPC myself) {
@@ -441,6 +440,22 @@ public class NPC extends Animal implements
                     });
                 }
             });
+        });
+        manager.reg("setRightclick", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            npc.entityData.set(RIGHT_CLICK, args.getString(0), true);
+            if (!npc.level().isClientSide) {
+                DataStorage.setString(npc, "rc", args.getString(0));
+            }
+            return null;
+        });
+        manager.reg("setLeftclick", (name, args, script, o) -> {
+            NPC npc = (NPC) o;
+            npc.entityData.set(LEFT_CLICK, args.getString(0), true);
+            if (!npc.level().isClientSide) {
+                DataStorage.setString(npc, "lc", args.getString(0));
+            }
+            return null;
         });
     }
 

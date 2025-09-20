@@ -133,6 +133,7 @@ public class CogwheelEngine {
         @SubscribeEvent @Api.Internal @ApiStatus.Internal
         public static void onClientSetup(FMLClientSetupEvent event) {
             EntityRenderers.register(CogwheelEntities.NPC.get(), NPCRenderer::new);
+            CogwheelClientConfig.reload();
         }
     }
 }

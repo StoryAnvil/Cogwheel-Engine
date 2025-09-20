@@ -42,13 +42,17 @@ import static org.lwjgl.glfw.GLFW.*;
 @OnlyIn(Dist.CLIENT) @Mod.EventBusSubscriber(modid = CogwheelEngine.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class DevUI implements GuiEventListener {
     public static final Lazy<KeyMapping> OPEN_DEVUI = Lazy.of(() -> new KeyMapping("ui.storyanvil_cogwheel.dev_ui", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_GRAVE_ACCENT, "ui.storyanvil_cogwheel"));
+    public static final Lazy<KeyMapping> OPEN_QUESTS = Lazy.of(() -> new KeyMapping("ui.storyanvil_cogwheel.quest_ui", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Y, "ui.storyanvil_cogwheel"));
     public static final ResourceLocation ATLAS = ResourceLocation.fromNamespaceAndPath(CogwheelEngine.MODID, "textures/gui/devui.png");
     public static final int ATLAS_SIZE = 256;
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
-        if (CogwheelClientConfig.isDisableDevUI()) {
+        if (!CogwheelClientConfig.isDisableDevUI()) {
             event.register(OPEN_DEVUI.get());
         }
+        /*if (!CogwheelClientConfig.isDisableQuestUI()) {
+            event.register(OPEN_QUESTS.get());
+        }*/
     }
     protected static DevUI instance;
     public static boolean permitted = false;
@@ -118,6 +122,14 @@ public class DevUI implements GuiEventListener {
                     if (s instanceof DWCodeEditor editor) {
                         editor.save();
                     }
+                }
+            }
+        });
+        addWidget(new DWButton(55, 0, 11, 11, 60, 0, 11, 11, Component.translatable("ui.storyanvil_cogwheel.devui.quests")){
+            @Override
+            public void press(int btn) {
+                if (btn == GLFW_MOUSE_BUTTON_LEFT) {
+                    Minecraft.getInstance().setScreen(new QuestUIScreen());
                 }
             }
         });

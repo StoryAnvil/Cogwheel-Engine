@@ -17,7 +17,6 @@ import com.google.gson.*;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
 import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +62,7 @@ public class CogwheelClientConfig {
     }
 
     private static boolean disableDevUI = false;
+    private static boolean disableQuestUI = false;
 
     @Api.Stable(since = "2.10.2") @Api.MixinsNotAllowed(where = "CogwheelClientConfig#mixinsEntrypoint")
     public static synchronized void reload() {
@@ -93,7 +93,8 @@ public class CogwheelClientConfig {
         // Load settings
         // Client configs are still loaded on serverside but most of the options don't matter there
         json.addProperty("wiki", "https://storyanvil.github.io/wiki/wiki.html?p=wiki/projects/cogwheel/clientConfig");
-        disableDevUI = getBool("disableAllScripts", false);
+        disableDevUI = getBool("disableDevUI", false);
+        disableQuestUI = getBool("disableQuestUI", false);
 
         mixinsEntrypoint(json);
 
@@ -118,6 +119,10 @@ public class CogwheelClientConfig {
 
     public static boolean isDisableDevUI() {
         return disableDevUI;
+    }
+
+    public static boolean isDisableQuestUI() {
+        return disableQuestUI;
     }
 
     /**

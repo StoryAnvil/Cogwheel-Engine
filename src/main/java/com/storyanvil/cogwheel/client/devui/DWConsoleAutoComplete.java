@@ -42,6 +42,7 @@ public class DWConsoleAutoComplete {
         register("!", "<code>", "Executes CogScript code", Actions::cogScript);
         register("O", "<env>:<file name>", "Opens file", Actions::openFile);
         register("open", "<env>:<file name>", "Opens file", Actions::openFile);
+        register("dispatch", "<env>:<file name>", "Dispatches file", Actions::dispatchFile);
         register("fullscreen", "Toggle fullscreen mode", Actions::fullscreen);
         register("resync", "DevUI Resync", Actions::resync);
         register("inspector", "Gives inspector tool", Actions::inspector);
@@ -222,6 +223,10 @@ public class DWConsoleAutoComplete {
 
         public static void closeall(String s) {
             ui().tabs.closeAll();
+        }
+
+        public static void dispatchFile(String s) {
+            DevNetwork.sendToServer(new DevConsoleCode("Cogwheel.executeCommand(\"@storyanvil dispatch-script " + s.trim() + "\")"));
         }
     }
 }

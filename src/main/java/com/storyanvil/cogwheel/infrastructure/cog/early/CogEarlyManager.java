@@ -29,6 +29,10 @@ public class CogEarlyManager implements CogPropertyManager {
             ((CogEarlyManager) o).registries.add(registry);
             return registry;
         });
+        manager.reg("log", (name, args, script, o) -> {
+            CogwheelEngine.EARLY.info("{}: {}", script.getScriptName(), args.get(0).convertToString());
+            return null;
+        });
     }, CogwheelEngine.EARLY_MANAGER);
 
     private final SyncArray<CogEarlyRegistry> registries;

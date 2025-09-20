@@ -16,6 +16,7 @@ package com.storyanvil.cogwheel.client;
 import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.client.devui.DevUI;
 import com.storyanvil.cogwheel.client.devui.DevUIScreen;
+import com.storyanvil.cogwheel.client.devui.QuestUIScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.network.chat.Component;
@@ -39,6 +40,9 @@ public class ClientEvents {
                             SystemToast.SystemToastIds.PERIODIC_NOTIFICATION, Component.translatable("ui.storyanvil_cogwheel.notif_ban"), Component.translatable("ui.storyanvil_cogwheel.notif_ban_msg")
                     ));
                 }
+            }
+            while (DevUI.OPEN_QUESTS.get().consumeClick()) {
+                Minecraft.getInstance().setScreen(new QuestUIScreen());
             }
         }
     }

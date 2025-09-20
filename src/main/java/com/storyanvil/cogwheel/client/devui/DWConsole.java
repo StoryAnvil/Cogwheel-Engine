@@ -13,7 +13,6 @@
 
 package com.storyanvil.cogwheel.client.devui;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -144,17 +143,6 @@ public class DWConsole extends DevWidget {
             return true;
         }
         return editBox.charTyped(pCodePoint, pModifiers);
-    }
-    private void compute(ArrayList<Component> tips, String q, String cmd, String arg, String desc) {
-        if (cmd.startsWith(q)) {
-            boolean full = q.length() <= cmd.length();
-            tips.add(
-                    Component.literal(full ? cmd.substring(0, q.length()) : cmd).withStyle(ChatFormatting.YELLOW).append(
-                            Component.literal(full ? cmd.substring(q.length()) : "").withStyle(ChatFormatting.GRAY)).append(
-                            Component.literal(arg).withStyle(ChatFormatting.DARK_GRAY)).append(
-                            Component.literal(" - " + desc).withStyle(ChatFormatting.WHITE))
-            );
-        }
     }
 
     public List<Component> getTips() {

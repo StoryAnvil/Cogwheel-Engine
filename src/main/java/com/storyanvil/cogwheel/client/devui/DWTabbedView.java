@@ -161,6 +161,12 @@ public class DWTabbedView extends DevWidget {
     }
 
     public abstract static class Tab extends DevWidget {
+        public Tab() {}
+
+        public Tab(int left, int top, int width, int height) {
+            super(left, top, width, height);
+        }
+
         private int tabWidth = 0;
 
         public void compute(@NotNull DWTabbedView view) {
