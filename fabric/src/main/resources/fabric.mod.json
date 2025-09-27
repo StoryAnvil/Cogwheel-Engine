@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "storyanvil_cogwheel",
+  "version": "${version}",
+  "name": "Cogwheel Engine",
+  "description": "All in one tool for creating stories in Minecraft including custom programming language, NPC with custom models, animations, textures and much more!",
+  "authors": [
+    "StoryAnvil", "DenisJava"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/cogwheel-engine",
+    "sources": "https://github.com/StoryAnvil/Cogwheel-Engine",
+    "issues": "https://github.com/StoryAnvil/ResourcesAndIssues/issues"
+  },
+  "license": "LGPL-3.0-only",
+  "icon": "assets/storyanvil_cogwheel/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.storyanvil.cogwheel.fabric.CogwheelEngineFabric"
+    ],
+    "client": [
+      "com.storyanvil.cogwheel.fabric.client.CogwheelEngineFabricClient"
+    ]
+  },
+  "mixins": [
+    "storyanvil_cogwheel.mixins.json",
+    "storyanvil_cogwheel.fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.17.2",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "architectury": ">=15.0.3",
+    "fabric-api": "*",
+    "geckolib": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

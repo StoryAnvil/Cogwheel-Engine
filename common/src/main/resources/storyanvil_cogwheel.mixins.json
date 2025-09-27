@@ -1,0 +1,16 @@
+{
+    "required": true,
+    "package": "com.storyanvil.cogwheel.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "minVersion": "0.8",
+    "client": [
+        "CameraMixin",
+        "RenderMixin"
+    ],
+    "mixins": [
+        "CrashReportMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}
