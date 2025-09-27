@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Cogwheel-Engine.iml" filepath="$PROJECT_DIR$/.idea/modules/Cogwheel-Engine.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ContentGen/Cogwheel-Engine.ContentGen.iml" filepath="$PROJECT_DIR$/.idea/modules/ContentGen/Cogwheel-Engine.ContentGen.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/storyanvil_cogwheel.common.iml" filepath="$PROJECT_DIR$/.idea/modules/common/storyanvil_cogwheel.common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/storyanvil_cogwheel.common.main.iml" filepath="$PROJECT_DIR$/.idea/modules/common/storyanvil_cogwheel.common.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/storyanvil_cogwheel.common.test.iml" filepath="$PROJECT_DIR$/.idea/modules/common/storyanvil_cogwheel.common.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fabric/storyanvil_cogwheel.fabric.main.iml" filepath="$PROJECT_DIR$/.idea/modules/fabric/storyanvil_cogwheel.fabric.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fabric/storyanvil_cogwheel.fabric.test.iml" filepath="$PROJECT_DIR$/.idea/modules/fabric/storyanvil_cogwheel.fabric.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/neoforge/storyanvil_cogwheel.neoforge.main.iml" filepath="$PROJECT_DIR$/.idea/modules/neoforge/storyanvil_cogwheel.neoforge.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/neoforge/storyanvil_cogwheel.neoforge.test.iml" filepath="$PROJECT_DIR$/.idea/modules/neoforge/storyanvil_cogwheel.neoforge.test.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4">
+  <component name="AdditionalModuleElements">
+    <content url="file://$MODULE_DIR$/../../../neoforge" dumb="true">
+      <excludeFolder url="file://$MODULE_DIR$/../../../neoforge/run" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../neoforge/run/defaultconfigs" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../neoforge/run/logs/telemetry" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../neoforge/run/mods" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../neoforge/run/resourcepacks" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../neoforge/run/resources" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../neoforge/run/saves" />
+    </content>
+  </component>
+</module>

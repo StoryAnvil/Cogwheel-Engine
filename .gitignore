@@ -1,27 +1,15 @@
-# eclipse
-bin
-*.launch
-.settings
-.metadata
-.classpath
-.project
-
-# idea
-out
-*.ipr
-*.iws
-*.iml
-.idea
-
-# gradle
-build
-.gradle
-
-# other
-eclipse
-run
-
-# Files from Forge MDK
-forge*changelog.txt
-/src/generated
-/src/main/resources/assets/storyanvil_cogwheel/textures/entity/npc/skin2.png
+# Project exclude paths
+/.gradle/
+/build/
+/common/.gradle/
+/common/build/
+/common/build/classes/java/main/
+/fabric/.gradle/
+/fabric/build/
+/fabric/build/classes/java/main/
+/neoforge/.gradle/
+/neoforge/build/
+/neoforge/build/classes/java/main/
+/fabric/run/
+/neoforge/run/
+/neoforge/run/logs/

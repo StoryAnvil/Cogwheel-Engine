@@ -1,0 +1,51 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+issueTrackerURL = "https://github.com/StoryAnvil/ResourcesAndIssues/issues"
+license = "LGPL-3.0-only"
+
+[[mods]]
+modId = "storyanvil_cogwheel"
+version = "${version}"
+displayName = "Cogwheel Engine"
+authors = "StoryAnvil, DenisJava"
+description = '''
+All in one tool for creating stories in Minecraft including custom programming language, NPC with custom models, animations, textures and much more!
+'''
+#logoFile = ""
+updateJSONURL = "https://api.modrinth.com/updates/cogwheel-engine/forge_updates.json"
+
+[[dependencies.storyanvil_cogwheel]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.4,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.storyanvil_cogwheel]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.4,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.storyanvil_cogwheel]]
+modId = "architectury"
+type = "required"
+versionRange = "[15.0.3,)"
+ordering = "AFTER"
+side = "BOTH"
+referralUrl="https://modrinth.com/mod/architectury-api"
+
+[[dependencies.storyanvil_cogwheel]]
+modId = "geckolib"
+type = "required"
+versionRange = "[1.0.0,)"
+ordering = "AFTER"
+side = "BOTH"
+referralUrl="https://modrinth.com/mod/geckolib"
+
+[[mixins]]
+config = "storyanvil_cogwheel.mixins.json"
+
+[[mixins]]
+config = "storyanvil_cogwheel.neoforge.mixins.json"
