@@ -24,10 +24,7 @@ public class CogTestCallback implements CGPM {
 
     public CogTestCallback(TestManagement.Result testResult, TestManagement management) {
         this.testResult = testResult;
-        this.management = management;
     }
-
-    private final TestManagement management;
 
     private static final EasyPropManager MANAGER = new EasyPropManager("testCallback", manager -> {
         manager.reg("assertEq", (name, args, script, o) -> {

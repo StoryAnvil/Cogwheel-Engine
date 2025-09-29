@@ -21,8 +21,11 @@ public class DWQuestView extends DWTabbedView.Tab {
         super(left, top, width, height);
     }
 
+    @SuppressWarnings("FieldCanBeLocal")
     private boolean tabsOpen = false;
+    @SuppressWarnings("FieldCanBeLocal")
     private int tabsWidth = 0;
+    @SuppressWarnings("FieldCanBeLocal")
     private boolean dev = false;
 
     @Override
@@ -31,11 +34,11 @@ public class DWQuestView extends DWTabbedView.Tab {
         fill(g, left, top, right, bottom, -770172376);
 
         // Tab selector
-        if (tabsOpen) {
-            
-        } else {
-
-        }
+//        if (tabsOpen) {
+//
+//        } else {
+//
+//        }
     }
 
     @Override

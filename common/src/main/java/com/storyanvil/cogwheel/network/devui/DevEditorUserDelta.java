@@ -12,6 +12,7 @@
 
 package com.storyanvil.cogwheel.network.devui;
 
+import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.client.devui.DWCodeEditor;
 import com.storyanvil.cogwheel.data.IStoryPacketContext;
 import com.storyanvil.cogwheel.data.StoryCodec;
@@ -41,7 +42,7 @@ public record DevEditorUserDelta(Identifier lc, int line, int pos, int selected,
     public void onClientUnsafe(IStoryPacketContext ctx) {
         DWCodeEditor editor = DWCodeEditor.get(lc);
         if (editor == null) {
-            CogwheelNetwork.sendToServer(new DevEditorState(lc, (byte)-128));
+            CogwheelHooks.sendPacketToServer(new DevEditorState(lc, (byte)-128));
             return;
         }
         editor.handle(this);

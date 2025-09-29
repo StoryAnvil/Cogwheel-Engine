@@ -57,7 +57,7 @@ public class ModuleProperty implements PropertyHandler {
             String line = $lines.get(i);
             if (line.startsWith("*import") || line.startsWith("*reimport")) {
                 CogModule.dataFix.warn("Line {} was removed from property due to being in property", line);
-                $lines.remove(i); i--; continue;
+                $lines.remove(i); i--;
             }
         }
     }

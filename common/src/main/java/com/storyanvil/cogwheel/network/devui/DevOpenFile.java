@@ -56,6 +56,6 @@ public record DevOpenFile(Identifier script) implements StoryPacket<DevOpenFile>
     @Override
     public void onClientUnsafe(IStoryPacketContext ctx) {
         DWCodeEditor editor = DWCodeEditor.getOrCreateEditor(script);
-        CogwheelNetwork.sendToServer(new DevEditorState(script, (byte) -127));
+        CogwheelHooks.sendPacketToServer(new DevEditorState(script, (byte) -127));
     }
 }

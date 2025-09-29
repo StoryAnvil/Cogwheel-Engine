@@ -121,7 +121,7 @@ public abstract class CogScriptEnvironment {
 
     @Api.Experimental(since = "2.0.0")
     public static void dispatchScriptGlobal(Identifier loc) {
-        CogScriptEnvironment environment = null;
+        CogScriptEnvironment environment;
         environment = getEnvironment(loc);
         if (environment == null) throw new RuntimeException("Dispatch Failure! No environment found");
         environment.dispatchScript(loc.getPath());

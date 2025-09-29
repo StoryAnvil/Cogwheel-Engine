@@ -119,7 +119,7 @@ public class CogwheelConfig {
             try {
                 StringWriter stringWriter = new StringWriter();
                 JsonWriter jsonWriter = new JsonWriter(stringWriter);
-                jsonWriter.setLenient(true);
+                jsonWriter.setStrictness(Strictness.LENIENT);
                 jsonWriter.setIndent("    ");
                 Streams.write(json, jsonWriter);
                 fw.write(stringWriter.toString());

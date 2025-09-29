@@ -12,6 +12,7 @@
 
 package com.storyanvil.cogwheel.network.devui.editor;
 
+import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.network.devui.DevEditorState;
 import com.storyanvil.cogwheel.network.devui.DevEditorUserDelta;
 import com.storyanvil.cogwheel.network.devui.CogwheelNetwork;
@@ -38,10 +39,11 @@ public class DevEditorUser {
         return player.refersTo(null);
     }
 
+    @SuppressWarnings("UnusedAssignment")
     public void dispose() {
         ServerPlayerEntity plr = player.get();
         if (plr != null) {
-            CogwheelNetwork.sendFromServer(plr, new DevEditorState(session.lc, (byte) -128));
+            CogwheelHooks.sendPacket(plr, new DevEditorState(session.lc, (byte) -128));
             plr = null;
         }
         session = null;

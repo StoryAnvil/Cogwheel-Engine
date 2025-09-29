@@ -12,8 +12,10 @@
 
 package com.storyanvil.cogwheel.neoforge;
 
+import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.entity.NPC;
 import com.storyanvil.cogwheel.neoforge.client.NPCRenderer;
+import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import net.minecraft.client.render.entity.EntityRenderers;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -34,18 +36,23 @@ import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
 @Mod(MODID)
 public final class CogwheelEngineNeoForge {
     public static final Logger PLATFORM_LOG = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/NEOFORGE");
-    public CogwheelEngineNeoForge(IEventBus bus, ModContainer container) {
+    public CogwheelEngineNeoForge(IEventBus bus, @SuppressWarnings("unused") ModContainer container) {
         CogwheelEngine.init(); // Common setup
         NeoRegistry.ATTACHMENT_TYPES.register(bus);
-        NeoRegistry.ENTITIES.register(bus);
-        NeoRegistry.ITEMS.register(bus);
+        CogwheelHooks.registryRegistry(registry -> {
+            NeoPlatformRegistry platform = (NeoPlatformRegistry) registry;
+            if (platform.ITEMS != null)
+                platform.ITEMS.register(bus);
+            if (platform.ENTITY_TYPES != null)
+                platform.ENTITY_TYPES.register(bus);
+        });
     }
 
     @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
     public static class ClientModEvents {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            EntityRenderers.register(NeoRegistry.NPC.get(), NPCRenderer::new);
+            EntityRenderers.register(CogwheelRegistries.NPC.get(), NPCRenderer::new);
         }
 
         @SubscribeEvent
@@ -58,7 +65,7 @@ public final class CogwheelEngineNeoForge {
     public static class ModEvents {
         @SubscribeEvent
         public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
-            event.put(NeoRegistry.NPC.get(), NPC.createAttributes().build());
+            event.put(CogwheelRegistries.NPC.get(), NPC.createAttributes().build());
         }
     }
 }

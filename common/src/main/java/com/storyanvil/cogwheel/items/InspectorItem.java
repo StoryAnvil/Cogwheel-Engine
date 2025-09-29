@@ -17,6 +17,7 @@ import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.network.devui.inspector.InspectableBlock;
 import com.storyanvil.cogwheel.network.devui.inspector.InspectableEntity;
 import com.storyanvil.cogwheel.network.mc.Notification;
+import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -53,7 +54,7 @@ public class InspectorItem extends Item {
 
     @Override
     public @NotNull ActionResult useOnEntity(@NotNull ItemStack stack, @NotNull PlayerEntity _player, @NotNull LivingEntity target, @NotNull Hand hand) {
-        if (_player instanceof ServerPlayerEntity player && stack.isOf(CogwheelHooks.getInspectorItem()) && target instanceof InspectableEntity ie && devEnvCheck(player)) {
+        if (_player instanceof ServerPlayerEntity player && stack.isOf(CogwheelRegistries.INSPECTOR.get()) && target instanceof InspectableEntity ie && devEnvCheck(player)) {
             if (ie.tryToInspect(player.getServerWorld(), player)) {
                 return ActionResult.CONSUME;
             }

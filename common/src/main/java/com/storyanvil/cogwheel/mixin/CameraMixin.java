@@ -12,6 +12,7 @@
 
 package com.storyanvil.cogwheel.mixin;
 
+import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.client.CutSceneManagement;
 import com.storyanvil.cogwheel.data.CameraPos;
 import com.storyanvil.cogwheel.util.Bi;
@@ -55,6 +56,7 @@ public abstract class CameraMixin {
             if (force != null) {
                 this.setPos(force.getPos());
                 setRotation(force.getRotY(), force.getRotX());
+                //noinspection UnusedAssignment
                 detach = true;
                 return;
             }
@@ -87,7 +89,7 @@ public abstract class CameraMixin {
             this.thirdPerson |= detach;
             CutSceneManagement.setRenderHand(!detach);
         } catch (Throwable t) {
-            t.printStackTrace();
+            CogwheelEngine.LOGGER.error("Camera error", t);
         }
     }
 }

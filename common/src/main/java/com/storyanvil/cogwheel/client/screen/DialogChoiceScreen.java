@@ -80,7 +80,9 @@ public class DialogChoiceScreen extends Screen {
     private int boxRight = 0;
     private int boxTop = 0;
     private int boxBottom = 0;
+    @SuppressWarnings("FieldCanBeLocal")
     private int boxWidth = 0;
+    @SuppressWarnings("FieldCanBeLocal")
     private int boxHeight = 0;
     private int imageWidth = 0;
     private int textX = 0;

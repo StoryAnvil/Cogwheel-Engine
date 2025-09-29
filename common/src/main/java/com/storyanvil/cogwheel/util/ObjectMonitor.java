@@ -12,6 +12,7 @@
 
 package com.storyanvil.cogwheel.util;
 
+import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
 import org.jetbrains.annotations.ApiStatus;
@@ -43,7 +44,7 @@ public class ObjectMonitor<T extends ObjectMonitor.IMonitored> {
                 monitor.dump(sb);
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            CogwheelEngine.LOGGER.error("", e);
         }
     }
 

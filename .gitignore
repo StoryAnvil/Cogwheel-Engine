@@ -13,3 +13,4 @@
 /fabric/run/
 /neoforge/run/
 /neoforge/run/logs/
+/tests/results.json

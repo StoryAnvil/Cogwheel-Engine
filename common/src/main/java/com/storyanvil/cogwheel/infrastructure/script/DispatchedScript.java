@@ -104,8 +104,7 @@ public class DispatchedScript implements ObjectMonitor.IMonitored { //TODO: Stop
     public boolean lineDispatcher() {
         if (!Thread.currentThread().getName().contains("cogwheel-executor")) {
             RuntimeException e = new RuntimeException("Line dispatcher can only be run in cogwheel executor thread");
-            e.printStackTrace();
-            log.error("[!CRITICAL!] LINE DISPATCHER WAS CALLED FROM NON-EXECUTOR THREAD! THIS WILL CAUSE MEMORY LEAKS AND PREVENT SCRIPTS FOR PROPER EXECUTION! THIS CALL WAS DISMISSED, PROBABLY CAUSING A MEMORY LEAK!");
+            log.error("[!CRITICAL!] LINE DISPATCHER WAS CALLED FROM NON-EXECUTOR THREAD! THIS WILL CAUSE MEMORY LEAKS AND PREVENT SCRIPTS FOR PROPER EXECUTION! THIS CALL WAS DISMISSED, PROBABLY CAUSING A MEMORY LEAK!", e);
             throw e;
         }
         return lineDispatcherInternal();

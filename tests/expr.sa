@@ -1,0 +1,14 @@
+a = ^32
+b = "string"
+c = b
+d = Cogwheel.str(b)
+e = defefw
+TEST.assertJavaClass(a, "com.storyanvil.cogwheel.infrastructure.cog.CogInteger")
+TEST.assertJavaClass(b, "com.storyanvil.cogwheel.infrastructure.cog.CogString")
+TEST.assertJavaClass(c, "com.storyanvil.cogwheel.infrastructure.cog.CogString")
+TEST.assertJavaClass(d, "com.storyanvil.cogwheel.infrastructure.cog.CogString")
+TEST.assertEq(b, c)
+TEST.assertEq(d, b)
+TEST.assertNull(e)
+Cogwheel.log(f = Cogwheel.str(d))
+TEST.assertEq(f, d)

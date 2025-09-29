@@ -151,7 +151,7 @@ public class CogMaster implements CGPM {
             return new CogInteger(random.nextInt(args.requireInt(0), args.requireInt(1)));
         });
         manager.reg("createList", (name, args, script, o) -> {
-            return CogArray.getInstance((CGPM) args.get(0));
+            return CogArray.getInstance(args.get(0));
         });
         manager.reg("dispatchScript", (name, args, script, o) -> {
             if (args.size() == 1)

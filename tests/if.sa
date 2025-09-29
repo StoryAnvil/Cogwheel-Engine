@@ -1,0 +1,14 @@
+if (false) {
+    # Should not run
+    TEST.fail()
+}
+a = ^1
+if (true) {
+    # Should run
+    a = ^2
+}
+TEST.assertEq(a, ^2)
+if (a.equals(^45)) {
+    # Should not run (a must equal ^2)
+    TEST.fail()
+}

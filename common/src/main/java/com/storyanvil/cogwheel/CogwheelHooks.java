@@ -18,7 +18,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.storyanvil.cogwheel.client.devui.PacketParcel;
-import com.storyanvil.cogwheel.config.CogwheelClientConfig;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryPacket;
@@ -29,14 +28,16 @@ import com.storyanvil.cogwheel.infrastructure.testing.TestManagement;
 import com.storyanvil.cogwheel.mixinAccess.IStoryEntity;
 import com.storyanvil.cogwheel.network.devui.*;
 import com.storyanvil.cogwheel.network.mc.*;
+import com.storyanvil.cogwheel.registry.CogwheelRegistries;
+import com.storyanvil.cogwheel.registry.PlatformRegistry;
 import com.storyanvil.cogwheel.util.DefaultCommandOutput;
 import com.storyanvil.cogwheel.util.ObjectMonitor;
+import com.storyanvil.cogwheel.util.PlatformType;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.entity.Entity;
-import net.minecraft.item.Item;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -49,9 +50,6 @@ import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.slf4j.Logger;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,29 +64,6 @@ import java.util.function.Function;
  */
 @ApiStatus.Internal
 public class CogwheelHooks {
-
-    // I have no clue how to make architectury loom show DEBUG logging level
-    // This is the only solution I come up with....
-    private static final Marker debug = MarkerFactory.getMarker("DEBUG");
-    @Deprecated
-    public static void debugLog(Logger log, String text) {
-//        if (CogwheelClientConfig.isRunningInIDE())
-//            log.info(debug, text);
-        log.debug(debug, text);
-    }
-    @Deprecated
-    public static void debugLog(Logger log, String text, Object o) {
-//        if (CogwheelClientConfig.isRunningInIDE())
-//            log.info(debug, text, o);
-        log.debug(debug, text, o);
-    }
-    @Deprecated
-    public static void debugLog(Logger log, String text, Object... o) {
-//        if (CogwheelClientConfig.isRunningInIDE())
-//            log.info(debug, text, o);
-        log.debug(debug, text, o);
-    }
-
     @ExpectPlatform
     public static File getConfigFolder() {
         throw new AssertionError();
@@ -143,6 +118,10 @@ public class CogwheelHooks {
     @ExpectPlatform
     public static void sendPacket(StoryPacket<?> packet, ServerPlayerEntity plr) {
         throw new AssertionError();
+    }
+
+    public static void sendPacket(ServerPlayerEntity plr, StoryPacket<?> packet) {
+        sendPacket(packet, plr);
     }
 
     @ExpectPlatform
@@ -229,7 +208,7 @@ public class CogwheelHooks {
                                     try {
                                         CogScriptEnvironment.dispatchScriptGlobal(name);
                                     } catch (Exception e) {
-                                        e.printStackTrace();
+                                        CogwheelEngine.LOGGER.error("", e);
                                     }
                                     return 0;
                                 })
@@ -293,9 +272,13 @@ public class CogwheelHooks {
         throw new AssertionError();
     }
 
-    @ExpectPlatform @Contract("-> !null") @SuppressWarnings("Contract")
-    public static Item getInspectorItem() {
+    @ExpectPlatform
+    public static PlatformRegistry createRegistry(String modid) {
         throw new AssertionError();
+    }
+
+    public static void registryRegistry(Consumer<PlatformRegistry> cons) {
+        cons.accept(CogwheelRegistries.REGISTRY);
     }
 
     @ExpectPlatform
@@ -305,5 +288,15 @@ public class CogwheelHooks {
 
     public static interface PacketRegistrar {
         <T extends StoryPacket<T>> void accept(String id, StoryCodec<T> codec, Class<T> clazz);
+    }
+    
+    @ExpectPlatform @Contract("-> !null") @SuppressWarnings("Contract")
+    public static PlatformType getPlatform() {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform @Contract("-> !null") @SuppressWarnings("Contract")
+    public static String getVersion() {
+        throw new AssertionError();
     }
 }

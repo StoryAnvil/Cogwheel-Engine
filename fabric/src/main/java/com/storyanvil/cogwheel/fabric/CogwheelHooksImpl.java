@@ -12,6 +12,7 @@
 
 package com.storyanvil.cogwheel.fabric;
 
+import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.data.StoryPacket;
 import com.storyanvil.cogwheel.fabric.client.CogwheelEngineFabricClient;
@@ -19,16 +20,18 @@ import com.storyanvil.cogwheel.fabric.client.NPCModel;
 import com.storyanvil.cogwheel.fabric.data.StoryFabricParcel;
 import com.storyanvil.cogwheel.infrastructure.CGPM;
 import com.storyanvil.cogwheel.infrastructure.cog.CogPrimalType;
+import com.storyanvil.cogwheel.registry.PlatformRegistry;
+import com.storyanvil.cogwheel.util.PlatformType;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.item.Item;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 import java.io.File;
 
+@SuppressWarnings("unused")
 public class CogwheelHooksImpl {
     public static File getConfigFolder() {
         return FabricLoader.getInstance().getConfigDir().toFile();
@@ -65,15 +68,23 @@ public class CogwheelHooksImpl {
         return CogwheelEngineFabricClient.devUI;
     }
 
-    public static Item getInspectorItem() {
-        return FabricRegistry.INSPECTOR;
-    }
-
     public static void setAnimationData(Identifier[] locations) {
         NPCModel.animationSources = locations;
     }
 
     public static void startupMessage(String message) {
         CogwheelEngineFabric.PLATFORM_LOG.info("STARTUP - {}", message);
+    }
+
+    public static PlatformRegistry createRegistry(String modid) {
+        return new FabricPlatformRegistry(modid);
+    }
+
+    public static PlatformType getPlatform() {
+        return PlatformType.FABRIC;
+    }
+
+    public static String getVersion() {
+        return "unknown-version";
     }
 }

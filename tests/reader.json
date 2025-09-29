@@ -1,0 +1,6 @@
+{
+    "auto": true,
+    "type": "SCRIPT_READER",
+    "scriptName": "defaultvariables.sa",
+    "expectedScript": "TEST.assertJavaClass(Cogwheel, \"com.storyanvil.cogwheel.infrastructure.cog.CogMaster\")\\nTEST.assertJavaClass(TEST, \"com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback\")\\nTEST.assertJavaClass(MANIFEST, \"com.storyanvil.cogwheel.infrastructure.cog.CogManifest\")\\nTEST.assertJavaClass(true, \"com.storyanvil.cogwheel.infrastructure.cog.CogBool\")\\nTEST.assertTrue(true)\\nTEST.assertJavaClass(false, \"com.storyanvil.cogwheel.infrastructure.cog.CogBool\")\\nTEST.assertFalse(false)"
+}

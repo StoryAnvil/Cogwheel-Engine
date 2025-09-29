@@ -12,6 +12,7 @@
 
 package com.storyanvil.cogwheel.client.devui;
 
+import com.storyanvil.cogwheel.CogwheelEngine;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -45,7 +46,7 @@ public class QuestUIScreen extends Screen {
         try {
             QuestUI.instance.renderLogic(g, mouseX, mouseY, partialTick, width, height);
         } catch (Exception e) {
-            e.printStackTrace();
+            CogwheelEngine.LOGGER.error("", e);
         }
     }
 

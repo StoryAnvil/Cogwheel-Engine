@@ -16,17 +16,12 @@ import com.storyanvil.cogwheel.mixinAccess.IStoryEntity;
 import com.storyanvil.cogwheel.neoforge.NeoRegistry;
 import com.storyanvil.cogwheel.neoforge.data.NbtAttachment;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityAttachments;
 import net.minecraft.nbt.NbtCompound;
 import net.neoforged.neoforge.attachment.AttachmentHolder;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 
-@SuppressWarnings("MixinSuperClass")
 @Mixin(Entity.class)
 public abstract class EntityMixin extends AttachmentHolder implements IStoryEntity {
-    @Shadow public abstract EntityAttachments getAttachments();
-
     @Override
     public void storyEntity$putInt(String k, int v) {
         NbtAttachment a = getData(NeoRegistry.DATA.get());

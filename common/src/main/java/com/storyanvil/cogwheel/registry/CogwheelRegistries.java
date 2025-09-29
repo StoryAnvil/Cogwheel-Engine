@@ -14,20 +14,28 @@ package com.storyanvil.cogwheel.registry;
 
 import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.entity.NPC;
 import com.storyanvil.cogwheel.infrastructure.*;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.module.CogModule;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
+import com.storyanvil.cogwheel.items.InspectorItem;
 import com.storyanvil.cogwheel.util.*;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnGroup;
+import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
 
@@ -79,6 +87,13 @@ public class CogwheelRegistries {
     public static List<Bi<ScriptLineHandler, Boolean>> getLineHandlers() {
         return lineHandlers;
     }
+
+    public static final PlatformRegistry REGISTRY = CogwheelHooks.createRegistry(MODID);
+    public static final Supplier<Item> INSPECTOR = REGISTRY.registerItem("inspector", InspectorItem::new,
+            k -> new Item.Settings().maxCount(1).fireproof().rarity(Rarity.EPIC));
+    public static final Supplier<EntityType<NPC>> NPC = REGISTRY.registerEntity("npc",
+            k -> EntityType.Builder.create(NPC::new, SpawnGroup.MISC)
+                    .dimensions(0.6f, 1.8f));
 
     @Api.Internal @ApiStatus.Internal @Api.MixinsNotAllowed(where = "NOWHERE")
     public static void registerDefaultObjects() {

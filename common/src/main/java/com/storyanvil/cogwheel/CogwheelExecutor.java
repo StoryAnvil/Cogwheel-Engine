@@ -106,6 +106,7 @@ public class CogwheelExecutor {
     private static WorldEnvironment worldEnvironment;
     private static StreamExecutionScript chatConsole;
 
+    @SuppressWarnings("LoggingSimilarMessage")
     public static void serverStart() {
         log.info("Creating CogScript default environments...");
         defaultEnvironment = new DefaultEnvironment();
@@ -117,11 +118,14 @@ public class CogwheelExecutor {
         File libs = new File(CogwheelHooks.getConfigFolder(), "cog-libs/");
         File scripts = new File(CogwheelHooks.getConfigFolder(), "cog/");
         File unpackedLibraries = new File(libs, ".cog");
-        if (!libs.exists()) libs.mkdir();
-        if (!scripts.exists()) scripts.mkdir();
+        if (!libs.exists()) //noinspection ResultOfMethodCallIgnored
+            libs.mkdir();
+        if (!scripts.exists()) //noinspection ResultOfMethodCallIgnored
+            scripts.mkdir();
         if (unpackedLibraries.exists()) {
             StoryUtils.deleteDirectory(unpackedLibraries);
         }
+        //noinspection ResultOfMethodCallIgnored
         unpackedLibraries.mkdir();
         CogwheelConfig.reload();
         File[] libFiles = libs.listFiles();
@@ -169,12 +173,10 @@ public class CogwheelExecutor {
                 break;
             }
             case 2: {
-                //noinspection LoggingSimilarMessage
                 log.warn("============= [ COGWHEEL ENGINE ] =============");
                 log.warn(" Your version of Cogwheel Engine is outdated   ");
                 log.warn(" Check modrinth to find new updates.           ");
                 log.warn(" https://modrinth.com/mod/cogwheel-engine      ");
-                //noinspection LoggingSimilarMessage
                 log.warn("============= [ COGWHEEL ENGINE ] =============");
                 break;
             }

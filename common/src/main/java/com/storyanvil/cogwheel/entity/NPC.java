@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel.entity;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.Strictness;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
 import com.storyanvil.cogwheel.CogwheelEngine;
@@ -32,7 +33,6 @@ import com.storyanvil.cogwheel.infrastructure.actions.PathfindAction;
 import com.storyanvil.cogwheel.infrastructure.actions.WaitForLabelAction;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.mixinAccess.IStoryEntity;
-import com.storyanvil.cogwheel.network.devui.CogwheelNetwork;
 import com.storyanvil.cogwheel.network.devui.DevOpenViewer;
 import com.storyanvil.cogwheel.network.devui.inspector.InspectableEntity;
 import com.storyanvil.cogwheel.network.mc.AnimationBound;
@@ -107,7 +107,7 @@ public class NPC extends AnimalEntity implements
     @Api.PlatformTool
     public Identifier platformModel = Identifier.of(CogwheelEngine.MODID, "geo/npc.geo.json");
     @Api.PlatformTool
-    public Identifier platformTexture = Identifier.of(CogwheelEngine.MODID, "textures/entity/npc/denisjava.png");
+    public Identifier platformTexture = Identifier.of(CogwheelEngine.MODID, "textures/entity/npc/test.png");
 
     @Override
     public @NotNull ActionResult interactMob(@NotNull PlayerEntity plr, @NotNull Hand hand) {
@@ -127,6 +127,7 @@ public class NPC extends AnimalEntity implements
         return super.interactMob(plr, hand);
     }
 
+    @SuppressWarnings("unused")
     public void interact(ServerPlayerEntity plr) {
         String action = storyEntity().storyEntity$getString("leftclick", "");
         if (action.isEmpty()) return;
@@ -561,11 +562,11 @@ public class NPC extends AnimalEntity implements
         try {
             StringWriter stringWriter = new StringWriter();
             JsonWriter jsonWriter = new JsonWriter(stringWriter);
-            jsonWriter.setLenient(true);
+            jsonWriter.setStrictness(Strictness.LENIENT);
             jsonWriter.setIndent("    ");
             jsonWriter.setSerializeNulls(true);
             Streams.write(obj, jsonWriter);
-            CogwheelNetwork.sendFromServer(player, new DevOpenViewer("npc.json", stringWriter.toString()));
+            CogwheelHooks.sendPacket(new DevOpenViewer("npc.json", stringWriter.toString()), player);
             return true;
         } catch (IOException e) {
             throw new AssertionError(e);

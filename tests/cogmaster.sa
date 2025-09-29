@@ -1,0 +1,24 @@
+TEST.assertJavaClass(Cogwheel, "com.storyanvil.cogwheel.infrastructure.cog.CogMaster")
+a = "alpha"
+b = "beta"
+d = "delta"
+z = "zeta"
+TEST.assertEq(Cogwheel.choose(true, a, b), a)
+TEST.assertEq(Cogwheel.choose(false, a, b), b)
+TEST.assertEq(Cogwheel.map(^0, a, b), a)
+TEST.assertEq(Cogwheel.map(^1, a, b), b)
+TEST.assertEq(Cogwheel.map(^0, a, b, d, z), a)
+TEST.assertEq(Cogwheel.map(^1, a, b, d, z), b)
+TEST.assertEq(Cogwheel.map(^2, a, b, d, z), d)
+TEST.assertEq(Cogwheel.map(^3, a, b, d, z), z)
+or = ^5134
+dbl = Cogwheel.toDouble(or)
+TEST.assertJavaClass(or, "com.storyanvil.cogwheel.infrastructure.cog.CogInteger")
+TEST.assertJavaClass(dbl, "com.storyanvil.cogwheel.infrastructure.cog.CogDouble")
+int = Cogwheel.toInt(dbl)
+TEST.assertJavaClass(int, "com.storyanvil.cogwheel.infrastructure.cog.CogInteger")
+TEST.assertEq(int, or)
+TEST.assertJavaClass(Cogwheel.getLevel(), "com.storyanvil.cogwheel.infrastructure.cog.StoryLevel")
+TEST.assertEq(a, "alpha")
+Cogwheel.disposeVariable("a")
+TEST.assertNull(a)

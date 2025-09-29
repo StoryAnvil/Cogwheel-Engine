@@ -142,7 +142,7 @@ public class DevHighlighters {
                 helper.color(sep, sep + 1, CodeColor.KEYWORD);
             } else if (c == '+') {
                 helper.color(offset, offset + 1, CodeColor.SPECIAL);
-            } else if (c == '/') {
+            /*} else if (c == '/') {*/
             } else {
                 helper.color(offset, line.length(), CodeColor.ERROR);
             }

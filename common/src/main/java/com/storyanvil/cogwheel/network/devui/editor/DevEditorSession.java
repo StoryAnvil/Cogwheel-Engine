@@ -76,7 +76,7 @@ public class DevEditorSession {
         return sessions.values();
     }
 
-    private CogScriptEnvironment env;
+    private final CogScriptEnvironment env;
     protected Identifier lc;
     private File file;
     protected SyncArray<String> lines = new SyncArray<>();
@@ -102,7 +102,7 @@ public class DevEditorSession {
     }
     public synchronized void resync(DevEditorUser con) {
         for (int i = 0; i < lines.size(); i++) {
-            CogwheelNetwork.sendFromServer(con.get(), new DevEditorLine(lc, i, lines.get(i), lines.size()));
+            CogwheelHooks.sendPacket(con.get(), new DevEditorLine(lc, i, lines.get(i), lines.size()));
         }
         for (int i = 0; i < connections.size(); i++) {
             DevEditorUser con2 = connections.get(i);
@@ -111,7 +111,7 @@ public class DevEditorSession {
                 connections.remove(i);
                 continue;
             }
-            CogwheelNetwork.sendFromServer(con.get(), con2.toDelta());
+            CogwheelHooks.sendPacket(con.get(), con2.toDelta());
         }
     }
 
@@ -149,7 +149,7 @@ public class DevEditorSession {
     public synchronized void addConnection(ServerPlayerEntity plr) {
         DevEditorUser con = new DevEditorUser(this, plr);
         connections.add(con);
-        CogwheelNetwork.sendFromServer(plr, new DevOpenFile(lc));
+        CogwheelHooks.sendPacket(plr, new DevOpenFile(lc));
         con.setColor(getColorFor(plr));
     }
 
@@ -189,7 +189,7 @@ public class DevEditorSession {
         DevEditorUser user = getConnection(sender);
         if (user == null) {
             if (sender != null)
-                CogwheelNetwork.sendFromServer(sender, new DevEditorState(lc, (byte) -128));
+                CogwheelHooks.sendPacket(sender, new DevEditorState(lc, (byte) -128));
             return;
         }
         user.setLine(delta.line());
@@ -207,7 +207,7 @@ public class DevEditorSession {
                 con.dispose();
                 continue;
             }
-            CogwheelNetwork.sendFromServer(con.get(), safeDelta);
+            CogwheelHooks.sendPacket(con.get(), safeDelta);
         }
     }
 
@@ -215,7 +215,7 @@ public class DevEditorSession {
         DevEditorUser user = getConnection(sender);
         if (user == null) {
             if (sender != null)
-                CogwheelNetwork.sendFromServer(sender, new DevEditorState(lc, (byte) -128));
+                CogwheelHooks.sendPacket(sender, new DevEditorState(lc, (byte) -128));
             return;
         }
         user.applyDelta(callback.delta());
@@ -241,7 +241,7 @@ public class DevEditorSession {
                     continue;
                 }
                 ServerPlayerEntity plr = con.get();
-                CogwheelNetwork.sendFromServer(plr, parcel);
+                CogwheelHooks.sendPacket(plr, parcel);
             }
             return;
         }
@@ -275,14 +275,15 @@ public class DevEditorSession {
                 continue;
             }
             ServerPlayerEntity plr = con.get();
-            CogwheelNetwork.sendFromServer(plr, parcel);
+            CogwheelHooks.sendPacket(plr, parcel);
         }
     }
 
     public synchronized void flush(@Nullable ServerPlayerEntity sender) {
 
         try {
-            if (!file.exists()) file.createNewFile();
+            if (!file.exists()) //noinspection ResultOfMethodCallIgnored
+                file.createNewFile();
             try (FileWriter fw = new FileWriter(file)) {
                 for (String line : lines) {
                     fw.append(line).append('\n');
@@ -347,7 +348,7 @@ public class DevEditorSession {
             DevEditorUser user = getConnection(sender);
             if (user == null) {
                 if (sender != null)
-                    CogwheelNetwork.sendFromServer(sender, new DevEditorState(lc, (byte) -128));
+                    CogwheelHooks.sendPacket(sender, new DevEditorState(lc, (byte) -128));
                 return;
             }
             DevInsertLine delta1;
@@ -375,7 +376,7 @@ public class DevEditorSession {
                     continue;
                 }
                 ServerPlayerEntity plr = con.get();
-                CogwheelNetwork.sendFromServer(plr, parcel);
+                CogwheelHooks.sendPacket(plr, parcel);
             }
         }
     }
