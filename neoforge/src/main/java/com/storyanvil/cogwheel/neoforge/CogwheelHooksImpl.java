@@ -14,7 +14,7 @@ package com.storyanvil.cogwheel.neoforge;
 
 import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.data.StoryPacket;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.cog.CogPrimalType;
 import com.storyanvil.cogwheel.neoforge.client.NPCModel;
 import com.storyanvil.cogwheel.neoforge.data.StoryNeoParcel;
@@ -22,7 +22,6 @@ import com.storyanvil.cogwheel.registry.PlatformRegistry;
 import com.storyanvil.cogwheel.util.PlatformType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.item.Item;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.neoforged.fml.ModContainer;

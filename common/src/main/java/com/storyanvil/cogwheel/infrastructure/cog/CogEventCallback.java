@@ -14,7 +14,8 @@ package com.storyanvil.cogwheel.infrastructure.cog;
 
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import org.jetbrains.annotations.Contract;
@@ -44,7 +45,7 @@ public class CogEventCallback implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
         if (MANAGER.hasOwnProperty(name))
             return MANAGER.get(name).handle(name, args, script, this);
         String key = "event_" + name; // do not access event variables directly. Use Cogwheel.getEvent().VariableName() instead

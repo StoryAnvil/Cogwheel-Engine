@@ -13,7 +13,7 @@
 package com.storyanvil.cogwheel.infrastructure.abilities;
 
 import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 
 @Api.Stable(since = "2.0.0")

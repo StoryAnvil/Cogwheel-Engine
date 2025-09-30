@@ -10,14 +10,31 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrastructure.cog;
+package com.storyanvil.cogwheel.infrastructure.script;
 
-import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.err.CogExpressionFailure;
-import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
-import com.storyanvil.cogwheel.infrastructure.props.CGPM;
-import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
+import com.storyanvil.cogwheel.util.ScriptLineHandler;
 
-public interface PropertyHandler {
-    CGPM handle(String name, ArgumentData args, DispatchedScript script, Object o) throws CogScriptException;
+public class ScriptLine {
+    private String line;
+    private ScriptLineHandler handler = null;
+
+    public ScriptLine(String line) {
+        this.line = line;
+    }
+
+    public String getLine() {
+        return line;
+    }
+
+    public void setLine(String line) {
+        this.line = line;
+    }
+
+    public ScriptLineHandler getHandler() {
+        return handler;
+    }
+
+    public void setHandler(ScriptLineHandler handler) {
+        this.handler = handler;
+    }
 }

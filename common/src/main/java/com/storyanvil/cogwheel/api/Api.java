@@ -57,6 +57,7 @@ public final class Api {
 
     /**
      * This annotation is used to mark methods where mixins are not allowed. See {@link MixinsNotAllowed#where()} to know where you can mixin to change this method
+     * @apiNote <code>NOWHERE</code> as value means this method should not have any mixins
      */
     @Documented @Retention(RetentionPolicy.CLASS)
     public @interface MixinsNotAllowed {

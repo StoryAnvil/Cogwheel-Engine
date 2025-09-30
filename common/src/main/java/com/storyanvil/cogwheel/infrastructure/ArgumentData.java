@@ -13,6 +13,8 @@
 package com.storyanvil.cogwheel.infrastructure;
 
 import com.storyanvil.cogwheel.infrastructure.cog.*;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import org.jetbrains.annotations.Contract;
@@ -117,7 +119,7 @@ public class ArgumentData {
     }
 
     @Contract(value = "_, _ -> new", pure = false)
-    public static @NotNull ArgumentData of(@NotNull String str, DispatchedScript script) {
+    public static @NotNull ArgumentData of(@NotNull String str, DispatchedScript script) throws CogScriptException {
         ArrayList<String> expressions = new ArrayList<>();
         boolean quotes = false;
         int level = 0;

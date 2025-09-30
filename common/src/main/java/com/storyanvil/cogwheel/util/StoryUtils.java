@@ -37,14 +37,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class StoryUtils {
-    @Api.Stable(since = "2.0.0")
+    @Api.Stable(since = "2.0.0") @Deprecated(forRemoval = true)
     public static void sendGlobalMessage(@NotNull ServerWorld level, Text msg) {
         for (ServerPlayerEntity player : level.getPlayers()) {
             player.sendMessage(msg);
         }
     }
 
-    @Api.Stable(since = "2.0.0")
+    @Api.Stable(since = "2.0.0") @Deprecated(forRemoval = true)
     public static void sendGlobalMessage(@NotNull ServerWorld level, Text... msg) {
         for (ServerPlayerEntity player : level.getPlayers()) {
             for (Text c : msg) {
@@ -192,17 +192,30 @@ public class StoryUtils {
     @Api.Stable(since = "2.10.1")
     public static JsonElement toElement(NbtElement t) {
         if (t instanceof AbstractNbtNumber) {
-            if (t instanceof NbtShort T) return toJSON(T);
-            if (t instanceof NbtDouble T) return toJSON(T);
-            if (t instanceof NbtFloat T) return toJSON(T);
-            if (t instanceof NbtByte T) return toJSON(T);
-            if (t instanceof NbtInt T) return toJSON(T);
-            if (t instanceof NbtLong T) return toJSON(T);
-        } else if (t instanceof NbtCompound T) {
+            switch (t) {
+                case NbtShort T:
+                    return toJSON(T);
+                case NbtDouble T:
+                    return toJSON(T);
+                case NbtFloat T:
+                    return toJSON(T);
+                case NbtByte T:
+                    return toJSON(T);
+                case NbtInt T:
+                    return toJSON(T);
+                case NbtLong T:
+                    return toJSON(T);
+                default:
+                    break;
+            }
+        }
+        if (t instanceof NbtCompound T) {
             return toCompoundJSON(T);
-        } else if (t instanceof AbstractNbtList<?> T) {
+        }
+        if (t instanceof AbstractNbtList<?> T) {
             return toCompoundJSON(T);
-        } else if (t instanceof NbtString T) {
+        }
+        if (t instanceof NbtString T) {
             return toJSON(T);
         }
         return null;

@@ -12,10 +12,12 @@
 
 package com.storyanvil.cogwheel.infrastructure.testing;
 
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
+
 import java.lang.annotation.*;
 
 /**
- * This annotation is used to mark {@link com.storyanvil.cogwheel.infrastructure.CGPM} subtypes that
+ * This annotation is used to mark {@link CGPM} subtypes that
  * do not require in-jar docs
  */
 @Retention(RetentionPolicy.RUNTIME) @Documented @Target(ElementType.TYPE)

@@ -21,6 +21,7 @@ import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.DialogScript;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.ScriptLine;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,14 +100,14 @@ public class CogScriptDispatcher {
         return null;
     }
 
-    public static @Nullable DispatchedScript readAndDispatch(String scriptName, ScriptStorage storage, CogScriptEnvironment environment, File script, Function5<String, ScriptStorage, CogScriptEnvironment, ArrayList<String>, Boolean, DispatchedScript> scriptFunction, boolean trim, boolean execute) {
+    public static @Nullable DispatchedScript readAndDispatch(String scriptName, ScriptStorage storage, CogScriptEnvironment environment, File script, Function5<String, ScriptStorage, CogScriptEnvironment, ArrayList<ScriptLine>, Boolean, DispatchedScript> scriptFunction, boolean trim, boolean execute) {
         try (FileReader fr = new FileReader(script); Scanner sc = new Scanner(fr)) {
-            ArrayList<String> lines = new ArrayList<>();
+            ArrayList<ScriptLine> lines = new ArrayList<>();
             while (sc.hasNextLine()) {
                 if (trim)
-                    lines.add(sc.nextLine().trim());
+                    lines.add(new ScriptLine(sc.nextLine().trim()));
                 else
-                    lines.add(sc.nextLine());
+                    lines.add(new ScriptLine(sc.nextLine()));
             }
             return scriptFunction.apply(scriptName, storage, environment, lines, execute);
         } catch (IOException e) {
@@ -115,13 +116,13 @@ public class CogScriptDispatcher {
         return null;
     }
 
-    private static @NotNull DispatchedScript cogScriptScript(String scriptName, ScriptStorage storage, CogScriptEnvironment environment, ArrayList<String> lines, boolean execute) {
+    private static @NotNull DispatchedScript cogScriptScript(String scriptName, ScriptStorage storage, CogScriptEnvironment environment, ArrayList<ScriptLine> lines, boolean execute) {
         DispatchedScript s = new DispatchedScript(lines, storage, environment);
         if (execute)
             CogwheelExecutor.schedule(s.setScriptName(scriptName)::startExecution);
         return s;
     }
-    private static @NotNull DispatchedScript dialog(String scriptName, ScriptStorage storage, CogScriptEnvironment environment, ArrayList<String> lines, boolean execute) {
+    private static @NotNull DispatchedScript dialog(String scriptName, ScriptStorage storage, CogScriptEnvironment environment, ArrayList<ScriptLine> lines, boolean execute) {
         DispatchedScript s = new DialogScript(lines, storage, environment);
         if (execute)
             CogwheelExecutor.schedule(s.setScriptName(scriptName)::startExecution);

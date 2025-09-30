@@ -14,11 +14,12 @@ package com.storyanvil.cogwheel.infrastructure.cog;
 
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.env.LibraryEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
-import com.storyanvil.cogwheel.util.CogExpressionFailure;
+import com.storyanvil.cogwheel.infrastructure.err.CogExpressionFailure;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,7 @@ public class CogManifest implements CGPM {
             LibraryEnvironment env = CogScriptEnvironment.getLibEnvironment(args.getString(0));
             if (env == null) {
                 script.haltExecution();
-                throw new CogExpressionFailure("Library \"" + args.getString(0) + "\" required by " + script.getEnvironment().getUniqueIdentifier() + " environment but it does not present!");
+                throw script.wrap(new CogExpressionFailure("Library \"" + args.getString(0) + "\" required by " + script.getEnvironment().getUniqueIdentifier() + " environment but it does not present!"));
             }
             return null;
         });
@@ -66,7 +67,7 @@ public class CogManifest implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException {
         return MANAGER.get(name).handle(name, args, script, this);
     }
 

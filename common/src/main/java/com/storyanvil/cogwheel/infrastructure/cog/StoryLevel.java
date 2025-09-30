@@ -15,13 +15,13 @@ package com.storyanvil.cogwheel.infrastructure.cog;
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.abilities.StoryActionQueue;
 import com.storyanvil.cogwheel.infrastructure.abilities.StoryChatter;
 import com.storyanvil.cogwheel.util.EasyPropManager;
-import com.storyanvil.cogwheel.util.ObjectMonitor;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -36,8 +36,7 @@ import java.util.Queue;
 /** TODO: Fully remove StoryLevel and its StoryActionQueue.
           Add CGPM for each {@link ServerWorld} instead
 */
-public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, ObjectMonitor.IMonitored {
-    private static final ObjectMonitor<StoryLevel> MONITOR = new ObjectMonitor<>();
+public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter {
     @SuppressWarnings("unchecked")
     @Override
     public <R> void addStoryAction(StoryAction<R> action) {
@@ -70,20 +69,6 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
         }
     }
 
-    public StoryLevel() {
-        MONITOR.register(this);
-    }
-
-    @Override
-    public void reportState(StringBuilder sb) {
-        for (StoryAction<?> action : actionQueue) {
-            sb.append(action.toString());
-        }
-        if (current != null)
-            sb.append(">").append(current);
-        if (world != null)
-            sb.append(" | ").append(world);
-    }
 
     private static final EasyPropManager MANAGER = new EasyPropManager("level", StoryLevel::registerProps);
 
@@ -131,7 +116,7 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter, O
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
         return MANAGER.get(name).handle(name, args, script, this);
     }
 

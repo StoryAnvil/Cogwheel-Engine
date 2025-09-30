@@ -23,7 +23,8 @@ import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
@@ -74,14 +75,11 @@ import java.util.function.Consumer;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class NPC extends AnimalEntity implements
         StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder,
-        StoryNavigator, ObjectMonitor.IMonitored, CGPM,
+        StoryNavigator, CGPM,
         StoryAnimator, GeoEntity, StoryModel, DialogTarget, InspectableEntity {
-    private static final ObjectMonitor<NPC> MONITOR = new ObjectMonitor<>();
     public NPC(EntityType<? extends AnimalEntity> pEntityType, World pLevel) {
         super(pEntityType, pLevel);
-        MONITOR.register(this);
         if (!pLevel.isClient) {
-            me = new CogEntity(this);
             setSkin(DataStorage.getString(this, "skin", "test"));
             setCustomName(DataStorage.getString(this, "name", "NPC"));
             setStoryModelID(DataStorage.getString(this, "model", "npc"));
@@ -101,7 +99,6 @@ public class NPC extends AnimalEntity implements
 
     private final Queue<StoryAction<? extends NPC>> actionQueue = new ArrayDeque<>();
     private StoryAction current;
-    private CogEntity me;
     private long lastInteraction = 0;
 
     @Api.PlatformTool
@@ -219,15 +216,6 @@ public class NPC extends AnimalEntity implements
     @Api.Stable(since = "2.0.0")
     public synchronized <R> void addStoryAction(StoryAction<R> action) {
         actionQueue.add((StoryAction<? extends NPC>) action);
-    }
-
-    @Override @Api.Stable(since = "2.0.0")
-    public void reportState(StringBuilder sb) {
-        for (StoryAction<?> action : actionQueue) {
-            sb.append(action.toString());
-        }
-        sb.append(">").append(current.toString());
-        sb.append(" | ").append(this);
     }
 
     private static final EasyPropManager MANAGER = new EasyPropManager("npc", NPC::registerProps);
@@ -425,15 +413,11 @@ public class NPC extends AnimalEntity implements
 
     @Override @Api.Stable(since = "2.0.0")
     public boolean hasOwnProperty(String name) {
-        if (me.hasOwnProperty(name)) return true;
         return MANAGER.hasOwnProperty(name);
     }
 
     @Override @Api.Stable(since = "2.0.0")
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) {
-        if (me.hasOwnProperty(name)) {
-            return me.getProperty(name, args, script);
-        }
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
         return MANAGER.get(name).handle(name, args, script, NPC.this);
     }
 

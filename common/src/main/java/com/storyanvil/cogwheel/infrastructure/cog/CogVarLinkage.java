@@ -13,7 +13,8 @@
 package com.storyanvil.cogwheel.infrastructure.cog;
 
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +50,7 @@ public class CogVarLinkage implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException {
         return MANAGER.get(name, args, script, this);
     }
 

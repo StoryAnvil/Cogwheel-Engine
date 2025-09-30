@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.ScriptLine;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -29,7 +30,7 @@ public interface ScriptLineHandler {
      * @return DoubleValue provided by one of static ScriptLineHandler methods
      */
     @Api.Stable(since = "2.0.0")
-    byte handle(@NotNull String line, @NotNull DispatchedScript script) throws Exception;
+    byte handle(@NotNull ScriptLine scriptLine, @NotNull String line, @NotNull DispatchedScript script) throws Exception;
 
     /**
      * @return resource location for this ScriptLineHandler. Return value of this method must be constant!
@@ -37,27 +38,18 @@ public interface ScriptLineHandler {
     @Api.Stable(since = "2.0.0")
     @NotNull Identifier getIdentifier();
 
-    /**
-     * Use ScriptLineHandler#ignore method instead
-     */
-    @ApiStatus.Internal @Api.Internal
+
     byte ignore = 0x00;
-    /**
-     * Use ScriptLineHandler#continueReading method instead
-     */
-    @ApiStatus.Internal @Api.Internal
+
     byte continueReading = 0x01;
-    /**
-     * Use ScriptLineHandler#blocking method instead
-     */
-    @ApiStatus.Internal @Api.Internal
+
     byte blocking = 0x02;
 
     /**
      * Use this method if your ScriptLineHandler is not applicable for provided line of CogScript code
      * @return DoubleValue for returning in ScriptLineHandler#handle.
      */
-    @Contract(pure = true) @Api.Stable(since = "2.0.0")
+    @Contract(pure = true) @Api.Stable(since = "2.0.0") @Deprecated
     static byte ignore() {
         return ignore;
     }
@@ -65,7 +57,7 @@ public interface ScriptLineHandler {
      * Use this method if your ScriptLineHandler is applicable for provided line of CogScript code and line was in fact handled so dispatched script can continue executing lines
      * @return DoubleValue for returning in ScriptLineHandler#handle.
      */
-    @Contract(pure = true) @Api.Stable(since = "2.0.0")
+    @Contract(pure = true) @Api.Stable(since = "2.0.0") @Deprecated
     static byte continueReading() {
         return continueReading;
     }
@@ -74,8 +66,21 @@ public interface ScriptLineHandler {
      * <br>If you are using this make sure to schedule DispatchedScript#lineDispatcher somehow so script will be able to continue execution
      * @return DoubleValue for returning in ScriptLineHandler#handle.
      */
-    @Contract(pure = true) @Api.Stable(since = "2.0.0")
+    @Contract(pure = true) @Api.Stable(since = "2.0.0") @Deprecated
     static byte blocking() {
         return blocking;
+    }
+
+    public abstract static class Simple implements ScriptLineHandler {
+        private final Identifier id;
+
+        protected Simple(Identifier id) {
+            this.id = id;
+        }
+
+        @Override
+        public @NotNull Identifier getIdentifier() {
+            return id;
+        }
     }
 }

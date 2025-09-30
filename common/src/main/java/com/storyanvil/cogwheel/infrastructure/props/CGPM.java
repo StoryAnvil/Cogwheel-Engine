@@ -10,11 +10,13 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrastructure;
+package com.storyanvil.cogwheel.infrastructure.props;
 
+import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.cog.CogLike;
 import com.storyanvil.cogwheel.infrastructure.cog.CogString;
 import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.testing.TestIgnoreDocs;
 import com.storyanvil.cogwheel.util.EasyPropManager;
@@ -27,8 +29,9 @@ import org.jetbrains.annotations.Nullable;
  */
 @TestIgnoreDocs
 public interface CGPM extends CogLike {
+    @Deprecated()
     boolean hasOwnProperty(String name);
-    @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling;
+    @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException;
     boolean equalsTo(CGPM o);
 
     NullManager nullManager = new NullManager();
@@ -67,7 +70,7 @@ public interface CGPM extends CogLike {
         }
 
         @Override
-        public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) {
+        public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
             return MANAGER.get(name).handle(name, args, script, this);
         }
 

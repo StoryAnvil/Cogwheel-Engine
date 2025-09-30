@@ -14,7 +14,8 @@ package com.storyanvil.cogwheel.infrastructure.cog;
 
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.EasyPropManager;
@@ -65,7 +66,7 @@ public class CogArray implements CGPM, ForEachManager {
     }
 
     @Override
-    public @Nullable CGPM getProperty(@NotNull String name, ArgumentData args, DispatchedScript script) {
+    public @Nullable CGPM getProperty(@NotNull String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
         if (name.startsWith("$")) {
             String sub = name.substring(1);
             for (CGPM t : list) {

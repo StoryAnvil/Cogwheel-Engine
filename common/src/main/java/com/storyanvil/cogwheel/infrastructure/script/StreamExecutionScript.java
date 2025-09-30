@@ -14,7 +14,8 @@ package com.storyanvil.cogwheel.infrastructure.script;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
 import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.ScriptStorage;
@@ -22,10 +23,10 @@ import com.storyanvil.cogwheel.util.ScriptStorage;
 import java.util.ArrayList;
 
 public class StreamExecutionScript extends DispatchedScript {
-    public StreamExecutionScript(ArrayList<String> linesToExecute, ScriptStorage storage, CogScriptEnvironment environment) {
+    public StreamExecutionScript(ArrayList<ScriptLine> linesToExecute, ScriptStorage storage, CogScriptEnvironment environment) {
         super(linesToExecute, storage, environment);
     }
-    public StreamExecutionScript(ArrayList<String> linesToExecute, CogScriptEnvironment environment) {
+    public StreamExecutionScript(ArrayList<ScriptLine> linesToExecute, CogScriptEnvironment environment) {
         super(linesToExecute, environment);
     }
     public StreamExecutionScript(ScriptStorage storage, CogScriptEnvironment environment) {
@@ -37,23 +38,23 @@ public class StreamExecutionScript extends DispatchedScript {
 
     @Api.Stable(since = "2.7.0")
     public boolean addLine(String line) {
-        linesToExecute.add(line);
+        linesToExecute.add(new ScriptLine(line));
         return lineDispatcher();
     }
 
     @Api.Stable(since = "2.7.0")
     public void addLineFrozen(String line) {
-        linesToExecute.add(line);
+        linesToExecute.add(new ScriptLine(line));
     }
 
     @Api.Stable(since = "2.7.0")
     public void addLineRedirecting(String line) {
-        linesToExecute.add(line);
+        linesToExecute.add(new ScriptLine(line));
         CogwheelExecutor.schedule(this::lineDispatcher);
     }
 
     @Api.Stable(since = "2.7.0")
-    public CGPM fastExecute(String line) {
+    public CGPM fastExecute(String line) throws CogScriptException {
         return CogwheelRegistries.expressionHandler(line, this, false).getB();
     }
 }

@@ -10,14 +10,10 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrastructure.cog;
+package com.storyanvil.cogwheel.infrastructure.script;
 
-import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.err.CogExpressionFailure;
-import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
-import com.storyanvil.cogwheel.infrastructure.props.CGPM;
-import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
+public class ScriptExecutionFrame {
+    public void onPulled(DispatchedScript script) {
 
-public interface PropertyHandler {
-    CGPM handle(String name, ArgumentData args, DispatchedScript script, Object o) throws CogScriptException;
+    }
 }

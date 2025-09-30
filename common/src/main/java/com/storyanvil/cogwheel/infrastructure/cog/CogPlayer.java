@@ -16,7 +16,8 @@ import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.data.CameraPos;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.network.mc.CameraForceBound;
 import com.storyanvil.cogwheel.network.mc.CameraTransitionBound;
@@ -95,7 +96,7 @@ public class CogPlayer extends CogEntity implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
         PropertyHandler h = MANAGER.get(name);
         if (h == null) {
             return super.getProperty(name, args, script);

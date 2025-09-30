@@ -10,14 +10,16 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrastructure.cog;
+package com.storyanvil.cogwheel.infrastructure.props;
 
-import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.err.CogExpressionFailure;
-import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
-import com.storyanvil.cogwheel.infrastructure.props.CGPM;
-import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
-
-public interface PropertyHandler {
-    CGPM handle(String name, ArgumentData args, DispatchedScript script, Object o) throws CogScriptException;
+/**
+ * <h4>(J)ava (W)rapping (C)o(G)(P)roperty (M)anager</h4>
+ * <br>
+ * This class is used to create {@link CGPM}s using java methods.
+ */
+public abstract class JWCGPM implements CGPM {
+    @Override
+    public boolean isNull() {
+        return false;
+    }
 }

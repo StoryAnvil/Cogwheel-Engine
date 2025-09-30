@@ -23,6 +23,7 @@ import com.storyanvil.cogwheel.infrastructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
 import com.storyanvil.cogwheel.infrastructure.env.TestEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.ScriptLine;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -323,7 +324,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             CogwheelExecutor.schedule(() -> {
                 script.setOnEnd(threadLock::countDown);
                 try {
-                    Thread.sleep(50); // Give some time for test-worker to start waiting
+                    Thread.sleep(2); // Give some time for test-worker to start waiting
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -428,7 +429,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             TestEnvironment environment = new TestEnvironment();
             DispatchedScript script = CogScriptDispatcher.dispatchUnsafe(environment.getScript(manifest.getAsJsonPrimitive("scriptName").getAsString()), new ScriptStorage(),  environment, false);
             if (script == null) throw new WrapperException("No scripts were found!");
-            String entireScript = String.join("\\n", script.getAllLines());
+            String entireScript = script.getLinesToExecute().stream().map(ScriptLine::getLine).collect(Collectors.joining("\\n"));
             if (!entireScript.equals(manifest.getAsJsonPrimitive("expectedScript").getAsString())) {
                 log.warn("Test {}: script had text \"{}\"", result.testName, entireScript);
                 throw new WrapperException("Script does not match expected script.");

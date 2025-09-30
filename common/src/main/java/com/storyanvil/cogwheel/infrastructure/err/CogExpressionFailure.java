@@ -10,12 +10,12 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.util;
+package com.storyanvil.cogwheel.infrastructure.err;
 
 import com.storyanvil.cogwheel.api.Api;
 
 @Api.Stable(since = "2.0.0")
-public class CogExpressionFailure extends RuntimeException {
+public class CogExpressionFailure extends Exception {
     @Api.Stable(since = "2.0.0")
     public CogExpressionFailure() {
     }

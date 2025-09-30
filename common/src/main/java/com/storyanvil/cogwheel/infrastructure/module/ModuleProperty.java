@@ -13,10 +13,12 @@
 package com.storyanvil.cogwheel.infrastructure.module;
 
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.PropertyHandler;
-import com.storyanvil.cogwheel.util.CogExpressionFailure;
+import com.storyanvil.cogwheel.infrastructure.err.CogExpressionFailure;
+import com.storyanvil.cogwheel.infrastructure.script.ScriptLine;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,15 +35,15 @@ public class ModuleProperty implements PropertyHandler {
     }
 
     @Override
-    public CGPM handle(String name, ArgumentData arg, DispatchedScript script, Object o) {
+    public CGPM handle(String name, ArgumentData arg, DispatchedScript script, Object o) throws CogScriptException {
         if (o == null) {
             o = new CMA($parent);
         }
-        CMA instance = (CMA) o;
-        DispatchedScript $ = new DispatchedScript((ArrayList<String>) $lines.clone(), $parent.getEnvironment()).setScriptName("PROPERTY");
+        CMA instance = (CMA) o;                                             // TODO: More efficient solution
+        DispatchedScript $ = new DispatchedScript(new ArrayList<>(((ArrayList<String>) $lines.clone()).stream().map(ScriptLine::new).toList()), $parent.getEnvironment()).setScriptName("PROPERTY");
         $.put("this", instance);
         CGPM[] args = arg.getArgs();
-        if (args.length != $arguments.length) throw new CogExpressionFailure("Invalid amount of arguments {" + args.length + "} of {" + $arguments.length + "}");
+        if (args.length != $arguments.length) throw script.wrap(new CogExpressionFailure("Invalid amount of arguments {" + args.length + "} of {" + $arguments.length + "}"));
         for (int i = 0; i < $arguments.length; i++) {
             $.put($arguments[i], args[i]);
         }

@@ -21,7 +21,7 @@ import com.storyanvil.cogwheel.client.devui.PacketParcel;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryPacket;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.cog.CogPrimalType;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.testing.TestManagement;
@@ -31,7 +31,6 @@ import com.storyanvil.cogwheel.network.mc.*;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.registry.PlatformRegistry;
 import com.storyanvil.cogwheel.util.DefaultCommandOutput;
-import com.storyanvil.cogwheel.util.ObjectMonitor;
 import com.storyanvil.cogwheel.util.PlatformType;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.client.MinecraftClient;
@@ -218,7 +217,6 @@ public class CogwheelHooks {
                         .executes(ctx -> {
                             StringBuilder sb = new StringBuilder("=== === === === === COGWHEEL ENGINE REPORT === === === === ===\n");
                             sb.append("DATE: ").append(new Date());
-                            ObjectMonitor.dumpAll(sb);
                             CogwheelEngine.LOGGER.warn("\n{}", sb);
                             return 0;
                         })

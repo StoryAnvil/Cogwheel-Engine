@@ -13,12 +13,14 @@
 package com.storyanvil.cogwheel.infrastructure.cog;
 
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.module.CMA;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ScriptStorage;
+import com.storyanvil.cogwheel.util.WrapperException;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +52,7 @@ public class CogInvoker implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException {
         return MANAGER.get(name, args, script, this);
     }
 
@@ -61,7 +63,13 @@ public class CogInvoker implements CGPM {
 
 
     public Runnable unsafeRunnable(ArgumentData args, DispatchedScript script) {
-        return () -> this.invoker.handle("invoke", args, script, this);
+        return () -> {
+            try {
+                this.invoker.handle("invoke", args, script, this);
+            } catch (CogScriptException e) {
+                throw new WrapperException(e);
+            }
+        };
     }
 
     public static CogInvoker scriptInvoker(Identifier scriptName) {

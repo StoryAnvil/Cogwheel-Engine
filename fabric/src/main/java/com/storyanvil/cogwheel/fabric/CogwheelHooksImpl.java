@@ -12,13 +12,12 @@
 
 package com.storyanvil.cogwheel.fabric;
 
-import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.data.StoryPacket;
 import com.storyanvil.cogwheel.fabric.client.CogwheelEngineFabricClient;
 import com.storyanvil.cogwheel.fabric.client.NPCModel;
 import com.storyanvil.cogwheel.fabric.data.StoryFabricParcel;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.cog.CogPrimalType;
 import com.storyanvil.cogwheel.registry.PlatformRegistry;
 import com.storyanvil.cogwheel.util.PlatformType;
