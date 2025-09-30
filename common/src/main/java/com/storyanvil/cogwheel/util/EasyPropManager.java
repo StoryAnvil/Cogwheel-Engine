@@ -14,7 +14,8 @@ package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.cog.CogInvoker;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.CogBool;
@@ -89,12 +90,12 @@ public class EasyPropManager {
         return alt.apply(name);
     }
     @Api.Internal @ApiStatus.Internal
-    public CGPM get(String name, ArgumentData args, DispatchedScript script, Object o) {
+    public CGPM get(String name, ArgumentData args, DispatchedScript script, Object o) throws CogScriptException {
         PropertyHandler h = this.get(name);
         return h.handle(name, args, script, o);
     }
     @Api.Internal @ApiStatus.Internal
-    public CGPM get(String name, ArgumentData args, DispatchedScript script, Object o, Supplier<CGPM> alt) {
+    public CGPM get(String name, ArgumentData args, DispatchedScript script, Object o, Supplier<CGPM> alt) throws CogScriptException {
         PropertyHandler h = this.get(name);
         if (h != null) return h.handle(name, args, script, o);
         return alt.get();

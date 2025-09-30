@@ -21,6 +21,7 @@ import com.storyanvil.cogwheel.fabric.data.StoryFabricPacket;
 import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import com.storyanvil.cogwheel.network.devui.editor.DevEditorSession;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
+import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.Bi;
 import dev.architectury.event.events.client.ClientTickEvent;
 import net.fabricmc.api.ModInitializer;
@@ -61,7 +62,7 @@ public final class CogwheelEngineFabric implements ModInitializer {
                         try {
                             e.getA().accept(world);
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            CogwheelEngine.LOGGER.error("Server queue error:", ex);
                         }
                         queue.remove(i);
                         i--;
@@ -70,17 +71,18 @@ public final class CogwheelEngineFabric implements ModInitializer {
                     }
                 }
             } catch (Exception e) {
-                CogwheelEngine.LOGGER.warn("Queue bound error", e);
+                CogwheelEngine.LOGGER.debug("Queue bound error", e);
             }
             try {
                 EventBus.getStoryLevel().tick(world);
             } catch (Exception e) {
-                CogwheelEngine.LOGGER.warn("StoryLevel onClientTick error", e);
+                CogwheelEngine.LOGGER.error("StoryLevel onClientTick error", e);
             }
         }
     }
 
     private static void onClientTick(ClientWorld world) {
+        //noinspection OptionalGetWithoutIsPresent
         if (!world.getDimensionEntry().getKey().get().getValue().equals(Identifier.of("minecraft", "overworld")))
             return;
         synchronized (clientQueue) {
@@ -96,9 +98,8 @@ public final class CogwheelEngineFabric implements ModInitializer {
                     }
                 }
             } catch (Exception e) {
-                CogwheelEngine.LOGGER.warn("Client Queue bound error", e);
+                CogwheelEngine.LOGGER.debug("Client Queue bound error", e);
             }
-            return;
         }
     }
 
@@ -133,7 +134,7 @@ public final class CogwheelEngineFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         CogwheelEngine.init(); // Common setup
-        FabricRegistry.initialize();
+        CogwheelHooks.registryRegistry(registry -> {/* Fabric initializes registries statically */});
         CommandRegistrationCallback.EVENT.register((d, ra, e) -> CogwheelHooks.commandRegistry(d::register));
         ServerTickEvents.END_SERVER_TICK.register(CogwheelEngineFabric::onServerTick);
         ClientTickEvent.CLIENT_LEVEL_POST.register(CogwheelEngineFabric::onClientTick);
@@ -141,7 +142,7 @@ public final class CogwheelEngineFabric implements ModInitializer {
         ServerPlayConnectionEvents.DISCONNECT.register(CogwheelEngineFabric::onUnboundEvent);
         ServerLifecycleEvents.SERVER_STARTED.register(CogwheelEngineFabric::onServerStarting);
         ServerLifecycleEvents.SERVER_STOPPING.register(CogwheelEngineFabric::onServerStopping);
-        FabricDefaultAttributeRegistry.register(FabricRegistry.NPC, NPC.createAttributes());
+        FabricDefaultAttributeRegistry.register(CogwheelRegistries.NPC.get(), NPC.createAttributes());
         CogwheelHooks.packetRegistry(new CogwheelHooks.PacketRegistrar() {
             @Override
             public <T extends StoryPacket<T>> void accept(String id, StoryCodec<T> codec, Class<T> clazz) {

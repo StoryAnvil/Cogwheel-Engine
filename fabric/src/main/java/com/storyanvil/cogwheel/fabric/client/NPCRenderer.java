@@ -12,14 +12,12 @@
 
 package com.storyanvil.cogwheel.fabric.client;
 
-import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.entity.NPC;
 import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.util.Identifier;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 public class NPCRenderer extends GeoEntityRenderer<NPC> {
     public NPCRenderer(EntityRendererFactory.Context renderManager) {
-        super(renderManager, new NPCModel(Identifier.of(CogwheelEngine.MODID, "npc")));
+        super(renderManager, new NPCModel());
     }
 }

@@ -13,7 +13,6 @@
 package com.storyanvil.cogwheel.client.devui;
 
 import com.storyanvil.cogwheel.CogwheelEngine;
-import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.data.IStoryPacketContext;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryCodecs;
@@ -27,6 +26,7 @@ import java.util.List;
 /**
  * Used to pack multiple packets together preserving their order. Do not confuse with {@link com.storyanvil.cogwheel.neoforge.data.StoryNeoParcel}
  */
+@SuppressWarnings("JavadocReference")
 public class PacketParcel implements StoryPacket<PacketParcel> {
     private final ArrayList<StoryPacket<?>> packets;
 
@@ -54,6 +54,7 @@ public class PacketParcel implements StoryPacket<PacketParcel> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static StoryCodec<StoryPacket<?>> getCodec(Class<?> clazz) {
         try {
             Field field = clazz.getField("CODEC");
@@ -77,10 +78,6 @@ public class PacketParcel implements StoryPacket<PacketParcel> {
         }
     }
 
-    private PacketParcel() {
-        this.packets = new ArrayList<>();
-    }
-
     @Override
     public StoryCodec<PacketParcel> getStoryCodec() {
         return CODEC;
@@ -89,7 +86,7 @@ public class PacketParcel implements StoryPacket<PacketParcel> {
     @Override
     public void onServerUnsafe(IStoryPacketContext ctx) {
         for (StoryPacket<?> packet : packets) {
-            CogwheelHooks.debugLog(CogwheelEngine.LOGGER, "Handling server parcel {}", this);
+            CogwheelEngine.LOGGER.debug("Handling server parcel {}", this);
             packet.onServerUnsafe(ctx);
         }
     }
@@ -97,7 +94,7 @@ public class PacketParcel implements StoryPacket<PacketParcel> {
     @Override
     public void onClientUnsafe(IStoryPacketContext ctx) {
         for (StoryPacket<?> packet : packets) {
-            CogwheelHooks.debugLog(CogwheelEngine.LOGGER, "Handling client parcel {}", this);
+            CogwheelEngine.LOGGER.debug("Handling client parcel {}", this);
             packet.onClientUnsafe(ctx);
         }
     }

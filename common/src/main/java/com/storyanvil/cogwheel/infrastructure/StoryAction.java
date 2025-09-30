@@ -18,15 +18,15 @@ import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrastructure.cog.CogString;
 import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
 import com.storyanvil.cogwheel.infrastructure.cog.SubCallPostPrevention;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.JsonLike;
-import com.storyanvil.cogwheel.util.ObjectMonitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CGPM, JsonLike {
-    private static final ObjectMonitor<StoryAction<?>> MONITOR = new ObjectMonitor<>();
+public abstract class StoryAction<T> implements CGPM, JsonLike {
     private String actionLabel = null;
     public abstract void proceed(T myself);
     public abstract boolean freeToGo(T myself);
@@ -60,15 +60,6 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CGPM, 
 
     public boolean isDone() {
         return done;
-    }
-
-    public StoryAction() {
-        MONITOR.register(this);
-    }
-
-    @Override
-    public void reportState(@NotNull StringBuilder sb) {
-        sb.append(this);
     }
 
     public void setOnExit(Runnable onExit) {
@@ -114,7 +105,7 @@ public abstract class StoryAction<T> implements ObjectMonitor.IMonitored, CGPM, 
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
         return MANAGER.get(name).handle(name, args, script, this);
     }
 

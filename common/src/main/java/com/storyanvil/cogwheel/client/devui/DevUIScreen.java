@@ -12,6 +12,7 @@
 
 package com.storyanvil.cogwheel.client.devui;
 
+import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -50,7 +51,7 @@ public class DevUIScreen extends Screen {
         try {
             DevUI.instance.renderLogic(g, mouseX, mouseY, partialTick, width, height);
         } catch (Exception e) {
-            e.printStackTrace();
+            CogwheelEngine.LOGGER.error("", e);
         }
     }
 

@@ -12,7 +12,7 @@
 
 package com.storyanvil.cogwheel.fabric.client;
 
-import com.storyanvil.cogwheel.fabric.FabricRegistry;
+import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -25,7 +25,7 @@ public final class CogwheelEngineFabricClient implements ClientModInitializer {
     public static KeyBinding devUI;
     @Override
     public void onInitializeClient() {
-        EntityRendererRegistry.register(FabricRegistry.NPC, NPCRenderer::new);
+        EntityRendererRegistry.register(CogwheelRegistries.NPC.get(), NPCRenderer::new);
         devUI = KeyBindingHelper.registerKeyBinding(new KeyBinding("ui.storyanvil_cogwheel.dev_ui", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_GRAVE_ACCENT, "ui.storyanvil_cogwheel"));
     }
 }

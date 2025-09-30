@@ -13,6 +13,7 @@
 package com.storyanvil.cogwheel.network.devui;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.client.devui.DevUI;
 import com.storyanvil.cogwheel.client.devui.DevUIScreen;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
@@ -39,7 +40,7 @@ public record DevEarlySyncPacket(boolean permitted, boolean silent) implements S
     }
 
     public static void syncFor(ServerPlayerEntity player, boolean silent) {
-        CogwheelNetwork.sendFromServer(player, new DevEarlySyncPacket(isDev(), silent));
+        CogwheelHooks.sendPacket(new DevEarlySyncPacket(isDev(), silent), player);
     }
 
     public static boolean isDev() {

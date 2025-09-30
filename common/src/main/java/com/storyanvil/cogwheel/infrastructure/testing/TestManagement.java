@@ -23,6 +23,7 @@ import com.storyanvil.cogwheel.infrastructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
 import com.storyanvil.cogwheel.infrastructure.env.TestEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
+import com.storyanvil.cogwheel.infrastructure.script.ScriptLine;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -65,6 +66,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         if (!CogwheelClientConfig.getTestsDirectory().isEmpty()) {
             File copyTests = new File(CogwheelClientConfig.getTestsDirectory());
             StoryUtils.deleteDirectory(testingFolder);
+            //noinspection ResultOfMethodCallIgnored
             testingFolder.mkdir();
             try {
                 FileUtils.copyDirectory(copyTests, testingFolder);
@@ -74,6 +76,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             sendTestingMessage(Text.literal("[CogwheelEngine] Tests copied from " + CogwheelClientConfig.getTestsDirectory()).formatted(Formatting.GRAY));
         }
         if (!testingFolder.exists()) {
+            //noinspection ResultOfMethodCallIgnored
             testingFolder.mkdirs();
             return;
         }
@@ -102,6 +105,24 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         report.addProperty("failedTests", fails);
         report.addProperty("date", new Date().toString());
         report.addProperty("id", id);
+        JsonObject env = new JsonObject();
+        env.addProperty("platform", CogwheelHooks.getPlatform().name());
+        env.addProperty("cogwheelVersion", CogwheelHooks.getVersion());
+        try {
+            env.addProperty("jre-version", Runtime.version().toString());
+            env.addProperty("jre-version", System.getProperty("java.version"));
+            env.addProperty("jre-vendor", System.getProperty("java.vendor"));
+            env.addProperty("jvm-spec-version", System.getProperty("java.vm.specification.version"));
+            env.addProperty("os-name", System.getProperty("os.name"));
+            env.addProperty("os-arch", System.getProperty("os.arch"));
+            env.addProperty("os-version", System.getProperty("os.version"));
+        } catch (Exception e) {
+            JsonArray trace = new JsonArray();
+            createTrace(trace, e, "Failed to get env data. Exception ");
+            env.add("fail", trace);
+            log.error("Failed to get env", e);
+        }
+        report.add("environment", env);
         report.add("results", obj);
 
         if (fails == 0) {
@@ -111,7 +132,8 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             sendTestingMessage(Text.literal("[CogwheelEngine] Testing finished. ").formatted(Formatting.GRAY)
                     .append(Text.literal(fails + " tests failed!").formatted(Formatting.RED)));
         }
-        try (FileWriter fw = new FileWriter(new File(testingFolder, "results.json"))) {
+        File resultsFile = new File(testingFolder, "results.json");
+        try (FileWriter fw = new FileWriter(resultsFile)) {
             StringWriter stringWriter = new StringWriter();
             JsonWriter jsonWriter = new JsonWriter(stringWriter);
             jsonWriter.setStrictness(Strictness.LENIENT);
@@ -121,6 +143,13 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             fw.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+        if (!CogwheelClientConfig.getTestsDirectory().isEmpty()) {
+            try {
+                FileUtils.copyFile(resultsFile, new File(CogwheelClientConfig.getTestsDirectory(), "results.json"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -295,7 +324,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             CogwheelExecutor.schedule(() -> {
                 script.setOnEnd(threadLock::countDown);
                 try {
-                    Thread.sleep(50); // Give some time for test-worker to start waiting
+                    Thread.sleep(2); // Give some time for test-worker to start waiting
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -400,7 +429,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             TestEnvironment environment = new TestEnvironment();
             DispatchedScript script = CogScriptDispatcher.dispatchUnsafe(environment.getScript(manifest.getAsJsonPrimitive("scriptName").getAsString()), new ScriptStorage(),  environment, false);
             if (script == null) throw new WrapperException("No scripts were found!");
-            String entireScript = String.join("\\n", script.getAllLines());
+            String entireScript = script.getLinesToExecute().stream().map(ScriptLine::getLine).collect(Collectors.joining("\\n"));
             if (!entireScript.equals(manifest.getAsJsonPrimitive("expectedScript").getAsString())) {
                 log.warn("Test {}: script had text \"{}\"", result.testName, entireScript);
                 throw new WrapperException("Script does not match expected script.");

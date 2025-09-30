@@ -22,7 +22,6 @@ import com.storyanvil.cogwheel.neoforge.data.StoryNeoParcel;
 import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import com.storyanvil.cogwheel.network.devui.editor.DevEditorSession;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
-import com.storyanvil.cogwheel.network.mc.DialogBound;
 import com.storyanvil.cogwheel.util.Bi;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -38,10 +37,7 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -58,6 +54,7 @@ public class NeoForgeEventBus {
                 id = id.toLowerCase(Locale.ENGLISH);
                 StoryNeoPacket<T> neoPacket = new StoryNeoPacket<>(id, codec);
                 CogwheelEngineNeoForge.PLATFORM_LOG.debug("Registered packet {} with [id={},class={}]", neoPacket, id, clazz);
+                //noinspection Convert2Diamond // Compiler causes problems here without it
                 reg.playBidirectional(neoPacket.getType().id(), neoPacket, new DirectionalPayloadHandler<StoryNeoParcel<T>>(
                         neoPacket::clientHandle,
                         neoPacket::serverHandle
@@ -73,6 +70,7 @@ public class NeoForgeEventBus {
 
     @SubscribeEvent
     public static void onLevelTick(LevelTickEvent.Post event) {
+        //noinspection DataFlowIssue,OptionalGetWithoutIsPresent
         if (!event.getLevel().getDimensionEntry().getKey().get().getValue().equals(Identifier.of("minecraft", "overworld"))) return;
         if (event.getLevel().isClient()) {
             synchronized (clientQueue) {
@@ -80,7 +78,11 @@ public class NeoForgeEventBus {
                     for (int i = 0; i < clientQueue.size(); i++) {
                         Bi<Consumer<ClientWorld>, Integer> e = clientQueue.get(i);
                         if (e.getB() < 2) {
-                            e.getA().accept((ClientWorld) event.getLevel());
+                            try {
+                                e.getA().accept((ClientWorld) event.getLevel());
+                            } catch (Exception ex) {
+                                CogwheelEngine.LOGGER.error("Client queue error:", ex);
+                            }
                             clientQueue.remove(i);
                             i--;
                         } else {
@@ -88,7 +90,7 @@ public class NeoForgeEventBus {
                         }
                     }
                 } catch (Exception e) {
-                    CogwheelEngine.LOGGER.warn("Client Queue bound error", e);
+                    CogwheelEngine.LOGGER.debug("Client Queue bound error", e);
                 }
                 return;
             }
@@ -101,7 +103,7 @@ public class NeoForgeEventBus {
                         try {
                             e.getA().accept((ServerWorld) event.getLevel());
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            CogwheelEngine.LOGGER.error("Server queue error:", ex);
                         }
                         queue.remove(i);
                         i--;
@@ -110,12 +112,12 @@ public class NeoForgeEventBus {
                     }
                 }
             } catch (Exception e) {
-                CogwheelEngine.LOGGER.warn("Queue bound error", e);
+                CogwheelEngine.LOGGER.debug("Queue bound error", e);
             }
             try {
                 EventBus.getStoryLevel().tick((ServerWorld) event.getLevel());
             } catch (Exception e) {
-                CogwheelEngine.LOGGER.warn("StoryLevel tick error", e);
+                CogwheelEngine.LOGGER.error("StoryLevel tick error", e);
             }
         }
     }

@@ -13,9 +13,11 @@
 package com.storyanvil.cogwheel.infrastructure.cog;
 
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogExpressionFailure;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 
 public interface PropertyHandler {
-    CGPM handle(String name, ArgumentData args, DispatchedScript script, Object o);
+    CGPM handle(String name, ArgumentData args, DispatchedScript script, Object o) throws CogScriptException;
 }

@@ -13,6 +13,7 @@
 package com.storyanvil.cogwheel.client.devui;
 
 import com.storyanvil.cogwheel.CogwheelEngine;
+import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import com.storyanvil.cogwheel.network.devui.CogwheelNetwork;
 import com.storyanvil.cogwheel.network.devui.DevResyncRequest;
@@ -42,8 +43,8 @@ public class DevUI implements Element {
     protected DevWidget hovered = null;
     protected float hoverTime = 0f;
     private ArrayList<DevWidget> widgets = new ArrayList<>();
-    protected int screenWidth = 0;
-    protected int screenHeight = 0;
+    protected int screenWidth;
+    protected int screenHeight;
     protected TextRenderer font;
 
     boolean fullscreen = false;
@@ -72,8 +73,8 @@ public class DevUI implements Element {
             @Override
             public void press(int btn) {
                 if (btn == GLFW_MOUSE_BUTTON_LEFT) {
-                    CogwheelNetwork.sendToServer(new DevEarlySyncPacket(permitted, false));
-                    CogwheelNetwork.sendToServer(new DevResyncRequest());
+                    CogwheelHooks.sendPacketToServer(new DevEarlySyncPacket(permitted, false));
+                    CogwheelHooks.sendPacketToServer(new DevResyncRequest());
                 }
             }
         });

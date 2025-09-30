@@ -37,8 +37,5 @@ public class ClientEvents {
                 ));
             }
         }
-//        while (DevUI.OPEN_QUESTS.get().consumeClick()) {
-//            Minecraft.getInstance().setScreen(new QuestUIScreen());
-//        }
     }
 }

@@ -18,7 +18,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.Nullable;
 
 public class StoryNeoPacketContext implements IStoryPacketContext {
-    private IPayloadContext ctx;
+    private final IPayloadContext ctx;
 
     public StoryNeoPacketContext(IPayloadContext ctx) {
         this.ctx = ctx;

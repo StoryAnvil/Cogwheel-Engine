@@ -13,7 +13,8 @@
 package com.storyanvil.cogwheel.infrastructure.module;
 
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
 import com.storyanvil.cogwheel.util.EasyPropManager;
@@ -52,8 +53,14 @@ public class CMA implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling {
-        return MANAGER.get(name, args, script, this, () -> parent._getProperty(name, args, script, this));
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException {
+        return MANAGER.get(name, args, script, this, () -> {
+            try {
+                return parent._getProperty(name, args, script, this);
+            } catch (CogScriptException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
@@ -69,7 +76,7 @@ public class CMA implements CGPM {
                 '}';
     }
 
-    public CGPM call(String propertyName, ArgumentData args, DispatchedScript script) {
+    public CGPM call(String propertyName, ArgumentData args, DispatchedScript script) throws CogScriptException {
         return parent._getProperty(propertyName, args, script, this);
     }
 }

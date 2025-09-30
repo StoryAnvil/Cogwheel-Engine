@@ -17,7 +17,6 @@ import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.util.WrapperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,8 +74,6 @@ public class CogwheelClientConfig {
         return arrayList;
     }
 
-    private static boolean disableDevUI = false;
-    private static boolean disableQuestUI = false;
     private static boolean ide = false;
     private static boolean showAllLogs = false;
     private static boolean enableTraceLogs = false;
@@ -88,6 +85,7 @@ public class CogwheelClientConfig {
         File config = new File(CogwheelHooks.getConfigFolder(), "cog/config-client.json");
         File configParent = new File(CogwheelHooks.getConfigFolder(), "cog");
         if (!configParent.exists()) {
+            //noinspection ResultOfMethodCallIgnored
             CogwheelHooks.getConfigFolder().mkdir();
             if (!configParent.mkdir()) log.error("[CFG] Failed to create cog config folder!");
         }
@@ -133,7 +131,7 @@ public class CogwheelClientConfig {
             try {
                 StringWriter stringWriter = new StringWriter();
                 JsonWriter jsonWriter = new JsonWriter(stringWriter);
-                jsonWriter.setLenient(true);
+                jsonWriter.setStrictness(Strictness.LENIENT);
                 jsonWriter.setIndent("    ");
                 Streams.write(json, jsonWriter);
                 fw.write(stringWriter.toString());
@@ -146,14 +144,6 @@ public class CogwheelClientConfig {
         }
         json = null;
         log.info("[CFG] Config reloaded!");
-    }
-
-    public static boolean isDisableDevUI() {
-        return disableDevUI;
-    }
-
-    public static boolean isDisableQuestUI() {
-        return disableQuestUI;
     }
 
     public static boolean isRunningInIDE() {

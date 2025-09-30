@@ -1,0 +1,7 @@
+TEST.assertJavaClass(Cogwheel, "com.storyanvil.cogwheel.infrastructure.cog.CogMaster")
+TEST.assertJavaClass(TEST, "com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback")
+TEST.assertJavaClass(MANIFEST, "com.storyanvil.cogwheel.infrastructure.cog.CogManifest")
+TEST.assertJavaClass(true, "com.storyanvil.cogwheel.infrastructure.cog.CogBool")
+TEST.assertTrue(true)
+TEST.assertJavaClass(false, "com.storyanvil.cogwheel.infrastructure.cog.CogBool")
+TEST.assertFalse(false)

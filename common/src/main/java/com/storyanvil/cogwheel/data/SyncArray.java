@@ -119,11 +119,6 @@ public class SyncArray<T> extends ArrayList<T> {
     }
 
     @Override
-    public synchronized Object @NotNull [] toArray() {
-        return super.toArray();
-    }
-
-    @Override
     public synchronized <T1> T1 @NotNull [] toArray(T1[] a) {
         return super.toArray(a);
     }

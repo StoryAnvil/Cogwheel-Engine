@@ -16,8 +16,6 @@ import com.storyanvil.cogwheel.entity.NPC;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
-import java.lang.ref.WeakReference;
-
 public class NPCRenderer extends GeoEntityRenderer<NPC> {
     public NPCRenderer(EntityRendererFactory.Context renderManager) {
         super(renderManager, new NPCModel());

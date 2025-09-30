@@ -19,11 +19,11 @@ import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.entity.NPC;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
-import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.world.ServerWorld;
@@ -56,7 +56,7 @@ public class CogMaster implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
         return MANAGER.get(name).handle(name, args, script, this);
     }
 
@@ -151,7 +151,7 @@ public class CogMaster implements CGPM {
             return new CogInteger(random.nextInt(args.requireInt(0), args.requireInt(1)));
         });
         manager.reg("createList", (name, args, script, o) -> {
-            return CogArray.getInstance((CGPM) args.get(0));
+            return CogArray.getInstance(args.get(0));
         });
         manager.reg("dispatchScript", (name, args, script, o) -> {
             if (args.size() == 1)
@@ -257,7 +257,7 @@ public class CogMaster implements CGPM {
             return new CogHashmap();
         });
         manager.reg("time", (name, args, script, o) -> {
-            return new CogLong(System.currentTimeMillis() - script.getEnvironment().getCreationTime());
+            return new CogLong(System.currentTimeMillis());
         });
         manager.reg("dump", (name, args, script, o) -> {
             for (Map.Entry<String, CGPM> entry : script.getStorage().entrySet()) {
@@ -265,12 +265,12 @@ public class CogMaster implements CGPM {
             }
             return null;
         });
-        manager.reg("range", (name, args, script, o) -> {
-            return new CogRange(0, args.requireInt(0));
-        });
-        manager.reg("range2", (name, args, script, o) -> {
-            return new CogRange(args.requireInt(0), args.requireInt(1));
-        });
+//        manager.reg("range", (name, args, script, o) -> {
+//            return new CogRange(0, args.requireInt(0));
+//        });
+//        manager.reg("range2", (name, args, script, o) -> {
+//            return new CogRange(args.requireInt(0), args.requireInt(1));
+//        });
         manager.reg("choose", (name, args, script, o) -> {
             boolean b = args.requireBoolean(0);
             return b ? args.get(1) : args.get(2);

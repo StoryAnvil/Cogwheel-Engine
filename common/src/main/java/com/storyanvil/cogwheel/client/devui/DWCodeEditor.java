@@ -13,6 +13,7 @@
 package com.storyanvil.cogwheel.client.devui;
 
 import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.network.devui.*;
 import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.StoryUtils;
@@ -175,7 +176,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
     public synchronized void handle(DevEditorLine devEditorLine) {
         if (devEditorLine.linesTotal() != code.size()) {
             if (code.size() > devEditorLine.linesTotal()) {
-                CogwheelNetwork.sendToServer(new DevEditorState(rl, (byte) -127));
+                CogwheelHooks.sendPacketToServer(new DevEditorState(rl, (byte) -127));
                 return;
             } else {
                 while (code.size() < devEditorLine.linesTotal())
@@ -217,7 +218,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
 
     @Override
     public boolean closingRequest() {
-        CogwheelNetwork.sendToServer(new DevEditorState(rl, (byte) -128));
+        CogwheelHooks.sendPacketToServer(new DevEditorState(rl, (byte) -128));
         return true;
     }
 
@@ -235,9 +236,9 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         } else if (code == GLFW.GLFW_KEY_DOWN) {
             mine.setLineSafe(mine.line + 1);
         } else if (code == GLFW.GLFW_KEY_BACKSPACE) {
-            CogwheelNetwork.sendToServer(new DevTypeCallback(rl, "<backspace>", mine.toDelta()));
+            CogwheelHooks.sendPacketToServer(new DevTypeCallback(rl, "<backspace>", mine.toDelta()));
         } else if (code == GLFW.GLFW_KEY_DELETE) {
-            CogwheelNetwork.sendToServer(new DevTypeCallback(rl, "<delete>", mine.toDelta()));
+            CogwheelHooks.sendPacketToServer(new DevTypeCallback(rl, "<delete>", mine.toDelta()));
         } else if (code == GLFW.GLFW_KEY_HOME) {
             mine.setPosSafe(0);
         } else if (code == GLFW.GLFW_KEY_END) {
@@ -252,7 +253,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
             save();
             return true;
         } else if (code == GLFW.GLFW_KEY_ENTER) {
-            CogwheelNetwork.sendToServer(new DevEnterCallback(rl, "enter", mine.toDelta()));
+            CogwheelHooks.sendPacketToServer(new DevEnterCallback(rl, "enter", mine.toDelta()));
         }
         return false;
     }
@@ -266,7 +267,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
     @Override
     public boolean charTyped(char c, int mods) {
         if (c == '`') return true;
-        CogwheelNetwork.sendToServer(new DevTypeCallback(rl, ""+c, mine.toDelta()));
+        CogwheelHooks.sendPacketToServer(new DevTypeCallback(rl, ""+c, mine.toDelta()));
         return true;
     }
 
@@ -350,7 +351,7 @@ public class DWCodeEditor extends DWTabbedView.Tab {
         public void sync() {
             editor.blink = true;
             editor.blinker = 0f;
-            CogwheelNetwork.sendToServer(new DevEditorUserDelta(editor.rl, line, pos, selectNextChars, editor.myName, color));
+            CogwheelHooks.sendPacketToServer(new DevEditorUserDelta(editor.rl, line, pos, selectNextChars, editor.myName, color));
         }
 
         public DevEditorUserDelta toDelta() {
@@ -359,9 +360,9 @@ public class DWCodeEditor extends DWTabbedView.Tab {
     }
 
     public void run() {
-        CogwheelNetwork.sendToServer(new DevRunAndFlush(rl));
+        CogwheelHooks.sendPacketToServer(new DevRunAndFlush(rl));
     }
     public void save() {
-        CogwheelNetwork.sendToServer(new DevFlush(rl));
+        CogwheelHooks.sendPacketToServer(new DevFlush(rl));
     }
 }

@@ -14,6 +14,7 @@ package com.storyanvil.cogwheel.entity;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.Strictness;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
 import com.storyanvil.cogwheel.CogwheelEngine;
@@ -22,7 +23,8 @@ import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.StoryAction;
@@ -32,7 +34,6 @@ import com.storyanvil.cogwheel.infrastructure.actions.PathfindAction;
 import com.storyanvil.cogwheel.infrastructure.actions.WaitForLabelAction;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.mixinAccess.IStoryEntity;
-import com.storyanvil.cogwheel.network.devui.CogwheelNetwork;
 import com.storyanvil.cogwheel.network.devui.DevOpenViewer;
 import com.storyanvil.cogwheel.network.devui.inspector.InspectableEntity;
 import com.storyanvil.cogwheel.network.mc.AnimationBound;
@@ -74,14 +75,11 @@ import java.util.function.Consumer;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class NPC extends AnimalEntity implements
         StoryActionQueue<NPC>, StoryChatter, StoryNameHolder, StorySkinHolder,
-        StoryNavigator, ObjectMonitor.IMonitored, CGPM,
+        StoryNavigator, CGPM,
         StoryAnimator, GeoEntity, StoryModel, DialogTarget, InspectableEntity {
-    private static final ObjectMonitor<NPC> MONITOR = new ObjectMonitor<>();
     public NPC(EntityType<? extends AnimalEntity> pEntityType, World pLevel) {
         super(pEntityType, pLevel);
-        MONITOR.register(this);
         if (!pLevel.isClient) {
-            me = new CogEntity(this);
             setSkin(DataStorage.getString(this, "skin", "test"));
             setCustomName(DataStorage.getString(this, "name", "NPC"));
             setStoryModelID(DataStorage.getString(this, "model", "npc"));
@@ -101,13 +99,12 @@ public class NPC extends AnimalEntity implements
 
     private final Queue<StoryAction<? extends NPC>> actionQueue = new ArrayDeque<>();
     private StoryAction current;
-    private CogEntity me;
     private long lastInteraction = 0;
 
     @Api.PlatformTool
     public Identifier platformModel = Identifier.of(CogwheelEngine.MODID, "geo/npc.geo.json");
     @Api.PlatformTool
-    public Identifier platformTexture = Identifier.of(CogwheelEngine.MODID, "textures/entity/npc/denisjava.png");
+    public Identifier platformTexture = Identifier.of(CogwheelEngine.MODID, "textures/entity/npc/test.png");
 
     @Override
     public @NotNull ActionResult interactMob(@NotNull PlayerEntity plr, @NotNull Hand hand) {
@@ -127,6 +124,7 @@ public class NPC extends AnimalEntity implements
         return super.interactMob(plr, hand);
     }
 
+    @SuppressWarnings("unused")
     public void interact(ServerPlayerEntity plr) {
         String action = storyEntity().storyEntity$getString("leftclick", "");
         if (action.isEmpty()) return;
@@ -218,15 +216,6 @@ public class NPC extends AnimalEntity implements
     @Api.Stable(since = "2.0.0")
     public synchronized <R> void addStoryAction(StoryAction<R> action) {
         actionQueue.add((StoryAction<? extends NPC>) action);
-    }
-
-    @Override @Api.Stable(since = "2.0.0")
-    public void reportState(StringBuilder sb) {
-        for (StoryAction<?> action : actionQueue) {
-            sb.append(action.toString());
-        }
-        sb.append(">").append(current.toString());
-        sb.append(" | ").append(this);
     }
 
     private static final EasyPropManager MANAGER = new EasyPropManager("npc", NPC::registerProps);
@@ -424,15 +413,11 @@ public class NPC extends AnimalEntity implements
 
     @Override @Api.Stable(since = "2.0.0")
     public boolean hasOwnProperty(String name) {
-        if (me.hasOwnProperty(name)) return true;
         return MANAGER.hasOwnProperty(name);
     }
 
     @Override @Api.Stable(since = "2.0.0")
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) {
-        if (me.hasOwnProperty(name)) {
-            return me.getProperty(name, args, script);
-        }
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
         return MANAGER.get(name).handle(name, args, script, NPC.this);
     }
 
@@ -561,11 +546,11 @@ public class NPC extends AnimalEntity implements
         try {
             StringWriter stringWriter = new StringWriter();
             JsonWriter jsonWriter = new JsonWriter(stringWriter);
-            jsonWriter.setLenient(true);
+            jsonWriter.setStrictness(Strictness.LENIENT);
             jsonWriter.setIndent("    ");
             jsonWriter.setSerializeNulls(true);
             Streams.write(obj, jsonWriter);
-            CogwheelNetwork.sendFromServer(player, new DevOpenViewer("npc.json", stringWriter.toString()));
+            CogwheelHooks.sendPacket(new DevOpenViewer("npc.json", stringWriter.toString()), player);
             return true;
         } catch (IOException e) {
             throw new AssertionError(e);

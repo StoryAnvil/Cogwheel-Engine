@@ -38,10 +38,8 @@ public record DevEditorState(Identifier lc, Byte state) implements StoryPacket<D
         }
         if (state == -128) {
             session.closeConnection(ctx.getSender());
-            return;
         } else if (state == -127) {
             session.resync(ctx.getSender());
-            return;
         }
     }
 

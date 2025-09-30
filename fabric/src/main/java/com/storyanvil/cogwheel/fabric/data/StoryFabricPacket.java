@@ -14,7 +14,6 @@ package com.storyanvil.cogwheel.fabric.data;
 
 import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.CogwheelExecutor;
-import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryPacket;
 import com.storyanvil.cogwheel.fabric.CogwheelEngineFabric;
@@ -32,7 +31,7 @@ public class StoryFabricPacket<T extends StoryPacket<T>> implements PacketCodec<
 
     public StoryFabricPacket(@NotNull String id, @NotNull StoryCodec<T> parent) {
         this.parent = parent;
-        this.type = new CustomPayload.Type<>(new CustomPayload.Id<StoryFabricParcel<T>>(Identifier.of(CogwheelEngine.MODID, id)), this);
+        this.type = new CustomPayload.Type<>(new CustomPayload.Id<>(Identifier.of(CogwheelEngine.MODID, id)), this);
         parent.setPlatformData(this);
     }
 
@@ -49,20 +48,6 @@ public class StoryFabricPacket<T extends StoryPacket<T>> implements PacketCodec<
     public CustomPayload.Type<PacketByteBuf, StoryFabricParcel<T>> getType() {
         return type;
     }
-
-//    public <S extends StoryPacket<S>> void clientHandle(StoryFabricParcel<S> parcel, IPayloadContext ctx) {
-//        CogwheelExecutor.schedule(() -> {
-//            CogwheelHooks.debugLog(CogwheelEngineNeoForge.PLATFORM_LOG, "Received packet {} from server", parcel);
-//            parcel.get().onClientUnsafe(new StoryNeoPacketContext(ctx));
-//        });
-//    }
-//
-//    public <S extends StoryPacket<S>> void serverHandle(StoryFabricParcel<S> parcel, IPayloadContext ctx) {
-//        CogwheelExecutor.schedule(() -> {
-//            CogwheelHooks.debugLog(CogwheelEngineNeoForge.PLATFORM_LOG, "Received packet {} from client: {}", parcel, ctx.player());
-//            parcel.get().onServerUnsafe(new StoryNeoPacketContext(ctx));
-//        });
-//    }
 
     @Override
     public String toString() {

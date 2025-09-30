@@ -12,7 +12,7 @@
 
 package com.storyanvil.cogwheel.infrastructure.cog;
 
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.Bi;
 

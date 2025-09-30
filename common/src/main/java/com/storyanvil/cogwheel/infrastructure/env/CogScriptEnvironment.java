@@ -32,12 +32,10 @@ import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public abstract class CogScriptEnvironment {
     private final HashMap<Identifier, List<String>> eventSubscribers;
-    private final long creationTime;
 
     @Contract(pure = true)
     public CogScriptEnvironment() {
         this.eventSubscribers = new HashMap<>();
-        this.creationTime = System.currentTimeMillis();
     }
 
     @Api.Stable(since = "2.0.0")
@@ -87,19 +85,7 @@ public abstract class CogScriptEnvironment {
     @ApiStatus.Internal
     public void dispose() {
         log.info("Environment {} is disposing...", getUniqueIdentifier());
-        WeakList<DispatchedScript> scripts = DispatchedScript.MONITOR.getObjects();
-        if (scripts == null) return;
-        for (int i = 0; i < scripts.size(); i++) {
-            DispatchedScript script = scripts.get(i);
-            if (script == null) {
-                scripts.remove(i);
-                i--;
-                continue;
-            }
-            if (script.getEnvironment() == this) {
-                script.haltExecution();
-            }
-        }
+        eventSubscribers.clear();
     }
     public boolean canBeEdited() {return false;}
     public abstract void dispatchScript(String name);
@@ -121,7 +107,7 @@ public abstract class CogScriptEnvironment {
 
     @Api.Experimental(since = "2.0.0")
     public static void dispatchScriptGlobal(Identifier loc) {
-        CogScriptEnvironment environment = null;
+        CogScriptEnvironment environment;
         environment = getEnvironment(loc);
         if (environment == null) throw new RuntimeException("Dispatch Failure! No environment found");
         environment.dispatchScript(loc.getPath());
@@ -163,10 +149,6 @@ public abstract class CogScriptEnvironment {
     }
 
     public abstract String getUniqueIdentifier();
-
-    public long getCreationTime() {
-        return creationTime;
-    }
 
     @Override
     public String toString() {

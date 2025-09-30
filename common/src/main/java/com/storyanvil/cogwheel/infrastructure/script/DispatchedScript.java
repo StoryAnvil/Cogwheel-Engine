@@ -12,63 +12,45 @@
 
 package com.storyanvil.cogwheel.infrastructure.script;
 
-import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
-import com.storyanvil.cogwheel.util.Bi;
-import com.storyanvil.cogwheel.util.ObjectMonitor;
-import com.storyanvil.cogwheel.util.ScriptLineHandler;
-import com.storyanvil.cogwheel.util.ScriptStorage;
-import org.jetbrains.annotations.ApiStatus;
+import com.storyanvil.cogwheel.util.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
-public class DispatchedScript implements ObjectMonitor.IMonitored { //TODO: Stop deleting lines
-    @ApiStatus.Internal @Api.Internal
-    public static final ObjectMonitor<DispatchedScript> MONITOR = new ObjectMonitor<>();
+public class DispatchedScript {
 
-    protected final ArrayList<String> linesToExecute;
+    protected final ArrayList<ScriptLine> linesToExecute;
+    protected int executionLine = 0;
     protected ScriptStorage storage;
-    protected HashMap<Integer, ScriptLineHandler> additionalLineHandlers;
     protected String scriptName = "unknown-script";
     protected CogScriptEnvironment environment;
-    protected boolean doNotRemoveLines = false;
-    protected int lineSkipped = 0;
-    protected int executionLine = 0;
     protected Runnable onEnd = () -> {};
+    protected final UnclearableStack<ScriptExecutionFrame> frames;
 
-    public DispatchedScript(ArrayList<String> linesToExecute, CogScriptEnvironment environment) {
-        MONITOR.register(this);
+    public DispatchedScript(ArrayList<ScriptLine> linesToExecute, CogScriptEnvironment environment) {
         this.linesToExecute = linesToExecute;
         this.storage = new ScriptStorage();
         this.environment = environment;
-        this.additionalLineHandlers = new HashMap<>();
+        this.frames = new UnclearableStack<>(new ScriptExecutionFrame());
         environment.defaultVariablesFactory(this.storage, this);
     }
-    public DispatchedScript(ArrayList<String> linesToExecute, ScriptStorage storage, CogScriptEnvironment environment) {
-        MONITOR.register(this);
+    public DispatchedScript(ArrayList<ScriptLine> linesToExecute, ScriptStorage storage, CogScriptEnvironment environment) {
         this.linesToExecute = linesToExecute;
         this.storage = storage;
         this.environment = environment;
-        this.additionalLineHandlers = new HashMap<>();
+        this.frames = new UnclearableStack<>(new ScriptExecutionFrame());
         environment.defaultVariablesFactory(this.storage, this);
     }
 
-    @ApiStatus.Internal
     public DispatchedScript setScriptName(String scriptName) {
         this.scriptName = scriptName;
         return this;
-    }
-
-    public Runnable getOnEnd() {
-        return onEnd;
     }
 
     public void setOnEnd(Runnable onEnd) {
@@ -79,89 +61,77 @@ public class DispatchedScript implements ObjectMonitor.IMonitored { //TODO: Stop
         return scriptName;
     }
 
-    private boolean executeLine(@NotNull String line) {
-//        int labelEnd = line.indexOf(":::");
-//        String label = null;
-//        if (labelEnd != -1) {
-//            label = line.substring(0, labelEnd);
-//            line = line.substring(labelEnd + 3);
-//        }
+    /**
+     * @return <code>TRUE</code> only if script should pause execution
+     */
+    private boolean executeLine(@NotNull ScriptLine line) {
+        if (line.getHandler() != null) {
+            try {
+                byte result = line.getHandler().handle(line, line.getLine(), this);
+                return result != ScriptLineHandler.continueReading;
+            } catch (Throwable e) {
+                log.warn("{}: Overwritten LineHandler {} failed with exception.", getScriptName(), line.getHandler().getIdentifier(), e);
+                if (e instanceof CogScriptException scriptException)
+                    fillScriptCrashReport(this, scriptException);
+                return false;
+            }
+        }
         for (Bi<ScriptLineHandler, Boolean> handler : CogwheelRegistries.getLineHandlers()) {
             if (!handler.getB().booleanValue()) continue;
             try {
-                byte result = handler.getA().handle(line, this);
-                if (result == ScriptLineHandler.ignore()) continue;
-                return result == ScriptLineHandler.continueReading();
+                byte result = handler.getA().handle(line, line.getLine(), this);
+                if (result == ScriptLineHandler.ignore) continue;
+                return result != ScriptLineHandler.continueReading;
             } catch (Throwable e) {
-                log.warn("{}: LineHandler {} failed with exception. Line: \"{}\"", getScriptName(), handler.getA().getIdentifier(), line, e);
+                log.warn("{}: LineHandler {} failed with exception.", getScriptName(), handler.getA().getIdentifier(), e);
+                if (e instanceof CogScriptException scriptException)
+                    fillScriptCrashReport(this, scriptException);
+                return false;
             }
-
         }
         log.warn("{}: None of LineHandlers could handle line: \"{}\". Skipping the line", getScriptName(), line);
-        return true;
+        return false;
     }
 
+    public static void fillScriptCrashReport(DispatchedScript script, CogScriptException e) {
+        //TODO
+        if (e.getScript() == script) {
+            log.error("{}: Exception at line: {}", script.getScriptName(), e.getLineNumber(), e);
+        } else {
+            log.error("{}: Exception at line: {} [from external script: {}]", script.getScriptName(), e.getLineNumber(), e.getScript().getScriptName(), e);
+        }
+    }
+
+    /**
+     * @return <code>TRUE</code> if script needs to be dispatched again later. <code>FALSE</code> means this script is finished by now
+     */
     public boolean lineDispatcher() {
         if (!Thread.currentThread().getName().contains("cogwheel-executor")) {
             RuntimeException e = new RuntimeException("Line dispatcher can only be run in cogwheel executor thread");
-            e.printStackTrace();
-            log.error("[!CRITICAL!] LINE DISPATCHER WAS CALLED FROM NON-EXECUTOR THREAD! THIS WILL CAUSE MEMORY LEAKS AND PREVENT SCRIPTS FOR PROPER EXECUTION! THIS CALL WAS DISMISSED, PROBABLY CAUSING A MEMORY LEAK!");
+            log.error("[!CRITICAL!] LINE DISPATCHER WAS CALLED FROM NON-EXECUTOR THREAD! THIS WILL CAUSE MEMORY LEAKS AND PREVENT SCRIPTS FOR PROPER EXECUTION! THIS CALL WAS DISMISSED, PROBABLY CAUSING A MEMORY LEAK!", e);
             throw e;
         }
         return lineDispatcherInternal();
     }
     protected boolean lineDispatcherInternal() {
         try {
-            while (!linesToExecute.isEmpty()) {
-                String line;
-                if (doNotRemoveLines) {
-                    line = linesToExecute.get(lineSkipped);
-                    lineSkipped++;
-                } else {
-                    line = linesToExecute.get(0).trim();
-                    linesToExecute.remove(0);
-                }
+            while (executionLine < linesToExecute.size()) {
+                ScriptLine line = linesToExecute.get(executionLine);
                 executionLine++;
-                if (!executeLine(line)) {
+                if (executeLine(line)) {
                     return true;
                 }
-                if (additionalLineHandlers.containsKey(executionLine)) {
-                    try {
-                        byte res = additionalLineHandlers.get(executionLine).handle(line, this);
-                        additionalLineHandlers.remove(executionLine);
-                        if (res == ScriptLineHandler.blocking()) break;
-                    } catch (Throwable e) {
-                        log.warn("{}: Planned LineHandler {} failed with exception. Line: \"{}\"", getScriptName(), additionalLineHandlers.get(executionLine).getIdentifier(), line, e);
-                    }
-                }
             }
-        } catch (Throwable e) {
-            RuntimeException a = new RuntimeException("Exception in lineDispatcher reflected:", e);
-            log.error("FATAL LINE DISPATCHER FAILURE!", a);
-            throw a;
+        } catch (Exception e) {
+            WrapperException t = new WrapperException(e);
+            log.error("Critical line dispatcher failure", t);
+            if (executionLine == linesToExecute.size())
+                onEnd();
+            throw t;
         }
-        if (linesToExecute.isEmpty())
+        if (executionLine == linesToExecute.size())
             onEnd();
         return false;
-    }
-
-    public int getExecutionLine() {
-        return executionLine;
-    }
-
-    public void stopLineUnloading() {
-        doNotRemoveLines = true;
-        lineSkipped = 0;
-    }
-    public void continueUnloadingLines() {
-        doNotRemoveLines = false;
-    }
-    public void removeUnloadedLines() {
-        for (int i = 0; i < lineSkipped; i++)
-            this.removeLine(0);
-    }
-    public void plantHandler(ScriptLineHandler handler, int lineAhead) {
-        additionalLineHandlers.put(executionLine + lineAhead, handler);
     }
 
     public void put(String key, CGPM o) {
@@ -172,47 +142,11 @@ public class DispatchedScript implements ObjectMonitor.IMonitored { //TODO: Stop
         if (key == null) return;
         storage.put(key, o);
     }
-    public @Nullable CGPM get(String key) {
+    public @NotNull CGPM get(String key) {
         return CGPM.noNull(storage.get(key));
     }
     public boolean hasKey(String key) {
         return storage.containsKey(key);
-    }
-
-    @Override
-    public void reportState(@NotNull StringBuilder sb) {
-        sb.append(scriptName).append(">");
-        for (String line : linesToExecute) {
-            sb.append('"').append(line).append("\" ");
-        }
-    }
-
-    public String pullLine() {
-        if (linesToExecute.isEmpty()) return null;
-        String l = linesToExecute.get(0);
-        linesToExecute.remove(0);
-        return l;
-    }
-    public void removeLine() {
-        if (linesToExecute.isEmpty()) return;
-        linesToExecute.remove(0);
-    }
-    public void removeLine(int line) {
-        linesToExecute.remove(line);
-    }
-    public String peekLine() {
-        if (linesToExecute.isEmpty()) return null;
-        return linesToExecute.get(0);
-    }
-    public String peekLine(int line) {
-        if (line >= linesToExecute.size()) return null;
-        return linesToExecute.get(line);
-    }
-    public void defuseLine(int line) {
-        linesToExecute.set(line, "");
-    }
-    public int linesLeft() {
-        return linesToExecute.size();
     }
 
     public ScriptStorage getStorage() {
@@ -223,11 +157,57 @@ public class DispatchedScript implements ObjectMonitor.IMonitored { //TODO: Stop
         return environment;
     }
 
+    public ArrayList<ScriptLine> getLinesToExecute() {
+        return linesToExecute;
+    }
+
+    public void setExecutionLine(int executionLine) {
+        this.executionLine = executionLine;
+    }
+
+    public int getExecutionLine() {
+        return executionLine;
+    }
+
+    /**
+     * Pushes and returns new {@link ScriptExecutionFrame} in this script
+     */
+    public ScriptExecutionFrame pushFrame() {
+        ScriptExecutionFrame frame = new ScriptExecutionFrame();
+        frames.push(frame);
+        return frame;
+    }
+
+    /**
+     * Removes top {@link ScriptExecutionFrame} from this script
+     */
+    public ScriptExecutionFrame pullFrame() {
+        if (frames.empty()) return null;
+        ScriptExecutionFrame frame = frames.pop();
+        frame.onPulled(this);
+        return frame;
+    }
+
+    /**
+     * @return top {@link ScriptExecutionFrame} from this script
+     */
+    public ScriptExecutionFrame getFrame() {
+        return frames.peek();
+    }
+
+    /**
+     * Advances script one line further. Returns current line after advancing
+     */
+    public ScriptLine pullLine() {
+        executionLine++;
+        return linesToExecute.get(executionLine);
+    }
+
     /**
      * Removes this script from its environment, clears and releases its storage and removes all lines for execution
      */
     public void haltExecution() {
-        log.info("Script {} is being forcefully stopped!", getScriptName());
+        log.debug("Script {} is being forcefully stopped!", getScriptName());
         linesToExecute.clear();
         environment = null;
         storage.clear();
@@ -242,18 +222,21 @@ public class DispatchedScript implements ObjectMonitor.IMonitored { //TODO: Stop
                 '}';
     }
 
-    public void clearLines() {
-        linesToExecute.clear();
-    }
-
     public void startExecution() {
         lineDispatcher();
     }
+
+    /**
+     * Left for overwrites
+     */
     public void onEnd() {
         onEnd.run();
     }
 
-    public List<String> getAllLines() {
-        return linesToExecute;
+    public CogScriptException wrapWithTrace(Throwable t) {
+        return new CogScriptException(null, t, this, getExecutionLine());
+    }
+    public CogScriptException wrap(Throwable t) {
+        return new CogScriptException(null, t, true, false, this, getExecutionLine());
     }
 }

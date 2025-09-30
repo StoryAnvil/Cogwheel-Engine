@@ -16,41 +16,37 @@ import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.entity.NPC;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
+import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoRenderer;
 
-public class NPCModel extends DefaultedEntityGeoModel<NPC> {
-    public NPCModel(Identifier assetSubpath) {
-        super(assetSubpath);
-    }
+public class NPCModel extends GeoModel<NPC> {
+    public static final Identifier ANIMATIONS = Identifier.of(CogwheelEngine.MODID, "animations/entity/npc.animation.json");
 
-    /*@Override
-    public Identifier getTextureResource(@NotNull NPC animatable) {
-        return Identifier.of(CogwheelEngine.MODID, "textures/entity/npc/" + animatable.getSkin() + ".png");
+    public NPCModel() {
+        super();
     }
 
     @Override
-    public Identifier getTextureResource(NPC animatable, @Nullable GeoRenderer<NPC> renderer) {
-        return this.getTextureResource(animatable);
+    public Identifier getModelResource(NPC animatable, GeoRenderer<NPC> renderer) {
+        return animatable.platformModel;
     }
 
     @Override
-    public Identifier[] getAnimationResourceFallbacks(NPC animatable) {
+    public Identifier getTextureResource(NPC animatable, GeoRenderer<NPC> renderer) {
+        return animatable.platformTexture;
+    }
+
+    @Override
+    public Identifier getAnimationResource(NPC animatable) {
+        return ANIMATIONS;
+    }
+
+    @Override
+    public Identifier[] getAnimationResourceFallbacks(NPC animatable, GeoRenderer<NPC> renderer) {
         return animationSources;
     }
 
-    @Override
-    public Identifier getModelResource(NPC animatable) {
-        return Identifier.of(CogwheelEngine.MODID, "geo/entity/" + animatable.getStoryModelID() + ".geo.json");
-    }
-
-    @Override
-    public Identifier getModelResource(NPC animatable, @Nullable GeoRenderer<NPC> renderer) {
-        return this.getModelResource(animatable);
-    }
-*/
     @ApiStatus.Internal
     public static Identifier[] animationSources = new Identifier[0];
 }

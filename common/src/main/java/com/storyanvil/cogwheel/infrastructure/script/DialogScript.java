@@ -12,15 +12,17 @@
 
 package com.storyanvil.cogwheel.infrastructure.script;
 
+import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.infrastructure.CGPM;
+import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
+import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.abilities.DialogTarget;
 import com.storyanvil.cogwheel.infrastructure.cog.CogInteger;
 import com.storyanvil.cogwheel.infrastructure.cog.CogVarLinkage;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.util.B;
-import com.storyanvil.cogwheel.util.CogExpressionFailure;
+import com.storyanvil.cogwheel.infrastructure.err.CogExpressionFailure;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
@@ -32,13 +34,13 @@ import java.util.List;
 import static com.storyanvil.cogwheel.CogwheelExecutor.log;
 
 public class DialogScript extends StreamExecutionScript {
-    private ArrayList<String> dialogsToExecute;
-    public DialogScript(ArrayList<String> linesToExecute, ScriptStorage storage, CogScriptEnvironment environment) {
+    private ArrayList<ScriptLine> dialogsToExecute;
+    public DialogScript(ArrayList<ScriptLine> linesToExecute, ScriptStorage storage, CogScriptEnvironment environment) {
         super(storage, environment);
         dialogsToExecute = linesToExecute;
     }
 
-    public DialogScript(ArrayList<String> linesToExecute, CogScriptEnvironment environment) {
+    public DialogScript(ArrayList<ScriptLine> linesToExecute, CogScriptEnvironment environment) {
         super(environment);
         dialogsToExecute = linesToExecute;
     }
@@ -46,22 +48,25 @@ public class DialogScript extends StreamExecutionScript {
     public void startDialog() {
         if (!Thread.currentThread().getName().contains("cogwheel-executor")) {
             RuntimeException e = new RuntimeException("Line dispatcher can only be run in cogwheel executor thread");
-            e.printStackTrace();
-            log.error("[!CRITICAL!] LINE DISPATCHER WAS CALLED FROM NON-EXECUTOR THREAD! THIS WILL CAUSE MEMORY LEAKS AND PREVENT SCRIPTS FOR PROPER EXECUTION! THIS CALL WAS DISMISSED, PROBABLY CAUSING A MEMORY LEAK!");
+            log.error("[!CRITICAL!] LINE DISPATCHER WAS CALLED FROM NON-EXECUTOR THREAD! THIS WILL CAUSE MEMORY LEAKS AND PREVENT SCRIPTS FOR PROPER EXECUTION! THIS CALL WAS DISMISSED, PROBABLY CAUSING A MEMORY LEAK!", e);
             throw e;
         }
-        internalDialogStart();
+        try {
+            internalDialogStart();
+        } catch (CogScriptException e) {
+            log.error("Failed to execute script {}", getScriptName(), e);
+        }
     }
 
     private int executingLine = 0;
-    private void internalDialogStart() {
+    private void internalDialogStart() throws CogScriptException {
         while (!dialogsToExecute.isEmpty()) {
-            String line = dialogsToExecute.get(executingLine);
+            String line = dialogsToExecute.get(executingLine).getLine();
             executingLine++;
             try {
                 if (handleLine(line)) break;
             } catch (Throwable e) {
-                e.printStackTrace();
+                CogwheelEngine.LOGGER.error("", e);
                 throw e;
             }
         }
@@ -72,7 +77,7 @@ public class DialogScript extends StreamExecutionScript {
     private List<Integer> optionLines = null;
 
     @Api.MixinsNotAllowed(where = "DialogScript#mixinEntrypoint")
-    private boolean handleLine(String line) {
+    private boolean handleLine(String line) throws CogScriptException {
         int level = 0;
         for (int i = 0; i < line.length(); i++) {
             if (line.charAt(i) == ' ') {
@@ -80,7 +85,7 @@ public class DialogScript extends StreamExecutionScript {
             } else break;
         }
         if (currentLevel == -1) currentLevel = level;
-        if (level < currentLevel) throw new CogExpressionFailure("Level became smaller [you can ignore this message if dialog works as intended]: " + line);
+        if (level < currentLevel) throw new CogScriptException("Level became smaller [you can ignore this message if dialog works as intended]", this, executingLine);
         String code = line.substring(level);
         switch (code.charAt(0)) {
             case '#' -> {break;}
@@ -128,7 +133,7 @@ public class DialogScript extends StreamExecutionScript {
                         optionLines = new ArrayList<>();
                         String mask = " ".repeat(level + 1) + "+ ";
                         for (int i = executingLine; i < dialogsToExecute.size(); i++) {
-                            String L = dialogsToExecute.get(i);
+                            String L = dialogsToExecute.get(i).getLine();
                             if (L.startsWith(mask)) {
                                 optionLines.add(i);
                                 optionsAvailable.add(format(L.substring(mask.length()), null));
@@ -137,12 +142,12 @@ public class DialogScript extends StreamExecutionScript {
                         dialogTarget.d$ask(format(code.substring(actPlace + 1), null), dialogTarget.d$name(), optionsAvailable, this::d$response);
                         return true;
                     }
-                } else throw new CogExpressionFailure("Dialog Action target is not valid: " + line);
+                } else throw new CogScriptException("Dialog Action target is not valid", this, currentLevel);
                 break;
             }
             default -> {
                 if (!mixinEntrypoint(line, code, level))
-                    throw new CogExpressionFailure("Unknown line type: " + line);
+                    throw new CogScriptException("Unknown line type", this, currentLevel);
             }
         }
         return false;
@@ -164,7 +169,7 @@ public class DialogScript extends StreamExecutionScript {
         return MathHelper.clamp(15 + text.split(" ").length * 10, 15, 2000);
     }
 
-    private @NotNull String format(@NotNull String raw, @Nullable B<Integer> ticks) {
+    private @NotNull String format(@NotNull String raw, @Nullable B<Integer> ticks) throws CogScriptException {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < raw.length(); i++) {
             char c = raw.charAt(i);

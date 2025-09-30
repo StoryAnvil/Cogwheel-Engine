@@ -39,9 +39,11 @@ repositories {
 }
 
 dependencies {
+    //noinspection GrUnresolvedAccess
     neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
 
     // Architectury API. This is optional, and you can comment it out if you don't need it.
+    //noinspection GrUnresolvedAccess
     modImplementation "dev.architectury:architectury-neoforge:$rootProject.architectury_api_version"
 
     // GeckoLib for NeoForge

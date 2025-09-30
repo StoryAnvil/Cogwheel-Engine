@@ -12,6 +12,7 @@
 
 package com.storyanvil.cogwheel.client.devui;
 
+import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.network.devui.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
@@ -185,20 +186,20 @@ public class DWConsoleAutoComplete {
             ui().scheduleResize();
         }
         public static void resync(String s) {
-            CogwheelNetwork.sendToServer(new DevEarlySyncPacket(true, false));
-            CogwheelNetwork.sendToServer(new DevResyncRequest());
+            CogwheelHooks.sendPacketToServer(new DevEarlySyncPacket(true, false));
+            CogwheelHooks.sendPacketToServer(new DevResyncRequest());
         }
 
         public static void inspector(String s) {
-            CogwheelNetwork.sendToServer(new DevConsoleCode("Cogwheel.executeCommand(\"give " + MinecraftClient.getInstance().player.getNameForScoreboard() + " storyanvil_cogwheel:inspector\")"));
+            CogwheelHooks.sendPacketToServer(new DevConsoleCode("Cogwheel.executeCommand(\"give " + MinecraftClient.getInstance().player.getNameForScoreboard() + " storyanvil_cogwheel:inspector\")"));
         }
 
         public static void cogScript(String s) {
-            CogwheelNetwork.sendToServer(new DevConsoleCode(s));
+            CogwheelHooks.sendPacketToServer(new DevConsoleCode(s));
         }
 
         public static void openFile(String s) {
-            CogwheelNetwork.sendToServer(new DevOpenFile(Identifier.tryParse(s.trim())));
+            CogwheelHooks.sendPacketToServer(new DevOpenFile(Identifier.tryParse(s.trim())));
         }
 
         public static void save(String s) {
@@ -214,15 +215,15 @@ public class DWConsoleAutoComplete {
         }
 
         public static void creative(String s) {
-            CogwheelNetwork.sendToServer(new DevConsoleCode("Cogwheel.executeCommand(\"gamemode creative " + MinecraftClient.getInstance().player.getNameForScoreboard() + "\")"));
+            CogwheelHooks.sendPacketToServer(new DevConsoleCode("Cogwheel.executeCommand(\"gamemode creative " + MinecraftClient.getInstance().player.getNameForScoreboard() + "\")"));
         }
 
         public static void survival(String s) {
-            CogwheelNetwork.sendToServer(new DevConsoleCode("Cogwheel.executeCommand(\"gamemode survival " + MinecraftClient.getInstance().player.getNameForScoreboard() + "\")"));
+            CogwheelHooks.sendPacketToServer(new DevConsoleCode("Cogwheel.executeCommand(\"gamemode survival " + MinecraftClient.getInstance().player.getNameForScoreboard() + "\")"));
         }
 
         public static void adventure(String s) {
-            CogwheelNetwork.sendToServer(new DevConsoleCode("Cogwheel.executeCommand(\"gamemode adventure " + MinecraftClient.getInstance().player.getNameForScoreboard() + "\")"));
+            CogwheelHooks.sendPacketToServer(new DevConsoleCode("Cogwheel.executeCommand(\"gamemode adventure " + MinecraftClient.getInstance().player.getNameForScoreboard() + "\")"));
         }
 
         public static void closeall(String s) {
@@ -230,7 +231,7 @@ public class DWConsoleAutoComplete {
         }
 
         public static void dispatchFile(String s) {
-            CogwheelNetwork.sendToServer(new DevConsoleCode("Cogwheel.executeCommand(\"@storyanvil dispatch-script " + s.trim() + "\")"));
+            CogwheelHooks.sendPacketToServer(new DevConsoleCode("Cogwheel.executeCommand(\"@storyanvil dispatch-script " + s.trim() + "\")"));
         }
     }
 }
