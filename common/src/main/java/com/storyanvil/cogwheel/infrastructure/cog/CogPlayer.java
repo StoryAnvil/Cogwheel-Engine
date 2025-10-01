@@ -92,7 +92,8 @@ public class CogPlayer extends CogEntity implements CGPM {
 
     @Override
     public boolean hasOwnProperty(String name) {
-        return MANAGER.hasOwnProperty(name) || super.hasOwnProperty(name);
+        return true;
+        //return MANAGER.hasOwnProperty(name)/* || super.hasOwnProperty(name)*/;
     }
 
     @Override

@@ -58,4 +58,9 @@ public abstract class JWCGPM<T extends JWCGPM<T>> implements CGPM {
             throw script.wrap(new Exception("Property with name: \"" + name + "\" has invalid return type for this [\"" + this + "\"] instance of " + clazz.getCanonicalName(), e));
         }
     }
+
+    @Override
+    public boolean equalsTo(CGPM o) {
+        return o.equals(this);
+    }
 }

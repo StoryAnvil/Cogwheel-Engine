@@ -29,8 +29,10 @@ import org.jetbrains.annotations.Nullable;
  */
 @TestIgnoreDocs
 public interface CGPM extends CogLike {
-    @Deprecated()
-    boolean hasOwnProperty(String name);
+    @Deprecated
+    default boolean hasOwnProperty(String name) {
+        throw new UnsupportedOperationException("hasOwnProperty is removed!");
+    };
     @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException;
     boolean equalsTo(CGPM o);
 

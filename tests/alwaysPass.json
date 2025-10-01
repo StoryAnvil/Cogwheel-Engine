@@ -1,4 +1,5 @@
 {
     "auto": true,
-    "type": "OK"
+    "type": "OK",
+    "comment": "This test should pass every time"
 }

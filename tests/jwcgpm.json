@@ -1,0 +1,7 @@
+{
+    "auto": true,
+    "stress": true,
+    "type" : "PERF_CGPM",
+    "cgpm": "jw",
+    "comment": "Check speed of JavaWrapping CGPM"
+}
