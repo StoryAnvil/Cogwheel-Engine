@@ -225,8 +225,11 @@ public class CogwheelHooks {
                     TestManagement.startTesting(true);
                     return 0;
                 }))
+                .then(CommandManager.literal("run-stresstests").executes(ctx -> {
+                    TestManagement.startTestingPerformance();
+                    return 0;
+                }))
                 .then(CommandManager.literal("run-all-tests").executes(ctx -> {
-                    // TODO: Run all tests
                     TestManagement.startTesting(false);
                     return 0;
                 }))

@@ -46,12 +46,18 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
     private static final Logger log = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/TESTS");
     private TestManagement() {}
 
-    private ArrayList<Result> results = new ArrayList<>();
+    private final ArrayList<Result> results = new ArrayList<>();
     private boolean autoOnly;
+    private boolean performanceTesting = false;
 
     public static void startTesting(boolean autoOnly) {
         String uuid = UUID.randomUUID().toString();
-        Thread thread = new Thread(() -> startTestingInternal(autoOnly, uuid), "storyanvil-test-worker-" + uuid);
+        Thread thread = new Thread(() -> startTestingInternal(autoOnly, false, uuid), "storyanvil-test-worker-" + uuid);
+        thread.start();
+    }
+    public static void startTestingPerformance() {
+        String uuid = UUID.randomUUID().toString();
+        Thread thread = new Thread(() -> startTestingInternal(true, true, uuid), "storyanvil-test-worker-" + uuid);
         thread.start();
     }
     private static void sendTestingMessage(Text msg) {
@@ -61,7 +67,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             }
         } catch (NullPointerException ignored) {}
     }
-    private static void startTestingInternal(boolean autoOnly, String id) {
+    private static void startTestingInternal(boolean autoOnly, boolean performanceTesting, String id) {
         File testingFolder = new File(CogwheelHooks.getConfigFolder(), "cog/tests");
         if (!CogwheelClientConfig.getTestsDirectory().isEmpty()) {
             File copyTests = new File(CogwheelClientConfig.getTestsDirectory());
@@ -82,6 +88,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         }
         TestManagement management = new TestManagement();
         management.autoOnly = autoOnly;
+        management.performanceTesting = performanceTesting;
         sendTestingMessage(Text.literal("[CogwheelEngine] Testing started").formatted(Formatting.GRAY));
         StoryUtils.discoverDirectory(testingFolder, management::runTest);
         JsonArray obj = new JsonArray();
@@ -181,8 +188,17 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             JsonObject obj = JsonParser.parseReader(fr).getAsJsonObject();
             if (obj.has("auto") && !obj.get("auto").getAsBoolean() && autoOnly) {
                 result.setStatus(Status.SKIPPED);
-                result.setFail(new Exception("Test is marked as NON-AUTO, but current testing context only allows AUTO tests"));
+                result.setFail(new WrapperException("Test is marked as NON-AUTO, but current testing context only allows AUTO tests"));
                 return;
+            }
+            boolean isStressTest = obj.has("stress") && obj.getAsJsonPrimitive("stress").getAsBoolean();
+            if (isStressTest) {
+                if (!performanceTesting) {
+                    result.setStatus(Status.SKIPPED);
+                    result.setFail(new WrapperException("Test is marked as STRESS-TEST, but current testing context does not run STRESS-TESTS"));
+                    return;
+                }
+                result.profiler = new Profiler();
             }
             TestType type = TestType.valueOf(obj.get("type").getAsString());
             try {
@@ -208,6 +224,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         private Status status = Status.IN_PROGRESS;
         private Throwable fail = null;
         private long timeSpend = -1;
+        public Profiler profiler;
 
         public Result(String testName) {
             this.testName = testName;
@@ -296,6 +313,9 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             }
         }
     }
+    public static class Profiler {
+
+    }
     public static enum Status {
         IN_PROGRESS(Formatting.GOLD), TEST_FAILED(Formatting.RED), MANAGER_FAILED(Formatting.RED), OK(Formatting.GREEN), SKIPPED(Formatting.DARK_GRAY);
         public final Formatting formatting;
@@ -323,6 +343,9 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             if (script == null) throw new AssertionError("No script were found!");
             CogwheelExecutor.schedule(() -> {
                 script.setOnEnd(threadLock::countDown);
+                script.setErrorHandler(scriptException -> {
+                    result.failWith(new WrapperException("Script exception got caught", scriptException));
+                });
                 try {
                     Thread.sleep(2); // Give some time for test-worker to start waiting
                 } catch (InterruptedException e) {
