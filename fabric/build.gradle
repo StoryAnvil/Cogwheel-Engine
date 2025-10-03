@@ -51,6 +51,7 @@ dependencies {
 
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
+//    shadow "io.github.classgraph:classgraph:4.8.181"
 }
 
 processResources {

@@ -18,8 +18,9 @@ import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.module.CMA;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.util.EasyPropManager;
-import com.storyanvil.cogwheel.util.ScriptStorage;
+import com.storyanvil.cogwheel.util.StoryUtils;
 import com.storyanvil.cogwheel.util.WrapperException;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +53,7 @@ public class CogInvoker implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventChainCalling, CogScriptException {
         return MANAGER.get(name, args, script, this);
     }
 
@@ -62,25 +63,34 @@ public class CogInvoker implements CGPM {
     }
 
 
+    /**
+     * <b>MUST BE EXECUTED ON COGWHEEL-EXECUTOR THREAD!</b>
+     */
     public Runnable unsafeRunnable(ArgumentData args, DispatchedScript script) {
         return () -> {
             try {
+                StoryUtils.requireCogwheelThread();
                 this.invoker.handle("invoke", args, script, this);
             } catch (CogScriptException e) {
                 throw new WrapperException(e);
             }
         };
     }
+    public Runnable safeRunnable(ArgumentData args, DispatchedScript script) {
+        return () -> {
+            CogwheelExecutor.schedule(() -> {
+                try {
+                    this.invoker.handle("invoke", args, script, this);
+                } catch (CogScriptException e) {
+                    throw new WrapperException(e);
+                }
+            });
+        };
+    }
 
     public static CogInvoker scriptInvoker(Identifier scriptName) {
         return new CogInvoker((name, args, script, o) -> {
             CogScriptEnvironment.dispatchScriptGlobal(scriptName);
-            return null;
-        });
-    }
-    public static CogInvoker eventScriptInvoker(Identifier scriptName) {
-        return new CogInvoker((name, args, script, o) -> {
-            CogScriptEnvironment.dispatchScriptGlobal(scriptName, (ScriptStorage) args.get(0));
             return null;
         });
     }

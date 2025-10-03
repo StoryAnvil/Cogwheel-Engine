@@ -16,7 +16,7 @@ import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
-import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
+import com.storyanvil.cogwheel.infrastructure.cog.PreventChainCalling;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +53,7 @@ public class CMA implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventChainCalling, CogScriptException {
         return MANAGER.get(name, args, script, this, () -> {
             try {
                 return parent._getProperty(name, args, script, this);

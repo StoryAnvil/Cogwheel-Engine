@@ -1,0 +1,13 @@
+{
+  "type": "OBJECT",
+  "summary": "Represents minecraft entity",
+  "methods": {
+    "isValid": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "... short description of this property ...",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
+    }
+  }
+}

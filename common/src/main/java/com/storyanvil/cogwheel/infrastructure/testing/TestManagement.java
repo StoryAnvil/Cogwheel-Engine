@@ -15,7 +15,8 @@ package com.storyanvil.cogwheel.infrastructure.testing;
 import com.google.gson.*;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.config.CogwheelConfig;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelClientConfig;
@@ -24,6 +25,7 @@ import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
 import com.storyanvil.cogwheel.infrastructure.env.TestEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.script.ScriptLine;
+import com.storyanvil.cogwheel.infrastructure.script.StreamExecutionScript;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -46,12 +48,18 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
     private static final Logger log = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/TESTS");
     private TestManagement() {}
 
-    private ArrayList<Result> results = new ArrayList<>();
+    private final ArrayList<Result> results = new ArrayList<>();
     private boolean autoOnly;
+    private boolean performanceTesting = false;
 
     public static void startTesting(boolean autoOnly) {
         String uuid = UUID.randomUUID().toString();
-        Thread thread = new Thread(() -> startTestingInternal(autoOnly, uuid), "storyanvil-test-worker-" + uuid);
+        Thread thread = new Thread(() -> startTestingInternal(autoOnly, false, uuid), "storyanvil-test-worker-" + uuid);
+        thread.start();
+    }
+    public static void startTestingPerformance() {
+        String uuid = UUID.randomUUID().toString();
+        Thread thread = new Thread(() -> startTestingInternal(true, true, uuid), "storyanvil-test-worker-" + uuid);
         thread.start();
     }
     private static void sendTestingMessage(Text msg) {
@@ -61,7 +69,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             }
         } catch (NullPointerException ignored) {}
     }
-    private static void startTestingInternal(boolean autoOnly, String id) {
+    private static void startTestingInternal(boolean autoOnly, boolean performanceTesting, String id) {
         File testingFolder = new File(CogwheelHooks.getConfigFolder(), "cog/tests");
         if (!CogwheelClientConfig.getTestsDirectory().isEmpty()) {
             File copyTests = new File(CogwheelClientConfig.getTestsDirectory());
@@ -82,6 +90,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         }
         TestManagement management = new TestManagement();
         management.autoOnly = autoOnly;
+        management.performanceTesting = performanceTesting;
         sendTestingMessage(Text.literal("[CogwheelEngine] Testing started").formatted(Formatting.GRAY));
         StoryUtils.discoverDirectory(testingFolder, management::runTest);
         JsonArray obj = new JsonArray();
@@ -89,12 +98,16 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         for (Result testResult : management.results) {
             JsonObject test = new JsonObject();
             test.addProperty("name", testResult.testName);
+            test.addProperty("comment", testResult.comment);
             test.addProperty("status", testResult.status.name());
             test.addProperty("time", testResult.timeSpend + "ms");
             if (testResult.fail != null) {
                 JsonArray trace = new JsonArray();
                 createTrace(trace, testResult.fail, "Exception in test ");
                 test.add("trace", trace);
+            }
+            if (testResult.getData() != null) {
+                test.add("data", testResult.getData());
             }
             if (testResult.status == Status.TEST_FAILED || testResult.status == Status.MANAGER_FAILED) {
                 fails++;
@@ -116,6 +129,14 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             env.addProperty("os-name", System.getProperty("os.name"));
             env.addProperty("os-arch", System.getProperty("os.arch"));
             env.addProperty("os-version", System.getProperty("os.version"));
+            if (CogwheelClientConfig.isRunningInIDE()) {
+                JsonObject configs = new JsonObject();
+                configs.add("client", CogwheelClientConfig.getConfig());
+                configs.add("default", CogwheelConfig.getConfig());
+                env.add("configs", configs);
+            } else {
+                env.addProperty("configs", "IDE mode is disabled. Can not get configs");
+            }
         } catch (Exception e) {
             JsonArray trace = new JsonArray();
             createTrace(trace, e, "Failed to get env data. Exception ");
@@ -171,6 +192,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         }
     }
 
+    public static final int PERFORMANCE_ITERATIONS = 10;
     public void runTest(File file, String path) {
         if (file.getName().equals("results.json")) return;
         if (!file.getName().endsWith(".json")) return;
@@ -179,20 +201,122 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         results.add(result);
         try (FileReader fr = new FileReader(file)) {
             JsonObject obj = JsonParser.parseReader(fr).getAsJsonObject();
+            if (obj.has("comment")) {
+                result.comment = obj.get("comment").getAsString();
+            }
             if (obj.has("auto") && !obj.get("auto").getAsBoolean() && autoOnly) {
                 result.setStatus(Status.SKIPPED);
-                result.setFail(new Exception("Test is marked as NON-AUTO, but current testing context only allows AUTO tests"));
+                result.setFail(new WrapperException("Test is marked as NON-AUTO, but current testing context only allows AUTO tests"));
+                sendTestingMessage(Text.literal("[CogwheelEngine] " + result.testName + " -> ").formatted(Formatting.GRAY)
+                        .append(Text.literal(result.status.name()).formatted(result.status.formatting)));
                 return;
             }
-            TestType type = TestType.valueOf(obj.get("type").getAsString());
-            try {
-                type.handler.handle(result, obj, this);
-            } catch (Throwable e) {
-                result.failWith(e);
-                log.error("Test {} failed with exception", result.testName, result.fail);
-            }
-            if (result.fail != null) {
-                result.status = Status.TEST_FAILED;
+            boolean isStressTest = obj.has("stress") && obj.getAsJsonPrimitive("stress").getAsBoolean();
+            if (isStressTest) {
+                if (!performanceTesting) {
+                    result.setStatus(Status.SKIPPED);
+                    result.setFail(new WrapperException("Test is marked as STRESS-TEST, but current testing context does not run STRESS-TESTS"));
+                    sendTestingMessage(Text.literal("[CogwheelEngine] " + result.testName + " -> ").formatted(Formatting.GRAY)
+                            .append(Text.literal(result.status.name()).formatted(result.status.formatting)));
+                    return;
+                }
+                TestType type = TestType.valueOf(obj.get("type").getAsString());
+                result.setStatus(Status.OK);
+                ArrayList<Profiler> profilers = new ArrayList<>(PERFORMANCE_ITERATIONS);
+                for (int i = 0; i <= PERFORMANCE_ITERATIONS; i++) {
+                    Result iterationResult = new Result(result.getTestName() + '#' + i);
+                    iterationResult.profiler = new Profiler(System.currentTimeMillis());
+                    try {
+                        type.handler.handle(iterationResult, obj, this);
+                    } catch (Throwable t) {
+                        result.failWith(new WrapperException("At performance testing iteration #" + i, t));
+                        log.error("Test {} failed with exception", result.testName, result.fail);
+                        break;
+                    }
+                    if (iterationResult.fail != null) {
+                        iterationResult.status = Status.TEST_FAILED;
+                    }
+                    iterationResult.profiler.finishState("Finish");
+                    profilers.add(iterationResult.profiler);
+                }
+                try {
+                    int spacing = 0;
+                    for (Bi<Integer, String> state : profilers.getFirst().timings) {
+                        spacing = Math.max(state.getB().length(), spacing);
+                    }
+                    JsonArray timings = new JsonArray();
+                    for (Bi<Integer, String> state : profilers.getFirst().timings) {
+                        int avg = 0;
+                        int avgAmount = 0;
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(state.getB()).append(" ".repeat(spacing - state.getB().length()));
+                        sb.append(" | ");
+
+                        profs:
+                        for (Profiler profiler : profilers) {
+                            Bi<Integer, String> pState = null;
+                            int pStateIndex = 0;
+                            while (pState == null && pStateIndex < profiler.timings.size()) {
+                                if (profiler.timings.get(pStateIndex).getB().equals(state.getB())) {
+                                    pState = profiler.timings.get(pStateIndex);
+                                }
+                                pStateIndex++;
+                            }
+                            if (pState == null) {
+                                sb.append(" ---  | ");
+                                continue profs;
+                            }
+                            String time = String.valueOf(pState.getA());
+                            avgAmount++;
+                            avg += pState.getA();
+                            if (time.length() > 5) {
+                                sb.append("OVERF | ");
+                            } else if (time.length() == 5) {
+                                sb.append(time).append(" | ");
+                            } else {
+                                sb.append(" ".repeat(5 - time.length())).append(time).append(" | ");
+                            }
+                        }
+                        String time = String.valueOf(avg / avgAmount);
+                        if (time.length() > 5) {
+                            sb.append("OVERF | ");
+                        } else if (time.length() == 5) {
+                            sb.append(time).append(" | ");
+                        } else {
+                            sb.append(" ".repeat(5 - time.length())).append(time).append(" | ");
+                        }
+                        timings.add(sb.toString());
+                    }
+                    result.addData("profilers", timings);
+                    int avg = 0;
+                    for (Profiler profiler : profilers) {
+                        for (Bi<Integer, String> timing : profiler.timings) {
+                            avg += timing.getA();
+                        }
+                    }
+                    avg /= profilers.size();
+                    result.addData("avgTime", new JsonPrimitive(avg));
+                } catch (Exception e) {
+                    result.failWith(new WrapperException("Failed to collect statistics", e));
+                }
+            } else {
+                if (performanceTesting) {
+                    result.setStatus(Status.SKIPPED);
+                    result.setFail(new WrapperException("Test is NOT marked as STRESS-TEST, but current testing context does not run STRESS-TESTS"));
+                    sendTestingMessage(Text.literal("[CogwheelEngine] " + result.testName + " -> ").formatted(Formatting.GRAY)
+                            .append(Text.literal(result.status.name()).formatted(result.status.formatting)));
+                    return;
+                }
+                TestType type = TestType.valueOf(obj.get("type").getAsString());
+                try {
+                    type.handler.handle(result, obj, this);
+                } catch (Throwable e) {
+                    result.failWith(e);
+                    log.error("Test {} failed with exception", result.testName, result.fail);
+                }
+                if (result.fail != null) {
+                    result.status = Status.TEST_FAILED;
+                }
             }
         } catch (IOException | JsonIOException | JsonSyntaxException | IllegalStateException | IllegalArgumentException e) {
             result.failWith(e);
@@ -208,6 +332,18 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         private Status status = Status.IN_PROGRESS;
         private Throwable fail = null;
         private long timeSpend = -1;
+        public Profiler profiler;
+        private JsonObject data = null;
+        private String comment = "no comment";
+
+        public void addData(String key, JsonElement data) {
+            if (this.data == null) this.data = new JsonObject();
+            this.data.add(key, data);
+        }
+
+        public JsonObject getData() {
+            return data;
+        }
 
         public Result(String testName) {
             this.testName = testName;
@@ -281,20 +417,44 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         public boolean failIfNot(boolean shouldNotFail, String msg) throws Throwable {
             return failIfNot(shouldNotFail, () -> new RuntimeException(msg));
         }
-        public void executeSafely(DangerousRunnable r) {
+        public <E extends Throwable> void executeSafely(DangerousRunnable<E> r) {
             try {
                 r.run();
             } catch (Throwable e) {
                 failWith(e);
             }
         }
-        public void executeSafely(DangerousRunnable r, String failMsg) {
+        public <E extends Throwable> void executeSafely(DangerousRunnable<E> r, String failMsg) {
             try {
                 r.run();
             } catch (Throwable e) {
                 failWith(new WrapperException(failMsg, e));
             }
         }
+    }
+    public static class Profiler {
+        private long started;
+        private final ArrayList<Bi<Integer, String>> timings = new ArrayList<>();
+
+        public Profiler(long started) {
+            this.started = started;
+        }
+
+        public void finishState(String name) {
+            long l = System.currentTimeMillis();
+            timings.add(new Bi<>(Math.toIntExact(l - started), name));
+            started = l;
+        }
+
+//        public JsonArray toJSON() {
+//            JsonArray array = new JsonArray();
+//            int last = 0;
+//            for (Bi<Integer, String> report : timings) {
+//                array.add("@%sms - %s (this step took %sms)".formatted(report.getA(), report.getB(), report.getA() - last));
+//                last = report.getA();
+//            }
+//            return array;
+//        }
     }
     public static enum Status {
         IN_PROGRESS(Formatting.GOLD), TEST_FAILED(Formatting.RED), MANAGER_FAILED(Formatting.RED), OK(Formatting.GREEN), SKIPPED(Formatting.DARK_GRAY);
@@ -323,6 +483,9 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             if (script == null) throw new AssertionError("No script were found!");
             CogwheelExecutor.schedule(() -> {
                 script.setOnEnd(threadLock::countDown);
+                script.setErrorHandler(scriptException -> {
+                    result.failWith(new WrapperException("Script exception got caught", scriptException));
+                });
                 try {
                     Thread.sleep(2); // Give some time for test-worker to start waiting
                 } catch (InterruptedException e) {
@@ -344,87 +507,6 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
                 throw new AssertionError("Script execution timeout reached. Script took longer than 5000ms and was terminated");
             }
         }),
-        @Api.Internal @ApiStatus.Internal
-        COGSCRIPT_DOCS((result, manifest, management) -> {
-            throw new WrapperException("COGSCRIPT_DOCS test type is not allowed.");
-            /*ConfigurationBuilder cfg = new ConfigurationBuilder();
-            cfg.forPackage("com.storyanvil", TestManagement.class.getClassLoader());
-            cfg.filterInputsBy(new FilterBuilder().includePackage("com.storyanvil"));
-            cfg.setScanners(Scanners.SubTypes);
-            Reflections ref = new Reflections(cfg);
-
-            for (Class<? extends CGPM> clazz : ref.getSubTypesOf(CGPM.class)) {
-                TestIgnoreDocs acknowledgedIgnorance = clazz.getAnnotation(TestIgnoreDocs.class);
-                if (acknowledgedIgnorance != null) continue;
-                Constructor<? extends CGPM> constructor;
-                try {
-                    constructor = clazz.getConstructor(TestManagement.class);
-                } catch (NoSuchMethodException | SecurityException e) {
-                    result.failWith(new WrapperException("Failed to get TestManagement constructor for CGPM: " + clazz.getCanonicalName(), e));
-                    continue;
-                }
-                CGPM testingInstance = constructor.newInstance(management);
-                testingInstance.hasOwnProperty("plsinit"); // Call CGPM#hasOwnProperty, so CGPM will be surly initialized
-            }
-
-            // Iterate through all registered properties
-            // btw, I know it will only find Cogwheel Engine's properties
-            // COGSCRIPT_DOCS test type is internal!
-            HashMap<String, HashSet<String>> allProperties = new HashMap<>();
-            for (Map.Entry<String, PropertyHandler> entry : EasyPropManager.allHandlers.entrySet()) {
-                String[] keyData = entry.getKey().split("\\.");
-                if (keyData.length != 2) {
-                    result.failWith(new RuntimeException("EasyPropManager registry instance: \"" + entry.getKey() + "\" does not have valid name"));
-                    continue;
-                }
-                if (!allProperties.containsKey(keyData[0])) {
-                    allProperties.put(keyData[0], new HashSet<>(1));
-                }
-                allProperties.get(keyData[0]).add(keyData[1]);
-            }
-            for (Map.Entry<String, HashSet<String>> objects : allProperties.entrySet()) {
-                try {
-                    JsonObject doc = CogwheelHooks.readJarResource("docs/" + objects.getKey());
-                    HashSet<String> properties = objects.getValue();
-                    JsonObject props = doc.getAsJsonObject("props");
-                    for (String propName : properties) {
-                        JsonObject prop = props.getAsJsonObject(propName);
-                        if (prop == null) {
-                            result.failWith(new RuntimeException("No docs for property \"" + propName + "\" of EasyPropManager with id \"" + objects.getKey() + "\""));
-                            continue;
-                        }
-                        // Validate property description
-                        try {
-                            String failMsg = "In property \"" + propName + "\" from EasyPropManager: " + objects.getKey();
-                            result.executeSafely(() ->
-                                    result.failIfNot(
-                                            result.failIfNull(prop.get("return").getAsJsonPrimitive(), "Failed to find valid \"return\" JSON property")
-                                                    .isString()
-                                    , "\"return\" property is not string")
-                            , failMsg);
-
-                            if (prop.has("summary"))
-                                result.executeSafely(() ->
-                                        result.failIfNot(
-                                                result.failIfNull(prop.get("summary").getAsJsonPrimitive(), "Failed to find valid \"summary\" optional JSON property which is primitive")
-                                                        .isString()
-                                        , "\"summary\" property is not string")
-                                , failMsg);
-
-                            result.executeSafely(() ->
-                                            result.failIfNull(prop.get("args").getAsJsonArray(), "Failed to find valid \"args\" JSON array")
-                            , failMsg);
-                        } catch (Exception e) {
-                            result.failWith(new WrapperException("Failed to verify docs for EasyPropManager with id \"" + objects.getKey() + "\": Property description is invalid; Property name is " + propName , e));
-                            continue;
-                        }
-                    }
-                } catch (Exception e) {
-                    result.failWith(new WrapperException("Failed to verify docs for EasyPropManager with id \"" + objects.getKey() + "\"" , e));
-                    continue;
-                }
-            }*/
-        }),
         SCRIPT_READER((result, manifest, management) -> {
             TestEnvironment environment = new TestEnvironment();
             DispatchedScript script = CogScriptDispatcher.dispatchUnsafe(environment.getScript(manifest.getAsJsonPrimitive("scriptName").getAsString()), new ScriptStorage(),  environment, false);
@@ -435,6 +517,55 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
                 throw new WrapperException("Script does not match expected script.");
             }
             result.setStatus(Status.OK);
+        }),
+        PERF_CGPM((result, manifest, management) -> {
+            TestEnvironment environment = new TestEnvironment();
+            ArrayList<ScriptLine> lines = new ArrayList<>();
+            final String line = "cgpm.testMethod";
+            for (int i = 0; i < 10000; i++) {
+                lines.add(new ScriptLine(line + i % 7 + "()"));
+            }
+            StreamExecutionScript script = new StreamExecutionScript(lines, environment);
+            String cgpmType = manifest.getAsJsonPrimitive("cgpm").getAsString();
+            switch (cgpmType) {
+                case "easy" -> {
+                    script.put("cgpm", new TestObjects.TestEasyCGPM());
+                }
+                case "jw" -> {
+                    script.put("cgpm", new TestObjects.TestJWCGPM());
+                }
+                case "basic" -> {
+                    script.put("cgpm", new TestObjects.TestBasicCGPM());
+                }
+                default -> {
+                    result.failWith(new Throwable("Invalid cgpm type: " + cgpmType));
+                    return;
+                }
+            }
+            CountDownLatch threadLock = new CountDownLatch(1);
+            result.profiler.finishState("Script created");
+            CogwheelExecutor.schedule(() -> {
+                script.setOnEnd(threadLock::countDown);
+                script.setErrorHandler(scriptException -> {
+                    result.failWith(new WrapperException("Script exception got caught", scriptException));
+                    script.haltExecution();
+                    threadLock.countDown();
+                });
+                try {
+                    Thread.sleep(2); // Give some time for test-worker to start waiting
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                script.lineDispatcher();
+            });
+            boolean executed = threadLock.await(15000, TimeUnit.MILLISECONDS);
+            if (executed) {
+                result.profiler.finishState("Executed");
+                result.setStatus(Status.OK);
+            } else {
+                result.profiler.finishState("Timed out (>15000ms)");
+                result.setStatus(Status.TEST_FAILED);
+            }
         });
 
         public final TestTypeHandler handler;

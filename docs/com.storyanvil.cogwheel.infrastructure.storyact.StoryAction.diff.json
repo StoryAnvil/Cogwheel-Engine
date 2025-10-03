@@ -1,0 +1,43 @@
+{
+  "type": "OBJECT",
+  "summary": "StoryAction",
+  "seeAlso": "page:storyanvil_dialogs",
+  "methods": {
+    "setLabel": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "label"
+      ],
+      "summary": "Assigns label to this StoryAction (can only have one label at a time)",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "getLabel": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Returns label assigned to this StoryAction",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+    },
+    "blocking": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Makes script wait util this StoryAction executes",
+      "preventsChainCalling": true,
+      "return": "null"
+    },
+    "then": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogInvoker"
+      ],
+      "argNames": [
+        "invoker"
+      ],
+      "summary": "Makes StoryAction invoke provided invoker when it had executed",
+      "preventsChainCalling": false,
+      "return": "null"
+    }
+  }
+}

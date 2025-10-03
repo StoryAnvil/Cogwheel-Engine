@@ -1,0 +1,5 @@
+{
+  "type": "OBJECT",
+  "summary": "StoryAction used to send NetworkPackets",
+  "methods": {}
+}

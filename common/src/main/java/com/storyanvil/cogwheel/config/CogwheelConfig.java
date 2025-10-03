@@ -21,14 +21,13 @@ import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.Bi;
 import com.storyanvil.cogwheel.util.ScriptLineHandler;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 import java.io.*;
 import java.util.*;
 
-import static com.storyanvil.cogwheel.CogwheelExecutor.log;
+import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
 
 public class CogwheelConfig {
     private static JsonObject json = null;
@@ -69,6 +68,7 @@ public class CogwheelConfig {
     private static boolean npcTalkingAnimation = true;
     private static boolean monitorEnabled = false;
     private static boolean devEnvironment = true;
+    private static JsonObject config = null;
 
     @Api.Stable(since = "2.8.0") @Api.MixinsNotAllowed(where = "CogwheelConfig#mixinsEntrypoint")
     public static synchronized void reload() {
@@ -112,6 +112,8 @@ public class CogwheelConfig {
         for (Bi<ScriptLineHandler, Boolean> lh : CogwheelRegistries.getLineHandlers()) {
             lh.setB(!disabledLH.contains(lh.getA().getIdentifier()));
         }
+        if (CogwheelClientConfig.isRunningInIDE())
+            CogwheelConfig.config = json;
 
         mixinsEntrypoint(json);
 
@@ -165,6 +167,13 @@ public class CogwheelConfig {
     @Api.Stable(since = "2.8.0")
     public static boolean isDevEnvironment() {
         return devEnvironment;
+    }
+
+    /**
+     * @return JsonObject of loaded config. Only works in IDE mode is enabled
+     */
+    public static JsonObject getConfig() {
+        return json;
     }
 
     /**

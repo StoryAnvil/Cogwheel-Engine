@@ -12,9 +12,8 @@
 
 package com.storyanvil.cogwheel.infrastructure;
 
-import com.mojang.datafixers.util.Function4;
 import com.mojang.datafixers.util.Function5;
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
@@ -33,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
-import static com.storyanvil.cogwheel.CogwheelExecutor.log;
+import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
 
 public class CogScriptDispatcher {
     public static void dispatch(String scriptName, CogScriptEnvironment environment) {

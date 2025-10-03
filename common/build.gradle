@@ -25,4 +25,6 @@ dependencies {
     modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
 
     modCompileOnly "software.bernie.geckolib:geckolib-common-${minecraft_version}:${geckolib_version}"
+
+//    compileOnly "io.github.classgraph:classgraph:4.8.181"
 }

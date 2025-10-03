@@ -1,0 +1,445 @@
+/*
+ * This file is part of ClassGraph.
+ *
+ * Author: Luke Hutchison
+ *
+ * Hosted at: https://github.com/classgraph/classgraph
+ *
+ * --
+ *
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2019 Luke Hutchison
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without
+ * limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+ * EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+ * OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.classgraph;
+
+import java.lang.annotation.Repeatable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import io.github.classgraph.ClassInfo.RelType;
+import io.github.classgraph.Classfile.TypeAnnotationDecorator;
+import nonapi.io.github.classgraph.types.ParseException;
+import nonapi.io.github.classgraph.types.TypeUtils;
+import nonapi.io.github.classgraph.types.TypeUtils.ModifierType;
+import nonapi.io.github.classgraph.utils.LogNode;
+
+/**
+ * Holds metadata about fields of a class encountered during a scan. All values are taken directly out of the
+ * classfile for the class.
+ */
+public class FieldInfo extends ClassMemberInfo implements Comparable<FieldInfo> {
+    /** The parsed type signature. */
+    private transient TypeSignature typeSignature;
+
+    /** The parsed type descriptor. */
+    private transient TypeSignature typeDescriptor;
+
+    /** The constant initializer value for the field, if any. */
+    // This is transient because the constant initializer value is final, so the value doesn't need to be serialized
+    private ObjectTypedValueWrapper constantInitializerValue;
+
+    /** The type annotation decorators for the {@link TypeSignature} instance of this field. */
+    private transient List<TypeAnnotationDecorator> typeAnnotationDecorators;
+
+    // -------------------------------------------------------------------------------------------------------------
+
+    /** Default constructor for deserialization. */
+    FieldInfo() {
+        super();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param definingClassName
+     *            The class the field is defined within.
+     * @param fieldName
+     *            The name of the field.
+     * @param modifiers
+     *            The field modifiers.
+     * @param typeDescriptorStr
+     *            The field type descriptor.
+     * @param typeSignatureStr
+     *            The field type signature.
+     * @param constantInitializerValue
+     *            The static constant value the field is initialized to, if any.
+     * @param annotationInfo
+     *            {@link AnnotationInfo} for any annotations on the field.
+     */
+    FieldInfo(final String definingClassName, final String fieldName, final int modifiers,
+            final String typeDescriptorStr, final String typeSignatureStr, final Object constantInitializerValue,
+            final AnnotationInfoList annotationInfo, final List<TypeAnnotationDecorator> typeAnnotationDecorators) {
+        super(definingClassName, fieldName, modifiers, typeDescriptorStr, typeSignatureStr, annotationInfo);
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must not be null");
+        }
+        this.constantInitializerValue = constantInitializerValue == null ? null
+                : new ObjectTypedValueWrapper(constantInitializerValue);
+        this.typeAnnotationDecorators = typeAnnotationDecorators;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Deprecated -- use {@link #getModifiersStr()} instead.
+     * 
+     * @deprecated Use {@link #getModifiersStr()} instead.
+     * @return The field modifiers, as a string.
+     */
+    @Deprecated
+    public String getModifierStr() {
+        return getModifiersStr();
+    }
+
+    /**
+     * Get the field modifiers as a string, e.g. "public static final". For the modifier bits, call getModifiers().
+     * 
+     * @return The field modifiers, as a string.
+     */
+    @Override
+    public String getModifiersStr() {
+        final StringBuilder buf = new StringBuilder();
+        TypeUtils.modifiersToString(modifiers, ModifierType.FIELD, /* ignored */ false, buf);
+        return buf.toString();
+    }
+
+    /**
+     * Returns true if this field is a transient field.
+     * 
+     * @return True if the field is transient.
+     */
+    public boolean isTransient() {
+        return Modifier.isTransient(modifiers);
+    }
+
+    /**
+     * Returns true if this field is an enum constant.
+     * 
+     * @return True if the field is an enum constant.
+     */
+    public boolean isEnum() {
+        return (modifiers & 0x4000) != 0;
+    }
+
+    /**
+     * Returns the parsed type descriptor for the field, which will not include type parameters. If you need generic
+     * type parameters, call {@link #getTypeSignature()} instead.
+     * 
+     * @return The parsed type descriptor string for the field.
+     */
+    @Override
+    public TypeSignature getTypeDescriptor() {
+        synchronized (this) {
+            if (typeDescriptorStr == null) {
+                return null;
+            }
+            if (typeDescriptor == null) {
+                try {
+                    typeDescriptor = TypeSignature.parse(typeDescriptorStr, declaringClassName);
+                    typeDescriptor.setScanResult(scanResult);
+                    if (typeAnnotationDecorators != null) {
+                        for (final TypeAnnotationDecorator decorator : typeAnnotationDecorators) {
+                            decorator.decorate(typeDescriptor);
+                        }
+                    }
+                } catch (final ParseException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }
+            return typeDescriptor;
+        }
+    }
+
+    /**
+     * Returns the parsed type signature for the field, possibly including type parameters. If this returns null,
+     * indicating that no type signature information is available for this field, call {@link #getTypeDescriptor()}
+     * instead.
+     * 
+     * @return The parsed type signature for the field, or null if not available.
+     * @throws IllegalArgumentException
+     *             if the field type signature cannot be parsed (this should only be thrown in the case of classfile
+     *             corruption, or a compiler bug that causes an invalid type signature to be written to the
+     *             classfile).
+     */
+    @Override
+    public TypeSignature getTypeSignature() {
+        synchronized (this) {
+            if (typeSignatureStr == null) {
+                return null;
+            }
+            if (typeSignature == null) {
+                try {
+                    typeSignature = TypeSignature.parse(typeSignatureStr, declaringClassName);
+                    typeSignature.setScanResult(scanResult);
+                    if (typeAnnotationDecorators != null) {
+                        for (final TypeAnnotationDecorator decorator : typeAnnotationDecorators) {
+                            decorator.decorate(typeSignature);
+                        }
+                    }
+                } catch (final ParseException e) {
+                    throw new IllegalArgumentException(
+                            "Invalid type signature for field " + getClassName() + "." + getName()
+                                    + (getClassInfo() != null
+                                            ? " in classpath element " + getClassInfo().getClasspathElementURI()
+                                            : "")
+                                    + " : " + typeSignatureStr,
+                            e);
+                }
+            }
+            return typeSignature;
+        }
+    }
+
+    /**
+     * Returns the type signature for the field, possibly including type parameters. If the type signature is null,
+     * indicating that no type signature information is available for this field, returns the type descriptor
+     * instead.
+     * 
+     * @return The parsed type signature for the field, or if not available, the parsed type descriptor for the
+     *         field.
+     */
+    @Override
+    public TypeSignature getTypeSignatureOrTypeDescriptor() {
+        TypeSignature typeSig = null;
+        try {
+            typeSig = getTypeSignature();
+            if (typeSig != null) {
+                return typeSig;
+            }
+        } catch (final Exception e) {
+            // Ignore
+        }
+        return getTypeDescriptor();
+    }
+
+    /**
+     * Returns the constant initializer value of a field. Requires
+     * {@link ClassGraph#enableStaticFinalFieldConstantInitializerValues()} to have been called. Will only return
+     * non-null for fields that have constant initializers, which is usually only fields of primitive type, or
+     * String constants. Also note that it is up to the compiler as to whether or not a constant-valued field is
+     * assigned as a constant in the field definition itself, or whether it is assigned manually in static or
+     * non-static class initializer blocks or the constructor -- so your mileage may vary in being able to extract
+     * constant initializer values.
+     * 
+     * @return The initializer value, if this field has a constant initializer value, or null if none.
+     */
+    public Object getConstantInitializerValue() {
+        if (!scanResult.scanSpec.enableStaticFinalFieldConstantInitializerValues) {
+            throw new IllegalArgumentException(
+                    "Please call ClassGraph#enableStaticFinalFieldConstantInitializerValues() " + "before #scan()");
+        }
+        return constantInitializerValue == null ? null : constantInitializerValue.get();
+    }
+
+    // -------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Load the class this field is associated with, and get the {@link Field} reference for this field.
+     * 
+     * @return The {@link Field} reference for this field.
+     * @throws IllegalArgumentException
+     *             if the class can't be loaded or the field does not exist.
+     */
+    public Field loadClassAndGetField() throws IllegalArgumentException {
+        try {
+            return loadClass().getField(getName());
+        } catch (final NoSuchFieldException e1) {
+            try {
+                return loadClass().getDeclaredField(getName());
+            } catch (final NoSuchFieldException e2) {
+                throw new IllegalArgumentException("No such field: " + getClassName() + "." + getName());
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Handle {@link Repeatable} annotations.
+     *
+     * @param allRepeatableAnnotationNames
+     *            the names of all repeatable annotations
+     */
+    void handleRepeatableAnnotations(final Set<String> allRepeatableAnnotationNames) {
+        if (annotationInfo != null) {
+            annotationInfo.handleRepeatableAnnotations(allRepeatableAnnotationNames, getClassInfo(),
+                    RelType.FIELD_ANNOTATIONS, RelType.CLASSES_WITH_FIELD_ANNOTATION,
+                    RelType.CLASSES_WITH_NONPRIVATE_FIELD_ANNOTATION);
+        }
+    }
+
+    // -------------------------------------------------------------------------------------------------------------
+
+    /* (non-Javadoc)
+     * @see io.github.classgraph.ScanResultObject#setScanResult(io.github.classgraph.ScanResult)
+     */
+    @Override
+    void setScanResult(final ScanResult scanResult) {
+        super.setScanResult(scanResult);
+        if (this.typeSignature != null) {
+            this.typeSignature.setScanResult(scanResult);
+        }
+        if (this.typeDescriptor != null) {
+            this.typeDescriptor.setScanResult(scanResult);
+        }
+        if (this.annotationInfo != null) {
+            for (final AnnotationInfo ai : this.annotationInfo) {
+                ai.setScanResult(scanResult);
+            }
+        }
+    }
+
+    /**
+     * Get {@link ClassInfo} objects for any classes referenced in the type descriptor or type signature.
+     *
+     * @param classNameToClassInfo
+     *            the map from class name to {@link ClassInfo}.
+     * @param refdClassInfo
+     *            the referenced class info
+     */
+    @Override
+    protected void findReferencedClassInfo(final Map<String, ClassInfo> classNameToClassInfo,
+            final Set<ClassInfo> refdClassInfo, final LogNode log) {
+        try {
+            final TypeSignature fieldSig = getTypeSignature();
+            if (fieldSig != null) {
+                fieldSig.findReferencedClassInfo(classNameToClassInfo, refdClassInfo, log);
+            }
+        } catch (final IllegalArgumentException e) {
+            if (log != null) {
+                log.log("Illegal type signature for field " + getClassName() + "." + getName() + ": "
+                        + getTypeSignatureStr());
+            }
+        }
+        try {
+            final TypeSignature fieldDesc = getTypeDescriptor();
+            if (fieldDesc != null) {
+                fieldDesc.findReferencedClassInfo(classNameToClassInfo, refdClassInfo, log);
+            }
+        } catch (final IllegalArgumentException e) {
+            if (log != null) {
+                log.log("Illegal type descriptor for field " + getClassName() + "." + getName() + ": "
+                        + getTypeDescriptorStr());
+            }
+        }
+        if (annotationInfo != null) {
+            for (final AnnotationInfo ai : annotationInfo) {
+                ai.findReferencedClassInfo(classNameToClassInfo, refdClassInfo, log);
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Use class name and field name for equals().
+     *
+     * @param obj
+     *            the object to compare to
+     * @return true if equal
+     */
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (!(obj instanceof FieldInfo)) {
+            return false;
+        }
+        final FieldInfo other = (FieldInfo) obj;
+        return declaringClassName.equals(other.declaringClassName) && name.equals(other.name);
+    }
+
+    /**
+     * Use hash code of class name and field name.
+     *
+     * @return the hashcode
+     */
+    @Override
+    public int hashCode() {
+        return name.hashCode() + declaringClassName.hashCode() * 11;
+    }
+
+    /**
+     * Sort in order of class name then field name.
+     *
+     * @param other
+     *            the other FieldInfo object to compare to.
+     * @return the result of comparison.
+     */
+    @Override
+    public int compareTo(final FieldInfo other) {
+        final int diff = declaringClassName.compareTo(other.declaringClassName);
+        if (diff != 0) {
+            return diff;
+        }
+        return name.compareTo(other.name);
+    }
+
+    // -------------------------------------------------------------------------------------------------------------
+
+    void toString(final boolean includeModifiers, final boolean useSimpleNames, final StringBuilder buf) {
+        if (annotationInfo != null) {
+            for (final AnnotationInfo annotation : annotationInfo) {
+                // There can be a paren in the previous position if this field is a record parameter
+                if (buf.length() > 0 && buf.charAt(buf.length() - 1) != ' '
+                        && buf.charAt(buf.length() - 1) != '(') {
+                    buf.append(' ');
+                }
+                annotation.toString(useSimpleNames, buf);
+            }
+        }
+
+        if (modifiers != 0 && includeModifiers) {
+            if (buf.length() > 0 && buf.charAt(buf.length() - 1) != ' ' && buf.charAt(buf.length() - 1) != '(') {
+                buf.append(' ');
+            }
+            TypeUtils.modifiersToString(modifiers, ModifierType.FIELD, /* ignored */ false, buf);
+        }
+
+        if (buf.length() > 0 && buf.charAt(buf.length() - 1) != ' ' && buf.charAt(buf.length() - 1) != '(') {
+            buf.append(' ');
+        }
+        final TypeSignature typeSig = getTypeSignatureOrTypeDescriptor();
+        typeSig.toStringInternal(useSimpleNames, /* annotationsToExclude = */ annotationInfo, buf);
+
+        buf.append(' ');
+        buf.append(name);
+
+        if (constantInitializerValue != null) {
+            final Object val = constantInitializerValue.get();
+            buf.append(" = ");
+            if (val instanceof String) {
+                buf.append('"').append(((String) val).replace("\\", "\\\\").replace("\"", "\\\"")).append('"');
+            } else if (val instanceof Character) {
+                buf.append('\'').append(((Character) val).toString().replace("\\", "\\\\").replaceAll("'", "\\'"))
+                        .append('\'');
+            } else {
+                buf.append(val == null ? "null" : val.toString());
+            }
+        }
+    }
+
+    @Override
+    protected void toString(final boolean useSimpleNames, final StringBuilder buf) {
+        toString(true, useSimpleNames, buf);
+    }
+}

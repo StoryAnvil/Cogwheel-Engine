@@ -1,0 +1,7 @@
+{
+    "auto": true,
+    "stress": true,
+    "type" : "PERF_CGPM",
+    "cgpm": "basic",
+    "comment": "Check speed of simplest (powered by just one if statement) possible CGPM"
+}

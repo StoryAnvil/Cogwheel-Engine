@@ -20,7 +20,7 @@ import net.minecraft.util.Identifier;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
-import static com.storyanvil.cogwheel.CogwheelExecutor.log;
+import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
 
 public final class DefaultEnvironment extends CogScriptEnvironment {
     private final HashMap<String, Consumer<Integer>> dialogs;

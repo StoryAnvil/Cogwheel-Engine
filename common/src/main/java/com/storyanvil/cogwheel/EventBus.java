@@ -13,7 +13,7 @@
 package com.storyanvil.cogwheel;
 
 import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.infrastructure.StoryAction;
+import com.storyanvil.cogwheel.infrastructure.storyact.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.cog.StoryLevel;
 import com.storyanvil.cogwheel.util.*;
 import net.minecraft.client.world.ClientWorld;

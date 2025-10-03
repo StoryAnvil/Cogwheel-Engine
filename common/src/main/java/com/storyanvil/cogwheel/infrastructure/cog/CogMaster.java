@@ -12,7 +12,8 @@
 
 package com.storyanvil.cogwheel.infrastructure.cog;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.infrastructure.util.CogUtils;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.api.Api;
@@ -32,10 +33,11 @@ import net.minecraft.util.TypeFilter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.naming.OperationNotSupportedException;
 import java.util.Map;
 import java.util.Random;
 
-import static com.storyanvil.cogwheel.CogwheelExecutor.log;
+import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
 
 public class CogMaster implements CGPM {
     private static final EasyPropManager MANAGER = new EasyPropManager("master", CogMaster::register);
@@ -80,7 +82,7 @@ public class CogMaster implements CGPM {
             return CogBool.getInstance(CogwheelConfig.isDevEnvironment());
         });
         manager.reg("getTaggedNPC", (name, args, script, o) -> {
-            throw new PreventSubCalling(new SubCallPostPrevention() {
+            throw new PreventChainCalling(new ChainCallPostPrevention() {
                 @Override
                 public void prevent(String variable) { //TODO: Possibility to select specific world NPC will be searched in
                     CogwheelExecutor.scheduleTickEvent(world -> {
@@ -107,7 +109,7 @@ public class CogMaster implements CGPM {
                         }
                         return true;
                     });
-                    notify.put(variable, npc[0]);
+                    notify.put(variable, CogUtils.makeCogNPC(npc[0]));
                     if (npc[0] == null) {
                         log.info("{}: No NPC with tag {} found!", notify.getScriptName(), tag);
                     }
@@ -137,7 +139,8 @@ public class CogMaster implements CGPM {
             return CogBool.FALSE;
         });
         manager.reg("getLevel", (name, args, script, o) -> {
-            return EventBus.getStoryLevel();
+//            return EventBus.getStoryLevel();
+            throw script.wrap(new OperationNotSupportedException("getLevel will be removed"));
         });
         manager.reg("disposeVariable", (name, args, script, o) -> {
             script.getStorage().remove(args.getString(0));
@@ -170,9 +173,9 @@ public class CogMaster implements CGPM {
             return null;
         });
         manager.reg("scheduleThis", (name, args, script, o) -> {
-            throw new PreventSubCalling(new SubCallPostPrevention() {
+            throw new PreventChainCalling(new ChainCallPostPrevention() {
                 @Override
-                public void prevent(String variable) {
+                public void prevent(String variable) throws CogScriptException {
                     CogwheelExecutor.schedule(script::lineDispatcher, args.requireInt(0));
                 }
             });
@@ -185,7 +188,7 @@ public class CogMaster implements CGPM {
             return null;
         });
         manager.reg("waitForStoryActionLabel", (name, args, script, o) -> {
-            throw new PreventSubCalling(new SubCallPostPrevention() {
+            throw new PreventChainCalling(new ChainCallPostPrevention() {
                 @Override
                 public void prevent(String variable) {
                     EventBus.register(args.getString(0), (label, host) -> {

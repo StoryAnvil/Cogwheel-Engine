@@ -12,14 +12,25 @@
 
 package com.storyanvil.cogwheel.network.mc;
 
-import com.storyanvil.cogwheel.data.IStoryPacketContext;
-import com.storyanvil.cogwheel.data.StoryCodec;
-import com.storyanvil.cogwheel.data.StoryCodecBldr;
-import com.storyanvil.cogwheel.data.StoryPacket;
+import com.storyanvil.cogwheel.data.*;
+import com.storyanvil.cogwheel.entity.AbstractNPC;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.TypeFilter;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
+import org.jetbrains.annotations.Nullable;
 
-public record AnimationBound(String animatorID, String animation) implements StoryPacket<AnimationBound> {
+import java.util.List;
+
+import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
+
+public record AnimationBound(Identifier animatorID, String animation) implements StoryPacket<AnimationBound> {
     public static final StoryCodec<AnimationBound> CODEC = StoryCodecBldr.build(
-            StoryCodecBldr.String(AnimationBound::animatorID),
+            StoryCodecBldr.Prop(AnimationBound::animatorID, StoryCodecs.IDENTIFIER),
             StoryCodecBldr.String(AnimationBound::animation),
             AnimationBound::new
     );
@@ -31,6 +42,35 @@ public record AnimationBound(String animatorID, String animation) implements Sto
 
     @Override
     public void onClientUnsafe(IStoryPacketContext ctx) {
-        CogwheelClientPacketHandler.animationBound(this, ctx);
+        CogwheelExecutor.scheduleTickEventClientSide(level -> {
+            ClientPlayerEntity player = MinecraftClient.getInstance().player;
+            if (player == null) {
+                log.warn("Failed to run animation bound because LocalPlayer is NULL!");
+                return;
+            }
+            BlockPos pos = new BlockPos(player.getBlockX(), player.getBlockY(), player.getBlockZ());
+            int d = 1000;
+            Box aabb = new Box(pos.south(d).east(d).down(d).toCenterPos(), pos.north(d).west(d).up(d).toCenterPos());
+            List<Entity> e = level.getEntitiesByType(new TypeFilter<Entity, Entity>() {
+                @Override
+                public @Nullable Entity downcast(Entity obj) {
+                    if (obj instanceof AbstractNPC<?> npc) return obj;
+                    return null;
+                }
+
+                @Override
+                public Class<? extends Entity> getBaseClass() {
+                    return Entity.class;
+                }
+            }, aabb, entity -> ((AbstractNPC<?>) entity).npc$equalsCheckForAnimatorID(animatorID()));
+            if (e.isEmpty()) {
+                log.warn("Failed to run animation bound for {}->{} | No AbstractNPCs found", animatorID(), animation());
+                return;
+            }
+            for (Entity entity : e) {
+                AbstractNPC<?> animator = (AbstractNPC<?>) entity;
+                animator.npc$pushAnimation(animation());
+            }
+        });
     }
 }

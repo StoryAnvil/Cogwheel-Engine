@@ -63,4 +63,15 @@ public final class Api {
     public @interface MixinsNotAllowed {
         String where() default "UNSPECIFIED";
     }
+
+    /**
+     * This annotation is used to mark elements that should only be accessed on server-side
+     */
+    @Documented @Retention(RetentionPolicy.CLASS)
+    public @interface ServerSideOnly {}
+    /**
+     * This annotation is used to mark elements that should only be accessed on client-side
+     */
+    @Documented @Retention(RetentionPolicy.CLASS)
+    public @interface ClientSideOnly {}
 }

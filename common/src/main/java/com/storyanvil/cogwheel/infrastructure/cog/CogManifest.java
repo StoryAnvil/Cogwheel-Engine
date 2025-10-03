@@ -67,7 +67,7 @@ public class CogManifest implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventChainCalling, CogScriptException {
         return MANAGER.get(name).handle(name, args, script, this);
     }
 

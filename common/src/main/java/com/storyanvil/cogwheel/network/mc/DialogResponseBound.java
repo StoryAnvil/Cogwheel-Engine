@@ -12,7 +12,7 @@
 
 package com.storyanvil.cogwheel.network.mc;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.data.IStoryPacketContext;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryCodecBldr;

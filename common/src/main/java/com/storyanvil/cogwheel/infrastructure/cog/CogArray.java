@@ -70,9 +70,7 @@ public class CogArray implements CGPM, ForEachManager {
         if (name.startsWith("$")) {
             String sub = name.substring(1);
             for (CGPM t : list) {
-                if (t.hasOwnProperty(sub)) {
-                    t.getProperty(sub, args, script);
-                } else throw new RuntimeException("Array element does not have property " + sub);
+                t.getProperty(sub, args, script);
             }
             return null;
         }

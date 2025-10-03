@@ -12,7 +12,7 @@
 
 package com.storyanvil.cogwheel.network.devui.editor;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.client.devui.PacketParcel;
 import com.storyanvil.cogwheel.data.SyncArray;
@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.storyanvil.cogwheel.CogwheelExecutor.log;
+import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
 
 public class DevEditorSession {
     private static final HashMap<Identifier, DevEditorSession> sessions = new HashMap<>();

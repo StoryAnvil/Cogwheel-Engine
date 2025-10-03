@@ -32,15 +32,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
+
 public class StoryUtils {
-    @Api.Stable(since = "2.0.0") @Deprecated(forRemoval = true)
-    public static void sendGlobalMessage(@NotNull ServerWorld level, Text msg) {
-        for (ServerPlayerEntity player : level.getPlayers()) {
-            player.sendMessage(msg);
+    public static void requireCogwheelThread() {
+        if (!Thread.currentThread().getThreadGroup().parentOf(CogwheelExecutor.executorGroup)) {
+            RuntimeException e = new RuntimeException("Only CogwheelExecutor threads are allowed!");
+            log.error("[!CRITICAL!] CODE EXECUTION WAS DISMISSED!", e);
+            throw e;
         }
     }
 
@@ -274,5 +276,17 @@ public class StoryUtils {
             bytes[i] = buf.readByte();
         }
         return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    public static JsonArray arrayWith(JsonElement e) {
+        JsonArray array = new JsonArray(1);
+        array.add(e);
+        return array;
+    }
+    public static JsonArray arrayWith(String e) {
+        return arrayWith(new JsonPrimitive(e));
+    }
+    public static JsonArray arrayWith(int e) {
+        return arrayWith(new JsonPrimitive(e));
     }
 }

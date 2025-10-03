@@ -37,42 +37,49 @@ public class ArgumentData {
         if (argument >= args.length) throw new RuntimeException("Not enough arguments: contains only " + args.length + " but " + argument + " is needed!");
         return args[argument];
     }
-    public CogPrimalType requirePrimal(int argument) {
+    public CogPrimalType requirePrimal(int argument) throws CogScriptException {
         CGPM m = get(argument);
         if (m instanceof CogPrimalType i) {
             return i;
         }
-        throw new RuntimeException("Argument #" + argument + " is not primal type");
+        throw script.wrap(new RuntimeException("Argument #" + argument + " is not primal type"));
     }
-    public int requireInt(int argument) {
+    public int requireInt(int argument) throws CogScriptException {
         CGPM m = get(argument);
         if (m instanceof CogInteger i) {
             return i.getValue();
         }
-        throw new RuntimeException("Argument #" + argument + " is not CogInteger");
+        throw script.wrap(new RuntimeException("Argument #" + argument + " is not CogInteger"));
     }
-    public CogInvoker requireInvoker(int argument) {
+    public String requireString(int argument) throws CogScriptException {
+        CGPM m = get(argument);
+        if (m instanceof CogString i) {
+            return i.getValue();
+        }
+        throw script.wrap(new RuntimeException("Argument #" + argument + " is not CogString"));
+    }
+    public CogInvoker requireInvoker(int argument) throws CogScriptException {
         CGPM m = get(argument);
         if (m instanceof CogInvoker i) {
             return i;
         }
-        throw new RuntimeException("Argument #" + argument + " is not CogInvoker");
+        throw script.wrap(new RuntimeException("Argument #" + argument + " is not CogInvoker"));
     }
-    public long requireLong(int argument) {
+    public long requireLong(int argument) throws CogScriptException {
         CGPM m = get(argument);
         if (m instanceof CogLong i) {
             return i.getValue();
         }
-        throw new RuntimeException("Argument #" + argument + " is not CogLong");
+        throw script.wrap(new RuntimeException("Argument #" + argument + " is not CogLong"));
     }
-    public boolean requireBoolean(int argument) {
+    public boolean requireBoolean(int argument) throws CogScriptException {
         CGPM m = get(argument);
         if (m instanceof CogBool i) {
             return i.getValue();
         }
-        throw new RuntimeException("Argument #" + argument + " is not CogBool");
+        throw script.wrap(new RuntimeException("Argument #" + argument + " is not CogBool"));
     }
-    public double requireDouble(int argument) {
+    public double requireDouble(int argument) throws CogScriptException {
         CGPM m = get(argument);
         if (m instanceof CogDouble i) {
             return i.getValue();
@@ -80,9 +87,9 @@ public class ArgumentData {
         if (m instanceof CogInteger i) {
             return i.getValue();
         }
-        throw new RuntimeException("Argument #" + argument + " is not CogDouble");
+        throw script.wrap(new RuntimeException("Argument #" + argument + " is not CogDouble"));
     }
-    public double requireDoubleOrInt(int argument) {
+    public double requireDoubleOrInt(int argument) throws CogScriptException {
         CGPM m = get(argument);
         if (m instanceof CogDouble i) {
             return i.getValue();
@@ -90,7 +97,7 @@ public class ArgumentData {
         if (m instanceof CogInteger i) {
             return i.getValue();
         }
-        throw new RuntimeException("Argument #" + argument + " is not CogDouble/CogInteger");
+        throw script.wrap(new RuntimeException("Argument #" + argument + " is not CogDouble/CogInteger"));
     }
     public String getString(int argument) {
         CGPM m = get(argument);
