@@ -1,0 +1,5 @@
+{
+  "type": "OBJECT",
+  "summary": "Object that houses methods for getting other Cogwheel Engine's objects",
+  "methods": {}
+}

@@ -13,6 +13,6 @@
 package com.storyanvil.cogwheel.util;
 
 @FunctionalInterface
-public interface DangerousRunnable {
-    void run() throws Throwable;
+public interface DangerousRunnable<E extends Throwable> {
+    void run() throws E;
 }

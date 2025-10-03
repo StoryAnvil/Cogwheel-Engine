@@ -25,7 +25,7 @@ package com.storyanvil.cogwheel.infrastructure.actions; ///*
 //
 //package com.storyanvil.cogwheel.infrastructure.actions;
 //
-//import com.storyanvil.cogwheel.infrastructure.StoryAction;
+//import com.storyanvil.cogwheel.infrastructure.storyact.StoryAction;
 //import net.minecraft.commands.arguments.EntityAnchorArgument;
 //import net.minecraft.util.MathHelper;
 //import net.minecraft.world.entity.Entity;

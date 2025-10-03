@@ -17,6 +17,7 @@ import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,19 @@ public class CogwheelClientConfig {
         }
         try {
             return e.getAsBoolean();
+        } catch (UnsupportedOperationException | IllegalStateException ignored) {
+            json.addProperty(name, defauld);
+            return defauld;
+        }
+    }
+    private static int getInt(String name, int defauld) {
+        JsonElement e = json.get(name);
+        if (e == null || !e.isJsonPrimitive()) {
+            json.addProperty(name, defauld);
+            return defauld;
+        }
+        try {
+            return e.getAsInt();
         } catch (UnsupportedOperationException | IllegalStateException ignored) {
             json.addProperty(name, defauld);
             return defauld;
@@ -78,7 +92,9 @@ public class CogwheelClientConfig {
     private static boolean showAllLogs = false;
     private static boolean enableTraceLogs = false;
     private static String testsDirectory = "";
+    private static String docsDirectory = "";
     private static HashSet<String> ignoredLoggers = new HashSet<>();
+    private static JsonObject config;
 
     @Api.Stable(since = "2.10.2") @Api.MixinsNotAllowed(where = "CogwheelClientConfig#mixinsEntrypoint")
     public static synchronized void reload() {
@@ -121,11 +137,21 @@ public class CogwheelClientConfig {
         showAllLogs = getBool("showAllLogs", ide);
         enableTraceLogs = getBool("showAllLogsForTrace", showAllLogs);
         testsDirectory = getString("testsDirectory", "");
+        docsDirectory = getString("docsDirectory", "");
         ignoredLoggers = new HashSet<>(
                 getStringArray("hiddenLoggers", List.of("FabricLoader/Mixin"))
         );
+        CogwheelExecutor.init(
+                getInt("executorMinThreads", 2),
+                getInt("executorMaxThreads", 2)
+        );
 
         mixinsEntrypoint(json);
+
+        if (ide) {
+            CogwheelClientConfig.config = json;
+            CogwheelConfig.reload();
+        }
 
         try (FileWriter fw = new FileWriter(config);) {
             try {
@@ -162,8 +188,19 @@ public class CogwheelClientConfig {
         return testsDirectory;
     }
 
+    public static String getDocsDirectory() {
+        return docsDirectory;
+    }
+
     public static boolean isLoggerIgnored(String loggerName) {
         return ignoredLoggers.contains(loggerName);
+    }
+
+    /**
+     * @return JsonObject of loaded config. Only works in IDE mode is enabled
+     */
+    public static JsonObject getConfig() {
+        return config;
     }
 
     /**

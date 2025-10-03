@@ -22,7 +22,6 @@ import com.storyanvil.cogwheel.infrastructure.cog.CogInteger;
 import com.storyanvil.cogwheel.infrastructure.cog.CogVarLinkage;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.util.B;
-import com.storyanvil.cogwheel.infrastructure.err.CogExpressionFailure;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.storyanvil.cogwheel.CogwheelExecutor.log;
+import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
 
 public class DialogScript extends StreamExecutionScript {
     private ArrayList<ScriptLine> dialogsToExecute;

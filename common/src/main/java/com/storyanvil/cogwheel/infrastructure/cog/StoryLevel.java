@@ -12,14 +12,13 @@
 
 package com.storyanvil.cogwheel.infrastructure.cog;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
-import com.storyanvil.cogwheel.infrastructure.StoryAction;
-import com.storyanvil.cogwheel.infrastructure.abilities.StoryActionQueue;
+import com.storyanvil.cogwheel.infrastructure.storyact.StoryAction;
 import com.storyanvil.cogwheel.infrastructure.abilities.StoryChatter;
 import com.storyanvil.cogwheel.util.EasyPropManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -36,12 +35,17 @@ import java.util.Queue;
 /** TODO: Fully remove StoryLevel and its StoryActionQueue.
           Add CGPM for each {@link ServerWorld} instead
 */
-public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter {
+public class StoryLevel implements StoryChatter, CGPM {
     @SuppressWarnings("unchecked")
-    @Override
+//    @Override
     public <R> void addStoryAction(StoryAction<R> action) {
         actionQueue.add((StoryAction<? extends StoryLevel>) action);
     }
+
+    <R> StoryAction<?> addChained(StoryAction<R> action) {
+        addStoryAction(action);
+        return action;
+    };
 
     @Override
     public void chat(String text) {
@@ -73,21 +77,12 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter {
     private static final EasyPropManager MANAGER = new EasyPropManager("level", StoryLevel::registerProps);
 
     private static void registerProps(@NotNull EasyPropManager manager) {
-        manager.reg("runCommandWithAction", (name, args, script, o) -> {
-            StoryLevel sl = (StoryLevel) o;
-            return sl.addChained(new StoryAction.Instant<StoryLevel>() {
-                @Override
-                public void proceed(StoryLevel myself) {
-                    CogwheelHooks.executeCommand(args.getString(0));
-                }
-            });
-        });
         manager.reg("runCommand", (name, args, script, o) -> {
             CogwheelHooks.executeCommand(args.getString(0));
             return null;
         });
         manager.reg("getPlayers", (name, args, script, o) -> {//TODO: Add property to get players on server instead of specific world
-            throw new PreventSubCalling(new SubCallPostPrevention() {
+            throw new PreventChainCalling(new ChainCallPostPrevention() {
                 @Override
                 public void prevent(String variable) {
                     CogwheelExecutor.scheduleTickEvent(world -> {
@@ -108,11 +103,6 @@ public class StoryLevel implements StoryActionQueue<StoryLevel>, StoryChatter {
         manager.reg("get", (name, args, script, o) -> {//TODO: Move to CogMaster
             return CogwheelHooks.getLevelData(args.getString(0));
         });
-    }
-
-    @Override
-    public boolean hasOwnProperty(String name) {
-        return MANAGER.hasOwnProperty(name);
     }
 
     @Override

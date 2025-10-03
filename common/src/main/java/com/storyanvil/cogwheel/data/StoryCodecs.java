@@ -12,15 +12,22 @@
 
 package com.storyanvil.cogwheel.data;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import com.storyanvil.cogwheel.util.StoryUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.item.Item;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtHelper;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
@@ -38,7 +45,17 @@ public class StoryCodecs {
     public static final StoryCodec<Double> DOUBLE = new StoryCodec<>((a,b)->b.writeDouble(a), PacketByteBuf::readDouble);
     public static final StoryCodec<String> STRING = new StoryCodec<>((a,b)->StoryUtils.encodeString(b,a), StoryUtils::decodeString);
     public static final StoryCodec<JsonObject> JSON = new StoryCodec<>((a, b)->StoryUtils.encodeString(b,a.toString()), b-> JsonParser.parseString(StoryUtils.decodeString(b)).getAsJsonObject());
+    public static final StoryCodec<JsonElement> JSON_UNIVERSAL = new StoryCodec<>((jsonElement, buf) -> {JsonObject o=new JsonObject();o.add("a",jsonElement);StoryCodecs.JSON.encode(o, buf);}, b -> StoryCodecs.JSON.decode(b).get("a"));
     public static final StoryCodec<Identifier> RESOURCE_LOC = new StoryCodec<>((a, b)->{StoryUtils.encodeString(b,a.getNamespace());StoryUtils.encodeString(b,a.getPath());}, b->Identifier.of(StoryUtils.decodeString(b),StoryUtils.decodeString(b)));
+    public static final StoryCodec<NbtCompound> NBT_COMPOUND = new StoryCodec<>((compound, buf) -> {
+        StoryCodecs.STRING.encode(NbtHelper.toNbtProviderString(compound), buf);
+    }, buf -> {
+        try {
+            return NbtHelper.fromNbtProviderString(StoryCodecs.STRING.decode(buf));
+        } catch (CommandSyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    });
     public static final StoryCodec<Identifier> IDENTIFIER = RESOURCE_LOC;
     public static final StoryCodec<CameraPos> CAMERA_POS = new StoryCodec<>(CameraPos::encode, CameraPos::decode);
     public static final StoryCodec<Item> ITEM = getRegistryCodec(Registries.ITEM);

@@ -15,7 +15,8 @@ package com.storyanvil.cogwheel.infrastructure.testing;
 import com.google.gson.*;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.config.CogwheelConfig;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelClientConfig;
@@ -128,6 +129,14 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             env.addProperty("os-name", System.getProperty("os.name"));
             env.addProperty("os-arch", System.getProperty("os.arch"));
             env.addProperty("os-version", System.getProperty("os.version"));
+            if (CogwheelClientConfig.isRunningInIDE()) {
+                JsonObject configs = new JsonObject();
+                configs.add("client", CogwheelClientConfig.getConfig());
+                configs.add("default", CogwheelConfig.getConfig());
+                env.add("configs", configs);
+            } else {
+                env.addProperty("configs", "IDE mode is disabled. Can not get configs");
+            }
         } catch (Exception e) {
             JsonArray trace = new JsonArray();
             createTrace(trace, e, "Failed to get env data. Exception ");
@@ -408,14 +417,14 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         public boolean failIfNot(boolean shouldNotFail, String msg) throws Throwable {
             return failIfNot(shouldNotFail, () -> new RuntimeException(msg));
         }
-        public void executeSafely(DangerousRunnable r) {
+        public <E extends Throwable> void executeSafely(DangerousRunnable<E> r) {
             try {
                 r.run();
             } catch (Throwable e) {
                 failWith(e);
             }
         }
-        public void executeSafely(DangerousRunnable r, String failMsg) {
+        public <E extends Throwable> void executeSafely(DangerousRunnable<E> r, String failMsg) {
             try {
                 r.run();
             } catch (Throwable e) {
@@ -498,87 +507,6 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
                 throw new AssertionError("Script execution timeout reached. Script took longer than 5000ms and was terminated");
             }
         }),
-        @Api.Internal @ApiStatus.Internal
-        COGSCRIPT_DOCS((result, manifest, management) -> {
-            throw new WrapperException("COGSCRIPT_DOCS test type is not allowed.");
-            /*ConfigurationBuilder cfg = new ConfigurationBuilder();
-            cfg.forPackage("com.storyanvil", TestManagement.class.getClassLoader());
-            cfg.filterInputsBy(new FilterBuilder().includePackage("com.storyanvil"));
-            cfg.setScanners(Scanners.SubTypes);
-            Reflections ref = new Reflections(cfg);
-
-            for (Class<? extends CGPM> clazz : ref.getSubTypesOf(CGPM.class)) {
-                TestIgnoreDocs acknowledgedIgnorance = clazz.getAnnotation(TestIgnoreDocs.class);
-                if (acknowledgedIgnorance != null) continue;
-                Constructor<? extends CGPM> constructor;
-                try {
-                    constructor = clazz.getConstructor(TestManagement.class);
-                } catch (NoSuchMethodException | SecurityException e) {
-                    result.failWith(new WrapperException("Failed to get TestManagement constructor for CGPM: " + clazz.getCanonicalName(), e));
-                    continue;
-                }
-                CGPM testingInstance = constructor.newInstance(management);
-                testingInstance.hasOwnProperty("plsinit"); // Call CGPM#hasOwnProperty, so CGPM will be surly initialized
-            }
-
-            // Iterate through all registered properties
-            // btw, I know it will only find Cogwheel Engine's properties
-            // COGSCRIPT_DOCS test type is internal!
-            HashMap<String, HashSet<String>> allProperties = new HashMap<>();
-            for (Map.Entry<String, PropertyHandler> entry : EasyPropManager.allHandlers.entrySet()) {
-                String[] keyData = entry.getKey().split("\\.");
-                if (keyData.length != 2) {
-                    result.failWith(new RuntimeException("EasyPropManager registry instance: \"" + entry.getKey() + "\" does not have valid name"));
-                    continue;
-                }
-                if (!allProperties.containsKey(keyData[0])) {
-                    allProperties.put(keyData[0], new HashSet<>(1));
-                }
-                allProperties.get(keyData[0]).add(keyData[1]);
-            }
-            for (Map.Entry<String, HashSet<String>> objects : allProperties.entrySet()) {
-                try {
-                    JsonObject doc = CogwheelHooks.readJarResource("docs/" + objects.getKey());
-                    HashSet<String> properties = objects.getValue();
-                    JsonObject props = doc.getAsJsonObject("props");
-                    for (String propName : properties) {
-                        JsonObject prop = props.getAsJsonObject(propName);
-                        if (prop == null) {
-                            result.failWith(new RuntimeException("No docs for property \"" + propName + "\" of EasyPropManager with id \"" + objects.getKey() + "\""));
-                            continue;
-                        }
-                        // Validate property description
-                        try {
-                            String failMsg = "In property \"" + propName + "\" from EasyPropManager: " + objects.getKey();
-                            result.executeSafely(() ->
-                                    result.failIfNot(
-                                            result.failIfNull(prop.get("return").getAsJsonPrimitive(), "Failed to find valid \"return\" JSON property")
-                                                    .isString()
-                                    , "\"return\" property is not string")
-                            , failMsg);
-
-                            if (prop.has("summary"))
-                                result.executeSafely(() ->
-                                        result.failIfNot(
-                                                result.failIfNull(prop.get("summary").getAsJsonPrimitive(), "Failed to find valid \"summary\" optional JSON property which is primitive")
-                                                        .isString()
-                                        , "\"summary\" property is not string")
-                                , failMsg);
-
-                            result.executeSafely(() ->
-                                            result.failIfNull(prop.get("args").getAsJsonArray(), "Failed to find valid \"args\" JSON array")
-                            , failMsg);
-                        } catch (Exception e) {
-                            result.failWith(new WrapperException("Failed to verify docs for EasyPropManager with id \"" + objects.getKey() + "\": Property description is invalid; Property name is " + propName , e));
-                            continue;
-                        }
-                    }
-                } catch (Exception e) {
-                    result.failWith(new WrapperException("Failed to verify docs for EasyPropManager with id \"" + objects.getKey() + "\"" , e));
-                    continue;
-                }
-            }*/
-        }),
         SCRIPT_READER((result, manifest, management) -> {
             TestEnvironment environment = new TestEnvironment();
             DispatchedScript script = CogScriptDispatcher.dispatchUnsafe(environment.getScript(manifest.getAsJsonPrimitive("scriptName").getAsString()), new ScriptStorage(),  environment, false);
@@ -593,9 +521,9 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
         PERF_CGPM((result, manifest, management) -> {
             TestEnvironment environment = new TestEnvironment();
             ArrayList<ScriptLine> lines = new ArrayList<>();
-            final String line = "cgpm.testMethod()";
+            final String line = "cgpm.testMethod";
             for (int i = 0; i < 10000; i++) {
-                lines.add(new ScriptLine(line));
+                lines.add(new ScriptLine(line + i % 7 + "()"));
             }
             StreamExecutionScript script = new StreamExecutionScript(lines, environment);
             String cgpmType = manifest.getAsJsonPrimitive("cgpm").getAsString();
@@ -620,6 +548,8 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
                 script.setOnEnd(threadLock::countDown);
                 script.setErrorHandler(scriptException -> {
                     result.failWith(new WrapperException("Script exception got caught", scriptException));
+                    script.haltExecution();
+                    threadLock.countDown();
                 });
                 try {
                     Thread.sleep(2); // Give some time for test-worker to start waiting

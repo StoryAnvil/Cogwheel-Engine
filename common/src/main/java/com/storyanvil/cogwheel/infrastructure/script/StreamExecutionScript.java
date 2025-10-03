@@ -12,7 +12,7 @@
 
 package com.storyanvil.cogwheel.infrastructure.script;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.props.CGPM;

@@ -13,7 +13,7 @@
 package com.storyanvil.cogwheel.infrastructure.testing;
 
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
+import com.storyanvil.cogwheel.infrastructure.cog.PreventChainCalling;
 import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.props.JWCGPM;
@@ -33,20 +33,56 @@ public class TestObjects {
     private TestObjects() {}
 
     public static class TestJWCGPM extends JWCGPM<TestJWCGPM> {
-        public static CGPM testMethod(TestJWCGPM me, ArgumentData args, DispatchedScript script) {
+        public CGPM testMethod0(ArgumentData args, DispatchedScript script) {
+            return null;
+        }
+        public CGPM testMethod1(ArgumentData args, DispatchedScript script) {
+            return null;
+        }
+        public CGPM testMethod2(ArgumentData args, DispatchedScript script) {
+            return null;
+        }
+        public CGPM testMethod3(ArgumentData args, DispatchedScript script) {
+            return null;
+        }
+        public CGPM testMethod4(ArgumentData args, DispatchedScript script) {
+            return null;
+        }
+        public CGPM testMethod5(ArgumentData args, DispatchedScript script) {
+            return null;
+        }
+        public CGPM testMethod6(ArgumentData args, DispatchedScript script) {
             return null;
         }
     }
 
     public static class TestEasyCGPM implements CGPM {
         public static final EasyPropManager MANAGER = new EasyPropManager("testing", manager -> {
-            manager.reg("testMethod", (name, args, script, o) -> {
+            manager.reg("testMethod0", (name, args, script, o) -> {
+                return null;
+            });
+            manager.reg("testMethod1", (name, args, script, o) -> {
+                return null;
+            });
+            manager.reg("testMethod2", (name, args, script, o) -> {
+                return null;
+            });
+            manager.reg("testMethod3", (name, args, script, o) -> {
+                return null;
+            });
+            manager.reg("testMethod4", (name, args, script, o) -> {
+                return null;
+            });
+            manager.reg("testMethod5", (name, args, script, o) -> {
+                return null;
+            });
+            manager.reg("testMethod6", (name, args, script, o) -> {
                 return null;
             });
         });
 
         @Override
-        public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException {
+        public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventChainCalling, CogScriptException {
             return MANAGER.get(name, args, script, this);
         }
 
@@ -57,8 +93,8 @@ public class TestObjects {
     }
     public static class TestBasicCGPM implements CGPM {
         @Override
-        public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException {
-            if (!name.equals("testMethod")) throw script.wrap(new RuntimeException("No such method!"));
+        public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventChainCalling, CogScriptException {
+            if (!name.startsWith("testMethod")) throw script.wrap(new RuntimeException("No such method!"));
             return null;
         }
 

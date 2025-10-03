@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import static com.storyanvil.cogwheel.CogwheelExecutor.log;
+import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
 
 public class DispatchedScript {
     public static final Runnable EMPTY = () -> {};
@@ -114,11 +114,7 @@ public class DispatchedScript {
      * @return <code>TRUE</code> if script needs to be dispatched again later. <code>FALSE</code> means this script is finished by now
      */
     public boolean lineDispatcher() {
-        if (!Thread.currentThread().getName().contains("cogwheel-executor")) {
-            RuntimeException e = new RuntimeException("Line dispatcher can only be run in cogwheel executor thread");
-            log.error("[!CRITICAL!] LINE DISPATCHER WAS CALLED FROM NON-EXECUTOR THREAD! THIS WILL CAUSE MEMORY LEAKS AND PREVENT SCRIPTS FOR PROPER EXECUTION! THIS CALL WAS DISMISSED, PROBABLY CAUSING A MEMORY LEAK!", e);
-            throw e;
-        }
+        StoryUtils.requireCogwheelThread();
         return lineDispatcherInternal();
     }
     protected boolean lineDispatcherInternal() {
@@ -216,7 +212,12 @@ public class DispatchedScript {
      */
     public void haltExecution() {
         log.debug("Script {} is being forcefully stopped!", getScriptName());
-        linesToExecute.clear();
+        executionLine = Integer.MAX_VALUE;
+        try {
+            linesToExecute.clear();
+        } catch (Exception e) {
+            log.debug("Script {} failed to clear its execution lines!", getScriptName());
+        }
         environment = null;
         storage.clear();
         storage = null;

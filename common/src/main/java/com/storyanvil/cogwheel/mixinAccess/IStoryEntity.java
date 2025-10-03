@@ -14,13 +14,15 @@ package com.storyanvil.cogwheel.mixinAccess;
 
 import net.minecraft.nbt.NbtCompound;
 
+@SuppressWarnings("UnusedReturnValue")
 public interface IStoryEntity {
-    void storyEntity$putInt(String k, int v);
-    void storyEntity$putString(String k, String v);
-    void storyEntity$putBoolean(String k, boolean v);
+    IStoryEntity storyEntity$putInt(String k, int v);
+    IStoryEntity storyEntity$putString(String k, String v);
+    IStoryEntity storyEntity$putBoolean(String k, boolean v);
     int storyEntity$getInt(String k, int defaultV);
     String storyEntity$getString(String k, String defaultV);
     boolean storyEntity$getBoolean(String k, boolean defaultV);
     NbtCompound storyEntity$get();
     void storyEntity$set(NbtCompound c);
+    void storyEntity$syncIfOnServer();
 }

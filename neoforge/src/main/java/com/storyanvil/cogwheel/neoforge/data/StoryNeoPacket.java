@@ -13,7 +13,7 @@
 package com.storyanvil.cogwheel.neoforge.data;
 
 import com.storyanvil.cogwheel.CogwheelEngine;
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryPacket;
 import com.storyanvil.cogwheel.neoforge.CogwheelEngineNeoForge;

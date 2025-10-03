@@ -13,7 +13,7 @@
 package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.api.Api;
-import com.storyanvil.cogwheel.infrastructure.StoryAction;
+import com.storyanvil.cogwheel.infrastructure.storyact.StoryAction;
 
 @Api.Stable(since = "2.0.0")
 public interface LabelCloseable {

@@ -1,0 +1,5 @@
+{
+  "type": "OBJECT",
+  "summary": "StoryAction that always executes in one tick",
+  "methods": {}
+}

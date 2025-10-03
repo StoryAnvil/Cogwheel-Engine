@@ -1,0 +1,5 @@
+{
+  "type": "OBJECT",
+  "summary": "StoryAction that makes NPC trigger UI dialog",
+  "methods": {}
+}

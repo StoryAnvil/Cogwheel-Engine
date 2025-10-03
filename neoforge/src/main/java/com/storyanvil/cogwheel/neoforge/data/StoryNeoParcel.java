@@ -21,9 +21,9 @@ public class StoryNeoParcel<T extends StoryPacket<T>> extends B<T> implements Cu
         super(decode);
     }
 
-    @Override
+    @Override @SuppressWarnings("unchecked")
     public Id<? extends CustomPayload> getId() {
-        //noinspection unchecked // Platform helper
+        // Platform helper
         return ((StoryNeoPacket<T>) super.get().getStoryCodec().getPlatformData()).getType().id();
     }
 }

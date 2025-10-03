@@ -12,7 +12,7 @@
 
 package com.storyanvil.cogwheel.network.devui;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.client.devui.DevUI;
 import com.storyanvil.cogwheel.client.devui.DevUIScreen;

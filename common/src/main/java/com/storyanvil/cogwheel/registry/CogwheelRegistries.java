@@ -12,7 +12,7 @@
 
 package com.storyanvil.cogwheel.registry;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.entity.NPC;
@@ -332,11 +332,11 @@ public class CogwheelRegistries {
             ArgumentData argumentData = ArgumentData.of(step.substring(firstBracket + 1, step.length() - 1), script);
             try {
                 manager = CGPM.noNull(manager.getProperty(propName, argumentData, script));
-            } catch (PreventSubCalling preventSubCalling) {
+            } catch (PreventChainCalling preventChainCalling) {
                 if (!allowBlocking) {
                     throw script.wrap(new CogExpressionFailure("SubCalling Prevention is not allowed in this context! \"" + line + "\""));
                 }
-                preventSubCalling.getPostPrevention().prevent(variable != null ? variable.toString() : null);
+                preventChainCalling.getPostPrevention().prevent(variable != null ? variable.toString() : null);
                 return new Bi<>(ScriptLineHandler.blocking, manager);
             } catch (RuntimeException | CogScriptException e) {
                 throw new RuntimeException("Expression handler caught while getting property. ArgData: " + argumentData, e);

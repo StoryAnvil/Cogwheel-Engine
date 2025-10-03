@@ -12,14 +12,14 @@
 
 package com.storyanvil.cogwheel.infrastructure.props;
 
+import com.storyanvil.cogwheel.cog.obj.CogNullManager;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.cog.CogLike;
 import com.storyanvil.cogwheel.infrastructure.cog.CogString;
-import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
+import com.storyanvil.cogwheel.infrastructure.cog.PreventChainCalling;
 import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.testing.TestIgnoreDocs;
-import com.storyanvil.cogwheel.util.EasyPropManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,10 +33,10 @@ public interface CGPM extends CogLike {
     default boolean hasOwnProperty(String name) {
         throw new UnsupportedOperationException("hasOwnProperty is removed!");
     };
-    @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException;
+    @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventChainCalling, CogScriptException;
     boolean equalsTo(CGPM o);
 
-    NullManager nullManager = new NullManager();
+    CogNullManager nullManager = new CogNullManager();
     @Contract(value = "!null -> param1", pure = true)
     static @NotNull CGPM noNull(@Nullable CGPM manager) {
         if (manager == null) return nullManager;
@@ -54,36 +54,7 @@ public interface CGPM extends CogLike {
     }
 
     default boolean isNull() {
-        return this instanceof NullManager;
+        return this instanceof CogNullManager;
     }
 
-    class NullManager implements CGPM {
-        private static final EasyPropManager MANAGER = new EasyPropManager("nil", NullManager::registerProps);
-
-        private static void registerProps(EasyPropManager manager) {
-        }
-
-        @Contract(pure = true)
-        private NullManager() {}
-
-        @Override
-        public boolean hasOwnProperty(String name) {
-            return MANAGER.hasOwnProperty(name);
-        }
-
-        @Override
-        public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
-            return MANAGER.get(name).handle(name, args, script, this);
-        }
-
-        @Override
-        public boolean equalsTo(CGPM o) {
-            return o instanceof NullManager;
-        }
-
-        @Override
-        public String convertToString() {
-            return "NULL";
-        }
-    }
 }

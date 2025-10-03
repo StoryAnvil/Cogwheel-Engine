@@ -1,0 +1,5 @@
+{
+  "type": "OBJECT",
+  "summary": "StoryAction that makes executor wait util certain StoryAction label is triggered",
+  "methods": {}
+}

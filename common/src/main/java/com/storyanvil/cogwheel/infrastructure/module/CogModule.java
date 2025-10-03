@@ -18,7 +18,7 @@ import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.cog.CogInvoker;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
-import com.storyanvil.cogwheel.infrastructure.cog.PreventSubCalling;
+import com.storyanvil.cogwheel.infrastructure.cog.PreventChainCalling;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.err.CogExpressionFailure;
 import net.minecraft.util.Identifier;
@@ -127,7 +127,7 @@ public class CogModule implements CGPM {
     }
 
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventSubCalling, CogScriptException {
+    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws PreventChainCalling, CogScriptException {
         if (name.equals("dump")) {
             dataFix.info("MODULE DUMP: >{}<", this.getID());
             dataFix.info("METHODS:");

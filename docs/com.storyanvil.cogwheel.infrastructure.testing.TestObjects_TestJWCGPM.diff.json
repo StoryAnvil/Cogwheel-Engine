@@ -1,0 +1,5 @@
+{
+  "type": "OBJECT",
+  "summary": "Object used for performance tests. Not accessible in normal scripts",
+  "methods": {}
+}

@@ -12,7 +12,7 @@
 
 package com.storyanvil.cogwheel.client.devui;
 
-import com.storyanvil.cogwheel.CogwheelExecutor;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.util.Bi;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;

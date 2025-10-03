@@ -17,7 +17,9 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.storyanvil.cogwheel.classgather.DocsGenerator;
 import com.storyanvil.cogwheel.client.devui.PacketParcel;
+import com.storyanvil.cogwheel.config.CogwheelClientConfig;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryPacket;
@@ -30,6 +32,7 @@ import com.storyanvil.cogwheel.network.devui.*;
 import com.storyanvil.cogwheel.network.mc.*;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.registry.PlatformRegistry;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.util.DefaultCommandOutput;
 import com.storyanvil.cogwheel.util.PlatformType;
 import dev.architectury.injectables.annotations.ExpectPlatform;
@@ -178,6 +181,7 @@ public class CogwheelHooks {
         registrar.accept("DialogResponseBound", DialogResponseBound.CODEC, DialogResponseBound.class);
         registrar.accept("Notification", Notification.CODEC, Notification.class);
         registrar.accept("Parcel", PacketParcel.CODEC, PacketParcel.class);
+        registrar.accept("StoryEntitySync", StoryEntitySync.CODEC, StoryEntitySync.class);
     }
 
     public static void commandRegistry(Function<LiteralArgumentBuilder<ServerCommandSource>, LiteralCommandNode<ServerCommandSource>> register) {
@@ -231,6 +235,18 @@ public class CogwheelHooks {
                 }))
                 .then(CommandManager.literal("run-all-tests").executes(ctx -> {
                     TestManagement.startTesting(false);
+                    return 0;
+                }))
+                .then(CommandManager.literal("run-docs-gen").executes(ctx -> {
+                    if (!CogwheelConfig.isDevEnvironment()) {
+                        ctx.getSource().sendError(Text.literal("Documentation generator requires DEV-MODE enabled in config-main on server").formatted(Formatting.RED));
+                        return 0;
+                    }
+                    if (!CogwheelClientConfig.isRunningInIDE()) {
+                        ctx.getSource().sendError(Text.literal("Documentation generator requires IDE-MODE enabled in config-client on server").formatted(Formatting.RED));
+                        return 0;
+                    }
+                    DocsGenerator.generateDocumentation();
                     return 0;
                 }))
         );

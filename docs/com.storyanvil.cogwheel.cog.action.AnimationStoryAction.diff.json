@@ -1,0 +1,5 @@
+{
+  "type": "OBJECT",
+  "summary": "StoryAction that switches NPC's animation",
+  "methods": {}
+}
