@@ -12,6 +12,9 @@
 
 package com.storyanvil.cogwheel.infrastructure.storyact;
 
+import com.storyanvil.cogwheel.infrastructure.props.JWCGPM_Class;
+
+@JWCGPM_Class(includeInDocs = false)
 public abstract class TickingStoryActionBase<T> extends StoryAction<T> {
     public TickingStoryActionBase(int ticksLeft) {
         super();

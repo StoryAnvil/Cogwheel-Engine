@@ -12,10 +12,19 @@
 
 package com.storyanvil.cogwheel.client;
 
+import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.data.CameraPos;
 import com.storyanvil.cogwheel.util.Bi;
+import net.minecraft.client.world.ClientWorld;
+import org.jetbrains.annotations.ApiStatus;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class CutSceneManagement {
+    @Api.Internal @ApiStatus.Internal
+    public static final List<Bi<Consumer<ClientWorld>, Integer>> clientQueue = new ArrayList<>();
     private static CameraPos positionForce = null;
     private static Bi<CameraPos, CameraPos> transition = null;
     private static float transitionDelta = 0f;

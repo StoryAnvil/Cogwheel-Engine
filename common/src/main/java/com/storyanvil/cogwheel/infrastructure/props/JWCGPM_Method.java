@@ -17,9 +17,9 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.annotation.*;
 
 /**
- * This annotation is used to mark methods that are executed by {@link JWCGPM}
+ * This annotation is used to mark methods that are executed by {@link JWCGPM} (or {@link ImplJWCGPM})
  */
 @Target(ElementType.METHOD) @Documented @Retention(RetentionPolicy.RUNTIME)
 public @interface JWCGPM_Method {
-    @NotNull Class<? extends CGPM>[] arguments() default {};
+    @NotNull Class<? extends CGPM>[] arguments();
 }

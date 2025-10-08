@@ -13,7 +13,7 @@
 package com.storyanvil.cogwheel.fabric;
 
 import com.storyanvil.cogwheel.CogwheelHooks;
-import com.storyanvil.cogwheel.EventBus;
+import com.storyanvil.cogwheel.client.CutSceneManagement;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryPacket;
 import com.storyanvil.cogwheel.entity.NPC;
@@ -23,6 +23,7 @@ import com.storyanvil.cogwheel.network.devui.editor.DevEditorSession;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.Bi;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import dev.architectury.event.events.client.ClientTickEvent;
 import net.fabricmc.api.ModInitializer;
 
@@ -30,7 +31,6 @@ import com.storyanvil.cogwheel.CogwheelEngine;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -39,59 +39,28 @@ import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRe
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Locale;
 import java.util.function.Consumer;
-
-import static com.storyanvil.cogwheel.EventBus.*;
+import java.util.stream.Collectors;
 
 public final class CogwheelEngineFabric implements ModInitializer {
     public static final Logger PLATFORM_LOG = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/FABRICMC");
-
-    private static void onServerTick(MinecraftServer server) {
-        synchronized (queue) {
-            ServerWorld world = CogwheelHooks.getOverworldServer();
-            try {
-                for (int i = 0; i < queue.size(); i++) {
-                    Bi<Consumer<ServerWorld>, Integer> e = queue.get(i);
-                    if (e.getB() < 2) {
-                        try {
-                            e.getA().accept(world);
-                        } catch (Exception ex) {
-                            CogwheelEngine.LOGGER.error("Server queue error:", ex);
-                        }
-                        queue.remove(i);
-                        i--;
-                    } else {
-                        e.setB(e.getB() - 1);
-                    }
-                }
-            } catch (Exception e) {
-                CogwheelEngine.LOGGER.debug("Queue bound error", e);
-            }
-            try {
-                EventBus.getStoryLevel().tick(world);
-            } catch (Exception e) {
-                CogwheelEngine.LOGGER.error("StoryLevel onClientTick error", e);
-            }
-        }
-    }
 
     private static void onClientTick(ClientWorld world) {
         //noinspection OptionalGetWithoutIsPresent
         if (!world.getDimensionEntry().getKey().get().getValue().equals(Identifier.of("minecraft", "overworld")))
             return;
-        synchronized (clientQueue) {
+        synchronized (CutSceneManagement.clientQueue) {
             try {
-                for (int i = 0; i < clientQueue.size(); i++) {
-                    Bi<Consumer<ClientWorld>, Integer> e = clientQueue.get(i);
+                for (int i = 0; i < CutSceneManagement.clientQueue.size(); i++) {
+                    Bi<Consumer<ClientWorld>, Integer> e = CutSceneManagement.clientQueue.get(i);
                     if (e.getB() < 2) {
                         e.getA().accept(world);
-                        clientQueue.remove(i);
+                        CutSceneManagement.clientQueue.remove(i);
                         i--;
                     } else {
                         e.setB(e.getB() - 1);
@@ -104,17 +73,11 @@ public final class CogwheelEngineFabric implements ModInitializer {
     }
 
     private static void onBoundEvent(ServerPlayNetworkHandler netHandler, PacketSender sender, MinecraftServer server) {
-        StringBuilder sb = new StringBuilder();
-        boolean a = true;
-        for (Identifier loc : serverSideAnimations) {
-            if (a) {
-                a = false;
-            } else {
-                sb.append("|");
-            }
-            sb.append(loc.toString());
-        }
-        CogwheelHooks.sendPacket(new AnimationDataBound(sb.toString()), netHandler.player);
+        AnimationDataBound bound = new AnimationDataBound(
+                CogwheelExecutor.getDefaultEnvironment().serverSideAnimations.stream()
+                        .map(Identifier::toString)
+                        .collect(Collectors.joining("|")));
+        CogwheelHooks.sendPacket(bound, netHandler.player);
         DevEarlySyncPacket.syncFor(netHandler.player, true);
         DevEditorSession.boundColorFor(netHandler.player);
     }
@@ -123,25 +86,16 @@ public final class CogwheelEngineFabric implements ModInitializer {
         DevEditorSession.unboundColorFrom(handler.player);
     }
 
-    private static void onServerStarting(MinecraftServer server) {
-        CogwheelHooks.serverStart();
-    }
-
-    private static void onServerStopping(MinecraftServer server) {
-        CogwheelHooks.serverStop();
-    }
-
     @Override
     public void onInitialize() {
         CogwheelEngine.init(); // Common setup
         CogwheelHooks.registryRegistry(registry -> {/* Fabric initializes registries statically */});
         CommandRegistrationCallback.EVENT.register((d, ra, e) -> CogwheelHooks.commandRegistry(d::register));
-        ServerTickEvents.END_SERVER_TICK.register(CogwheelEngineFabric::onServerTick);
         ClientTickEvent.CLIENT_LEVEL_POST.register(CogwheelEngineFabric::onClientTick);
         ServerPlayConnectionEvents.JOIN.register(CogwheelEngineFabric::onBoundEvent);
         ServerPlayConnectionEvents.DISCONNECT.register(CogwheelEngineFabric::onUnboundEvent);
-        ServerLifecycleEvents.SERVER_STARTED.register(CogwheelEngineFabric::onServerStarting);
-        ServerLifecycleEvents.SERVER_STOPPING.register(CogwheelEngineFabric::onServerStopping);
+        ServerLifecycleEvents.SERVER_STARTED.register(CogwheelHooks::serverStart);
+        ServerLifecycleEvents.SERVER_STOPPING.register(CogwheelHooks::serverStop);
         FabricDefaultAttributeRegistry.register(CogwheelRegistries.NPC.get(), NPC.createAttributes());
         CogwheelHooks.packetRegistry(new CogwheelHooks.PacketRegistrar() {
             @Override

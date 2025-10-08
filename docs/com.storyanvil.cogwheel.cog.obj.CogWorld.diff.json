@@ -1,0 +1,21 @@
+{
+  "parents": [
+    "com.storyanvil.cogwheel.infrastructure.props.JWCGPM",
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
+  "type": "OBJECT",
+  "summary": "Represents minecraft world (dimension)",
+  "methods": {
+    "getTaggedNPC": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "tag"
+      ],
+      "summary": "Finds and returns NPC with provided tag",
+      "preventsChainCalling": true,
+      "return": "com.storyanvil.cogwheel.cog.obj.CogNPC"
+    }
+  }
+}

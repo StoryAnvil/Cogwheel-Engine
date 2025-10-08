@@ -12,34 +12,27 @@
 
 package com.storyanvil.cogwheel.infrastructure.env;
 
-import com.storyanvil.cogwheel.infrastructure.CogScriptDispatcher;
-import com.storyanvil.cogwheel.infrastructure.module.CogModule;
-import com.storyanvil.cogwheel.util.ScriptStorage;
+import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.infrastructure.storyact.StoryAction;
+import com.storyanvil.cogwheel.util.StoryUtils;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
-
 public final class DefaultEnvironment extends CogScriptEnvironment {
+    @Api.Internal @ApiStatus.Internal
+    public HashSet<Identifier> serverSideAnimations = new HashSet<>();
     private final HashMap<String, Consumer<Integer>> dialogs;
-    private final HashMap<Identifier, CogModule> moduleMap = new HashMap<>();
+    private final HashMap<String, ArrayList<BiConsumer<String, StoryAction<?>>>> labelListeners = new HashMap<>();
 
     public DefaultEnvironment() {
         super();
         dialogs = new HashMap<>();
-        log.info("Default Environment {} initialized!", getUniqueIdentifier());
-    }
-
-    @Override
-    public void dispatchScript(String name) {
-        CogScriptDispatcher.dispatch("cog/" + name, this);
-    }
-
-    @Override
-    public void dispatchScript(String name, ScriptStorage storage) {
-        CogScriptDispatcher.dispatch("cog/" + name, storage, this);
     }
 
     @Override
@@ -60,20 +53,26 @@ public final class DefaultEnvironment extends CogScriptEnvironment {
         return dialogs;
     }
 
-    public void putModule(Identifier loc, CogModule module) {
-        moduleMap.put(loc, module);
-    }
-
-    public CogModule getModule(Identifier loc) {
-        return moduleMap.get(loc);
-    }
-
-    public Identifier getModuleLoc(CogScriptEnvironment env, String script) {
-        return Identifier.of(env.getUniqueIdentifier(), script);
-    }
-
     @Override
     public boolean canBeEdited() {
         return true;
+    }
+
+    public void hitLabel(String label, StoryAction<?> action) {
+        if (labelListeners.containsKey(label)) {
+            ArrayList<BiConsumer<String, StoryAction<?>>> c = labelListeners.get(label);
+            for (BiConsumer<String, StoryAction<?>> closeable : c) {
+                if (closeable != null)
+                    closeable.accept(label, action);
+            }
+        }
+    }
+
+    public void registerLabelListener(String label, BiConsumer<String, StoryAction<?>> closeable) {
+        if (labelListeners.containsKey(label)) {
+            labelListeners.get(label).add(closeable);
+        } else {
+            labelListeners.put(label, StoryUtils.arrayListWith(closeable));
+        }
     }
 }

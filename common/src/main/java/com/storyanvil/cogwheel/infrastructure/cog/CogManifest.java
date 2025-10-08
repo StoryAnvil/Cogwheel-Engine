@@ -40,22 +40,22 @@ public class CogManifest implements CGPM {
 
     private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("subscribeEvent", (name, args, script, o) -> {
-            script.getEnvironment().subscribeForEvent(Identifier.tryParse(args.getString(0)), args.getString(1));
+            script.getEnvironment().subscribeForEvent(Identifier.tryParse(args.getConvertedString(0)), args.getConvertedString(1));
             return null;
         });
         manager.reg("unsubscribeEvent", (name, args, script, o) -> {
-            script.getEnvironment().unsubscribeFromEvent(Identifier.tryParse(args.getString(0)), args.getString(1));
+            script.getEnvironment().unsubscribeFromEvent(Identifier.tryParse(args.getConvertedString(0)), args.getConvertedString(1));
             return null;
         });
         manager.reg("clearEvent", (name, args, script, o) -> {
-            script.getEnvironment().unsubscribeAllFromEvent(Identifier.tryParse(args.getString(0)));
+            script.getEnvironment().unsubscribeAllFromEvent(Identifier.tryParse(args.getConvertedString(0)));
             return null;
         });
         manager.reg("requireLibrary", (name, args, script, o) -> {
-            LibraryEnvironment env = CogScriptEnvironment.getLibEnvironment(args.getString(0));
+            LibraryEnvironment env = CogScriptEnvironment.getLibEnvironment(args.getConvertedString(0));
             if (env == null) {
                 script.haltExecution();
-                throw script.wrap(new CogExpressionFailure("Library \"" + args.getString(0) + "\" required by " + script.getEnvironment().getUniqueIdentifier() + " environment but it does not present!"));
+                throw script.wrap(new CogExpressionFailure("Library \"" + args.getConvertedString(0) + "\" required by " + script.getEnvironment().getUniqueIdentifier() + " environment but it does not present!"));
             }
             return null;
         });

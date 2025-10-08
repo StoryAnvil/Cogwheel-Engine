@@ -1,0 +1,32 @@
+{
+  "parents": [],
+  "type": "OBJECT",
+  "summary": "Base for all CogScript objects",
+  "methods": {
+    "toString": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Converts this object to CogString",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+    },
+    "equals": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.props.CGPM"
+      ],
+      "argNames": [
+        "other"
+      ],
+      "summary": "Checks if this object equal to other specified object",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
+    },
+    "isNull": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Returns true, if this object is CogNullManager",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
+    }
+  }
+}

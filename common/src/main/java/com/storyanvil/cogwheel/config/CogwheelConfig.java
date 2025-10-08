@@ -133,8 +133,8 @@ public class CogwheelConfig {
             log.error("[CFG] Failed to updated config-main!", e);
         }
         json = null;
-        if (CogwheelHooks.getServer() != null) {
-            for (ServerPlayerEntity plr : CogwheelHooks.getOverworldServer().getServer().getPlayerManager().getPlayerList()) {
+        if (CogwheelHooks.getMinecraftServer() != null) {
+            for (ServerPlayerEntity plr : CogwheelHooks.getServerSideOverworld().getServer().getPlayerManager().getPlayerList()) {
                 DevEarlySyncPacket.syncFor(plr, true);
             }
         }

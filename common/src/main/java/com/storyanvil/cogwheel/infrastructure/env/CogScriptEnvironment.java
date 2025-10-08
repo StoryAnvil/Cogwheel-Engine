@@ -12,11 +12,12 @@
 
 package com.storyanvil.cogwheel.infrastructure.env;
 
+import com.storyanvil.cogwheel.infrastructure.CogScriptDispatcher;
+import com.storyanvil.cogwheel.infrastructure.util.CogUtils;
 import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
-import com.storyanvil.cogwheel.registry.CogwheelRegistries;
 import com.storyanvil.cogwheel.util.ScriptStorage;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
@@ -87,11 +88,18 @@ public abstract class CogScriptEnvironment {
         eventSubscribers.clear();
     }
     public boolean canBeEdited() {return false;}
-    public abstract void dispatchScript(String name);
-    public abstract void dispatchScript(String name, ScriptStorage storage);
+    public void dispatchScript(String name) {
+        CogScriptDispatcher.dispatch(getScript(name), this);
+    }
+    public void dispatchScript(String name, ScriptStorage storage) {
+        CogScriptDispatcher.dispatch(getScript(name), storage, this);
+    }
     public abstract String getScript(String name);
     public void defaultVariablesFactory(ScriptStorage storage, DispatchedScript script) {
-        CogwheelRegistries.putDefaults(storage, script);
+        storage.put("Cogwheel", CogUtils.MASTER);
+        storage.put("true", CogUtils.TRUE);
+        storage.put("false", CogUtils.FALSE);
+        storage.put("null", CogUtils.NULL);
     }
 
     /**
@@ -116,8 +124,6 @@ public abstract class CogScriptEnvironment {
         CogScriptEnvironment environment;
         if (loc.getNamespace().equals("def") || loc.getNamespace().equals("minecraft")) {
             environment = CogwheelExecutor.getDefaultEnvironment();
-        } else if (loc.getNamespace().equals("wrld")) {
-            environment = CogwheelExecutor.getWorldEnvironment();
         } else {
             environment = CogwheelExecutor.getLibraryEnvironment(loc.getNamespace());
         }

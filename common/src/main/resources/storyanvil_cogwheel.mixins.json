@@ -8,7 +8,8 @@
         "RenderMixin"
     ],
     "mixins": [
-        "CrashReportMixin"
+        "CrashReportMixin",
+        "ServerWorldMixin"
     ],
     "injectors": {
         "defaultRequire": 1

@@ -29,7 +29,7 @@ import java.util.List;
 public class CogArray implements CGPM, ForEachManager {
     private static final EasyPropManager MANAGER = new EasyPropManager("array", CogArray::registerProps);
 
-    private ArrayList<CGPM> list;
+    private final ArrayList<CGPM> list;
 
     @Contract(pure = true)
     private CogArray(ArrayList<CGPM> list) {

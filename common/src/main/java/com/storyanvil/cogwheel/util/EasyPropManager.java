@@ -45,7 +45,7 @@ public class EasyPropManager {
         });
         handlers.put(fromNamespaceAndPath("any", "asInvoker"), (name, args, script, o) -> {
             CGPM m = (CGPM) o;
-            return CogInvoker.genericInvoker(m, args.getString(0));
+            return CogInvoker.genericInvoker(m, args.getConvertedString(0));
         });
     }
 

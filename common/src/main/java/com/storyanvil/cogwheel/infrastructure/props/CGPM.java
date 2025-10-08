@@ -14,12 +14,12 @@ package com.storyanvil.cogwheel.infrastructure.props;
 
 import com.storyanvil.cogwheel.cog.obj.CogNullManager;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
-import com.storyanvil.cogwheel.infrastructure.cog.CogLike;
 import com.storyanvil.cogwheel.infrastructure.cog.CogString;
 import com.storyanvil.cogwheel.infrastructure.cog.PreventChainCalling;
 import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.infrastructure.testing.TestIgnoreDocs;
+import com.storyanvil.cogwheel.infrastructure.util.CogUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * CGPM - CogPropertyManager. This class describes object available to CogScript code
  */
 @TestIgnoreDocs
-public interface CGPM extends CogLike {
+public interface CGPM {
     @Deprecated
     default boolean hasOwnProperty(String name) {
         throw new UnsupportedOperationException("hasOwnProperty is removed!");
@@ -46,11 +46,7 @@ public interface CGPM extends CogLike {
         return toString();
     }
     default CogString convertToCogString() {
-        return new CogString(convertToString());
-    }
-    @Override
-    default CGPM asCogManager() {
-        return this;
+        return CogUtils.makeCogString(convertToString());
     }
 
     default boolean isNull() {

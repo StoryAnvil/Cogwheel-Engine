@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Contract;
 
 import java.util.Objects;
 
-public sealed interface CogPrimalType extends CGPM, CogLike permits CogBool, CogString, CogInteger, CogDouble, CogLong {
+public sealed interface CogPrimalType extends CGPM permits CogBool, CogString, CogInteger, CogDouble, CogLong {
     byte getPrimalID();
     void putPrimal(NbtCompound tag, String key);
     Object getObjValue();

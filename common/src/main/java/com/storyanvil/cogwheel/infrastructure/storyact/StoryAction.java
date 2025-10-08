@@ -17,7 +17,6 @@ import com.storyanvil.cogwheel.infrastructure.cog.CogString;
 import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.props.JWCGPM_Method;
 import com.storyanvil.cogwheel.util.CogwheelExecutor;
-import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.cog.CogInvoker;
 import com.storyanvil.cogwheel.infrastructure.cog.PreventChainCalling;
@@ -49,7 +48,7 @@ public abstract class StoryAction<T> extends JWCGPM<StoryAction<T>> {
 
     public void onExit() {
         if (actionLabel != null) {
-            EventBus.hitLabel(actionLabel, this);
+            CogwheelExecutor.getDefaultEnvironment().hitLabel(actionLabel, this);
         }
         if (onExit != null)
             onExit.run();
@@ -69,7 +68,7 @@ public abstract class StoryAction<T> extends JWCGPM<StoryAction<T>> {
     @JWCGPM_Method(arguments = {CogString.class})
     public @NotNull CogNullManager setLabel(ArgumentData data, DispatchedScript script) throws CogScriptException {
         this.setActionLabel(data.requireString(0));
-        return CogUtils.nullObject;
+        return CogUtils.NULL;
     }
     @JWCGPM_Method(arguments = {})
     public @NotNull CogString getLabel(@NotNull ArgumentData data, @NotNull DispatchedScript script) {
@@ -77,7 +76,7 @@ public abstract class StoryAction<T> extends JWCGPM<StoryAction<T>> {
     }
     @JWCGPM_Method(arguments = {})
     public @NotNull CGPM blocking(@NotNull ArgumentData data, @NotNull DispatchedScript script) {
-        if (this.isDone()) return CogUtils.nullObject;
+        if (this.isDone()) return CogUtils.NULL;
         throw new PreventChainCalling(variable -> {
             this.setOnExit(() -> CogwheelExecutor.schedule(script::lineDispatcher));
         });
@@ -90,7 +89,7 @@ public abstract class StoryAction<T> extends JWCGPM<StoryAction<T>> {
         } else {
             this.setOnExit(invoker.safeRunnable(data, script));
         }
-        return CogUtils.nullObject;
+        return CogUtils.NULL;
     }
 
 }

@@ -45,12 +45,12 @@ import software.bernie.geckolib.animation.*;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class NPC extends AnimalEntity implements AbstractNPC<NPC>, StoryActionQueueAccessor<NPC>, GeoEntity, IStoryEntitySubscriber {
-    public NPC(EntityType<? extends AnimalEntity> pEntityType, World pLevel) {
-        super(pEntityType, pLevel);
-        if (pLevel.isClient) {
-            CogwheelExecutor.scheduleTickEventClientSide(clientWorld -> {
-                CogwheelHooks.sendPacketToServer(new StoryEntitySync(getUuidAsString(), new NbtCompound()));
-            }, 10);
+    public NPC(EntityType<? extends AnimalEntity> pEntityType, World world) {
+        super(pEntityType, world);
+        if (world.isClient) {
+            CogwheelExecutor.schedule(() -> {
+                CogwheelHooks.sendPacketToServer(new StoryEntitySync(getUuidAsString(), new NbtCompound(), world.getRegistryKey().getValue()));
+            }, 250);
         } else {
             actionQueue = StoryActionQueue.importFromEntity(this);
             npc$setNameLocal(DataStorage.getString(this, "name", "NPC"));

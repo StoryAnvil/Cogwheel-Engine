@@ -58,7 +58,7 @@ public class CogwheelHooksImpl {
     }
     public static <T extends StoryPacket<T>> void sendPacketToEveryone(StoryPacket<T> packet) {
         StoryFabricParcel<T> parcel = new StoryFabricParcel<T>(packet.getAsData());
-        for (ServerPlayerEntity plr : CogwheelHooks.getOverworldServer().getServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity plr : CogwheelHooks.getServerSideOverworld().getServer().getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(plr, parcel);
         }
     }

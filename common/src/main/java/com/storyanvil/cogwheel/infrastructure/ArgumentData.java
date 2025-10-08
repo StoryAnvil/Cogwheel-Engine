@@ -12,11 +12,13 @@
 
 package com.storyanvil.cogwheel.infrastructure;
 
+import com.storyanvil.cogwheel.cog.obj.CogIdentifier;
 import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,6 +52,13 @@ public class ArgumentData {
             return i.getValue();
         }
         throw script.wrap(new RuntimeException("Argument #" + argument + " is not CogInteger"));
+    }
+    public Identifier requireIdentifier(int argument) throws CogScriptException {
+        CGPM m = get(argument);
+        if (m instanceof CogIdentifier i) {
+            return i.getValue();
+        }
+        throw script.wrap(new RuntimeException("Argument #" + argument + " is not CogIdentifier"));
     }
     public String requireString(int argument) throws CogScriptException {
         CGPM m = get(argument);
@@ -99,10 +108,12 @@ public class ArgumentData {
         }
         throw script.wrap(new RuntimeException("Argument #" + argument + " is not CogDouble/CogInteger"));
     }
-    public String getString(int argument) {
+    @Deprecated(forRemoval = true)
+    public String getConvertedString(int argument) {
         CGPM m = get(argument);
         return m.convertToString();
     }
+    @Deprecated(forRemoval = true)
     public CogString getCogString(int argument) {
         CGPM m = get(argument);
         if (m instanceof CogString string) return string;

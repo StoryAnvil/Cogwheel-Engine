@@ -60,6 +60,7 @@ public class DiffJson {
      * @param data Correct data for provided key
      */
     public void checkValue(String key, JsonElement data) {
+        if (json.has("//" + key)) return;
         if (!json.has(key)) {
             json.add("+" + key, data);
             invalidate();
@@ -99,6 +100,7 @@ public class DiffJson {
      * @param defaultValue Default value that will be used if object stores invalid value
      */
     public void checkString(String key, String defaultValue) {
+        if (json.has("//" + key)) return;
         if (!json.has(key)) {
             json.addProperty("+" + key, defaultValue);
             invalidate();
@@ -119,6 +121,7 @@ public class DiffJson {
      * @param defaultValue Default value that will be used if object stores invalid value
      */
     public void checkArray(String key, JsonArray defaultValue) {
+        if (json.has("//" + key)) return;
         if (!json.has(key)) {
             json.add("+" + key, defaultValue);
             invalidate();
@@ -139,6 +142,7 @@ public class DiffJson {
      * @param defaultValue Default value that will be used if object stores invalid value
      */
     public void checkInt(String key, int defaultValue) {
+        if (json.has("//" + key)) return;
         if (!json.has(key)) {
             json.addProperty("+" + key, defaultValue);
             invalidate();
@@ -159,6 +163,7 @@ public class DiffJson {
      * @param defaultValue Default value that will be used if object stores invalid value
      */
     public void checkBoolean(String key, boolean defaultValue) {
+        if (json.has("//" + key)) return;
         if (!json.has(key)) {
             json.addProperty("+" + key, defaultValue);
             invalidate();
@@ -200,6 +205,7 @@ public class DiffJson {
      * @param key Key to check
      */
     public void checkUnset(String key) {
+        if (json.has("//" + key)) return;
         if (json.has(key)) {
             json.add("-" + key, json.get(key));
             json.remove(key);
@@ -260,5 +266,9 @@ public class DiffJson {
             Streams.write(json, writer);
             fw.flush();
         }
+    }
+
+    public Iterable<? extends String> keys() {
+        return json.keySet();
     }
 }

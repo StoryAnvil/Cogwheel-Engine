@@ -19,13 +19,17 @@ import com.storyanvil.cogwheel.neoforge.data.NbtAttachment;
 import com.storyanvil.cogwheel.network.mc.StoryEntitySync;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.world.World;
 import net.neoforged.neoforge.attachment.AttachmentHolder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
+@SuppressWarnings("MixinSuperClass")
 @Mixin(Entity.class)
 public abstract class EntityMixin extends AttachmentHolder implements IStoryEntity {
     @Shadow public abstract String getUuidAsString();
+
+    @Shadow public abstract World getWorld();
 
     @Override
     public IStoryEntity storyEntity$putInt(String k, int v) {
@@ -81,6 +85,6 @@ public abstract class EntityMixin extends AttachmentHolder implements IStoryEnti
 
     @Override
     public void storyEntity$syncIfOnServer() {
-        CogwheelHooks.sendPacketToEveryone(new StoryEntitySync(getUuidAsString(), storyEntity$get()));
+        CogwheelHooks.sendPacketToEveryone(new StoryEntitySync(getUuidAsString(), storyEntity$get(), getWorld().getRegistryKey().getValue()));
     }
 }

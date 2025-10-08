@@ -33,7 +33,7 @@ import java.util.List;
 import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
 
 public class DialogScript extends StreamExecutionScript {
-    private ArrayList<ScriptLine> dialogsToExecute;
+    private final ArrayList<ScriptLine> dialogsToExecute;
     public DialogScript(ArrayList<ScriptLine> linesToExecute, ScriptStorage storage, CogScriptEnvironment environment) {
         super(storage, environment);
         dialogsToExecute = linesToExecute;

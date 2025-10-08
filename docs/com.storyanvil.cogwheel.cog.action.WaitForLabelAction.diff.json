@@ -1,5 +1,10 @@
 {
+  "parents": [
+    "com.storyanvil.cogwheel.infrastructure.storyact.StoryAction",
+    "com.storyanvil.cogwheel.infrastructure.props.JWCGPM",
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
   "type": "OBJECT",
-  "summary": "StoryAction that makes executor wait util certain StoryAction label is triggered",
+  "summary": "StoryAction that makes its queue wait util specified label triggered",
   "methods": {}
 }

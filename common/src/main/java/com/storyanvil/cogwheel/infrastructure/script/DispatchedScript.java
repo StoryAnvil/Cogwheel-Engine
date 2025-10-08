@@ -20,6 +20,7 @@ import com.storyanvil.cogwheel.util.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
@@ -101,7 +102,6 @@ public class DispatchedScript {
     }
 
     public static void fillScriptCrashReport(DispatchedScript script, CogScriptException e) {
-        //TODO
         script.errorHandler.accept(e);
         if (e.getScript() == script) {
             log.error("{}: Exception at line: {}", script.getScriptName(), e.getLineNumber(), e);
@@ -139,11 +139,11 @@ public class DispatchedScript {
     }
 
     public void put(String key, CGPM o) {
+        if (key == null) return;
         if (o == null) {
             storage.remove(key);
             return;
         }
-        if (key == null) return;
         storage.put(key, o);
     }
     public @NotNull CGPM get(String key) {
@@ -171,6 +171,13 @@ public class DispatchedScript {
 
     public int getExecutionLine() {
         return executionLine;
+    }
+
+    public void dumpVariables(StringBuilder sb) {
+        for (Map.Entry<String, CGPM> entry : storage.entrySet()) {
+            sb.append(entry.getKey()).append(" = ").append(entry.getValue().convertToString()).append(" [");
+            sb.append(entry.getValue().getClass().getCanonicalName()).append("]\n");
+        }
     }
 
     /**

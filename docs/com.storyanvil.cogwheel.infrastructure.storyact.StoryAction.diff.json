@@ -1,7 +1,10 @@
 {
+  "parents": [
+    "com.storyanvil.cogwheel.infrastructure.props.JWCGPM",
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
   "type": "OBJECT",
-  "summary": "StoryAction",
-  "seeAlso": "page:storyanvil_dialogs",
+  "summary": "Represents action executed by NPC or other StoryActionQueue",
   "methods": {
     "setLabel": {
       "argTypes": [
@@ -10,7 +13,7 @@
       "argNames": [
         "label"
       ],
-      "summary": "Assigns label to this StoryAction (can only have one label at a time)",
+      "summary": "Changes label of this StoryAction to provided one",
       "preventsChainCalling": false,
       "return": "null"
     },
@@ -24,7 +27,7 @@
     "blocking": {
       "argTypes": [],
       "argNames": [],
-      "summary": "Makes script wait util this StoryAction executes",
+      "summary": "Makes script wait util this StoryAction finishes executing",
       "preventsChainCalling": true,
       "return": "null"
     },
@@ -35,7 +38,7 @@
       "argNames": [
         "invoker"
       ],
-      "summary": "Makes StoryAction invoke provided invoker when it had executed",
+      "summary": "Makes this StoryAction invoke provided invoker when it finished executing",
       "preventsChainCalling": false,
       "return": "null"
     }

@@ -56,14 +56,12 @@ public record DevEarlySyncPacket(boolean permitted, boolean silent) implements S
     public void onClientUnsafe(IStoryPacketContext ctx) {
         DevUI.permitted = permitted;
         if (!permitted) {
-            CogwheelExecutor.scheduleTickEventClientSide(levelTickEvent -> {
-                if (MinecraftClient.getInstance().currentScreen instanceof DevUIScreen) {
-                    MinecraftClient.getInstance().setScreen(null);
-                    MinecraftClient.getInstance().getToastManager().add(new SystemToast(
-                            SystemToast.Type.PERIODIC_NOTIFICATION, Text.translatable("ui.storyanvil_cogwheel.notif_block"), Text.translatable("ui.storyanvil_cogwheel.notif_block_msg")
-                    ));
-                }
-            });
+            if (MinecraftClient.getInstance().currentScreen instanceof DevUIScreen) {
+                MinecraftClient.getInstance().setScreen(null);
+                MinecraftClient.getInstance().getToastManager().add(new SystemToast(
+                        SystemToast.Type.PERIODIC_NOTIFICATION, Text.translatable("ui.storyanvil_cogwheel.notif_block"), Text.translatable("ui.storyanvil_cogwheel.notif_block_msg")
+                ));
+            }
         }
         if (!silent) {
             MinecraftClient.getInstance().getToastManager().add(new SystemToast(

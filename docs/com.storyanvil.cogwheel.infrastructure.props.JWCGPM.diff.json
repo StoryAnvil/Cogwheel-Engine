@@ -1,0 +1,8 @@
+{
+  "parents": [
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
+  "type": "OBJECT",
+  "summary": "Base class for most of CogScript objects",
+  "methods": {}
+}

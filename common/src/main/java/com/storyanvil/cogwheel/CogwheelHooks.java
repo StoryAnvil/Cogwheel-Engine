@@ -28,6 +28,7 @@ import com.storyanvil.cogwheel.infrastructure.cog.CogPrimalType;
 import com.storyanvil.cogwheel.infrastructure.env.CogScriptEnvironment;
 import com.storyanvil.cogwheel.infrastructure.testing.TestManagement;
 import com.storyanvil.cogwheel.mixinAccess.IStoryEntity;
+import com.storyanvil.cogwheel.mixinAccess.IStoryEventScheduler;
 import com.storyanvil.cogwheel.network.devui.*;
 import com.storyanvil.cogwheel.network.mc.*;
 import com.storyanvil.cogwheel.registry.CogwheelRegistries;
@@ -101,10 +102,10 @@ public class CogwheelHooks {
     }
 
     public static void executeCommand(String command) {
-        // Schedules server tick task that executed provided chat command
-        CogwheelExecutor.scheduleTickEvent(world -> {
-            world.getServer().getCommandManager().executeWithPrefix(new ServerCommandSource(new DefaultCommandOutput(), new Vec3d(0, 0, 0), new Vec2f(0, 0), world, 2, "CogwheelEngine", Text.literal("CogwheelEngine"), world.getServer(), null), command);
-        });
+        IStoryEventScheduler.getScheduler(minecraftServer.getOverworld())
+                .storyEvent$scheduleEvent(world -> {
+                    world.getServer().getCommandManager().executeWithPrefix(new ServerCommandSource(new DefaultCommandOutput(), new Vec3d(0, 0, 0), new Vec2f(0, 0), world, 2, "CogwheelEngine", Text.literal("CogwheelEngine"), world.getServer(), null), command);
+                });
     }
 
     @ExpectPlatform
@@ -141,20 +142,23 @@ public class CogwheelHooks {
         throw new AssertionError();
     }
 
-    public static ServerWorld getOverworldServer() {
-        return MinecraftClient.getInstance().getServer().getOverworld();
+    public static ServerWorld getServerSideOverworld() {
+        return minecraftServer.getOverworld();
     }
 
-    public static MinecraftServer getServer() {
-        return MinecraftClient.getInstance().getServer();
-    }
-
-    public static void serverStart() {
+    private static MinecraftServer minecraftServer = null;
+    public static void serverStart(MinecraftServer server) {
         CogwheelExecutor.serverStart();
+        minecraftServer = server;
     }
 
-    public static void serverStop() {
+    public static void serverStop(MinecraftServer server) {
         CogwheelExecutor.serverStop();
+        minecraftServer = null;
+    }
+
+    public static MinecraftServer getMinecraftServer() {
+        return minecraftServer;
     }
 
     public static void packetRegistry(PacketRegistrar registrar) {

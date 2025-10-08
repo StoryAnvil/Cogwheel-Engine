@@ -14,30 +14,38 @@ package com.storyanvil.cogwheel.network.mc;
 
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.data.*;
-import com.storyanvil.cogwheel.entity.AbstractNPC;
 import com.storyanvil.cogwheel.mixinAccess.IStoryEntity;
 import com.storyanvil.cogwheel.mixinAccess.IStoryEntitySubscriber;
+import com.storyanvil.cogwheel.mixinAccess.IStoryEventScheduler;
 import com.storyanvil.cogwheel.util.CogwheelExecutor;
+import com.storyanvil.cogwheel.util.StoryUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.storyanvil.cogwheel.util.CogwheelExecutor.log;
 
-public record StoryEntitySync(String uuid, NbtCompound compound) implements StoryPacket<StoryEntitySync> {
+public record StoryEntitySync(String uuid, NbtCompound compound, Identifier world) implements StoryPacket<StoryEntitySync> {
     public static final StoryCodec<StoryEntitySync> CODEC = StoryCodecBldr.build(
             StoryCodecBldr.String(StoryEntitySync::uuid),
             StoryCodecBldr.Prop(StoryEntitySync::compound, StoryCodecs.NBT_COMPOUND),
+            StoryCodecBldr.Prop(StoryEntitySync::world, StoryCodecs.IDENTIFIER),
             StoryEntitySync::new
     );
 
@@ -84,23 +92,17 @@ public record StoryEntitySync(String uuid, NbtCompound compound) implements Stor
 
     @Override
     public void onServerUnsafe(IStoryPacketContext ctx) {
-        CogwheelExecutor.scheduleTickEvent(world -> {
-            ServerPlayerEntity player = ctx.getSender();
-            assert player != null;
-            if (tryToCompleteServerSync(world, player)) {
-                CogwheelExecutor.scheduleTickEvent(world0 -> {
-                    if (tryToCompleteServerSync(world0, player)) {
-                        CogwheelExecutor.scheduleTickEvent(world1 -> {
-                            if (tryToCompleteServerSync(world1, player)) {
-                                CogwheelHooks.sendPacket(player, new Notification(
-                                        Text.literal("FATAL!"), Text.literal("Failed to sync npc " + uuid())
-                                ));
-                            }
-                        }, 5);
-                    }
-                }, 5);
-            }
-        });
+        ServerPlayerEntity player = ctx.getSender();
+        assert player != null;
+        ServerWorld world = Objects.requireNonNull(StoryUtils.getServerWorldFrom(player.getServer(), world()), "No world found!");
+        if (tryToCompleteServerSync(world, player)) {
+            IStoryEventScheduler.getScheduler(world)
+                    .storyEvent$scheduleEvent(world1 -> {
+                        if (tryToCompleteServerSync(world1, player)) {
+                            log.error("Failed to sync entity with uuid: {} in world: {}", uuid(), world());
+                        }
+                    }, 5);
+        }
     }
 
     private boolean tryToCompleteServerSync(ServerWorld world, ServerPlayerEntity player) {
@@ -110,7 +112,7 @@ public record StoryEntitySync(String uuid, NbtCompound compound) implements Stor
         List<Entity> e = world.getEntitiesByType(new TypeFilter<Entity, Entity>() {
             @Override
             public @Nullable Entity downcast(Entity obj) {
-                if (obj instanceof IStoryEntity npc) return obj;
+                if (obj instanceof IStoryEntity) return obj;
                 return null;
             }
 
@@ -125,7 +127,7 @@ public record StoryEntitySync(String uuid, NbtCompound compound) implements Stor
         }
         for (Entity entity : e) {
             IStoryEntity storyEntity = (IStoryEntity) entity;
-            CogwheelHooks.sendPacket(player, new StoryEntitySync(uuid(), storyEntity.storyEntity$get()));
+            CogwheelHooks.sendPacket(player, new StoryEntitySync(uuid(), storyEntity.storyEntity$get(), world()));
         }
         return false;
     }

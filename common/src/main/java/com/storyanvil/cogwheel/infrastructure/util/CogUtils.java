@@ -12,19 +12,22 @@
 
 package com.storyanvil.cogwheel.infrastructure.util;
 
+import com.storyanvil.cogwheel.cog.obj.CogMaster;
 import com.storyanvil.cogwheel.cog.obj.CogNPC;
 import com.storyanvil.cogwheel.cog.obj.CogNullManager;
 import com.storyanvil.cogwheel.entity.AbstractNPC;
-import com.storyanvil.cogwheel.infrastructure.cog.CogBool;
-import com.storyanvil.cogwheel.infrastructure.cog.CogInteger;
-import com.storyanvil.cogwheel.infrastructure.cog.CogString;
+import com.storyanvil.cogwheel.infrastructure.cog.*;
 import com.storyanvil.cogwheel.infrastructure.props.CGPM;
 import net.minecraft.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
 public class CogUtils {
     private CogUtils() {}
 
-    public static final CogNullManager nullObject = CGPM.nullManager;
+    public static final CogMaster MASTER = new CogMaster();
+    public static final CogNullManager NULL = CGPM.nullManager;
+    public static final CogBool TRUE = CogBool.TRUE;
+    public static final CogBool FALSE = CogBool.FALSE;
 
     public static CogString makeCogString(String s) {
         return new CogString(s);
@@ -37,7 +40,15 @@ public class CogUtils {
         return new CogNPC<>(abstractNPC);
     }
 
-    public static CGPM makeCogInt(int value) {
+    public static CogInteger makeCogInt(int value) {
         return new CogInteger(value);
+    }
+
+    public static CogDouble makeCogDouble(double value) {
+        return new CogDouble(value);
+    }
+
+    public static @NotNull CogLong makeCogLong(long l) {
+        return new CogLong(l);
     }
 }

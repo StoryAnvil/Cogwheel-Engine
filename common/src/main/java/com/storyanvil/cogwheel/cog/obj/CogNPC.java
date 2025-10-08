@@ -49,14 +49,14 @@ public class CogNPC<T extends Entity & AbstractNPC<T>> extends CogEntity<T> {
     }
 
     // ========== === [ JWCGPM METHODS START HERE ] === ========== \\
-    @JWCGPM_Method @Override
+    @JWCGPM_Method(arguments = {}) @Override
     public @NotNull CogBool isValid(@NotNull ArgumentData data, @NotNull DispatchedScript script) throws CogScriptException {
         return CogUtils.makeCogBool(this.ref.isStillValid() && super.isValid(data, script).getValue());
     }
     @JWCGPM_Method(arguments = {CogString.class})
     public @NotNull CogNullManager setSkin(@NotNull ArgumentData data, @NotNull DispatchedScript script) throws CogScriptException {
         this.ref.getSafely(script).npc$setSkin(data.requireString(0));
-        return CogUtils.nullObject;
+        return CogUtils.NULL;
     }
     @JWCGPM_Method(arguments = {})
     public @NotNull CogString getSkin(@NotNull ArgumentData data, @NotNull DispatchedScript script) throws CogScriptException {
@@ -65,7 +65,7 @@ public class CogNPC<T extends Entity & AbstractNPC<T>> extends CogEntity<T> {
     @JWCGPM_Method(arguments = {CogString.class})
     public @NotNull CogNullManager setName(@NotNull ArgumentData data, @NotNull DispatchedScript script) throws CogScriptException {
         this.ref.getSafely(script).npc$setName(data.requireString(0));
-        return CogUtils.nullObject;
+        return CogUtils.NULL;
     }
     @JWCGPM_Method(arguments = {})
     public @NotNull CogString getName(@NotNull ArgumentData data, @NotNull DispatchedScript script) throws CogScriptException {
@@ -74,7 +74,7 @@ public class CogNPC<T extends Entity & AbstractNPC<T>> extends CogEntity<T> {
     @JWCGPM_Method(arguments = {CogString.class})
     public @NotNull CogNullManager setModel(@NotNull ArgumentData data, @NotNull DispatchedScript script) throws CogScriptException {
         this.ref.getSafely(script).npc$setModel(data.requireString(0));
-        return CogUtils.nullObject;
+        return CogUtils.NULL;
     }
     @JWCGPM_Method(arguments = {})
     public @NotNull CogString getModel(@NotNull ArgumentData data, @NotNull DispatchedScript script) throws CogScriptException {
@@ -90,7 +90,7 @@ public class CogNPC<T extends Entity & AbstractNPC<T>> extends CogEntity<T> {
                 data.requireInt(0), data.requireInt(1), data.requireInt(2)
         )));
     }
-    @JWCGPM_Method(arguments = {CogString.class, CogInteger.class})
+    @JWCGPM_Method(arguments = {CogString.class})
     public @NotNull StoryAction<T> waitForLabelAction(@NotNull ArgumentData data, @NotNull DispatchedScript script) throws CogScriptException {
         if (data.size() == 1)
             return this.ref.getSafely(script).addChainedChecked(new WaitForLabelAction(data.requireString(0)));
@@ -119,18 +119,16 @@ public class CogNPC<T extends Entity & AbstractNPC<T>> extends CogEntity<T> {
         int optionsLength = data.size() - 1;
         String[] options = new String[optionsLength - 1];
         for (int i = 0; i < optionsLength - 1; i++) {
-            options[i] = data.getString(i + 1);
+            options[i] = data.get(i + 1).convertToString();
         }
-        DialogChoiceBound bound = new DialogChoiceBound(dialogID, data.getString(0), options, npc.npc$getName(), data.requireString(optionsLength));
+        DialogChoiceBound bound = new DialogChoiceBound(dialogID, data.get(0).convertToString(), options, npc.npc$getName(), data.requireString(optionsLength));
         npc.addStoryActionChecked(new InstantPacketStoryAction(bound));
         throw new PreventChainCalling(variable -> {
             // Dialogs can be registered only in default environment
             CogwheelExecutor.getDefaultEnvironment().registerDialog(dialogID, response -> {
                 CogwheelExecutor.schedule(() -> {
                     // Send dialog close packet
-                    CogwheelExecutor.scheduleTickEvent(levelTickEvent -> {
-                        CogwheelHooks.sendPacketToEveryone(new DialogChoiceBound());
-                    });
+                    CogwheelHooks.sendPacketToEveryone(new DialogChoiceBound());
                     script.put(variable, CogUtils.makeCogInt(response));
                     CogwheelExecutor.schedule(script::lineDispatcher);
                 });
