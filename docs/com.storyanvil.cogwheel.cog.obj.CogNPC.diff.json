@@ -1,11 +1,16 @@
 {
+  "parents": [
+    "com.storyanvil.cogwheel.cog.obj.CogEntity",
+    "com.storyanvil.cogwheel.infrastructure.props.JWCGPM",
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
   "type": "OBJECT",
-  "summary": "Represents NPC",
+  "summary": "Represents NPC.",
   "methods": {
     "isValid": {
       "argTypes": [],
       "argNames": [],
-      "summary": "Returns true if NPC is still remain loaded in minecraft world",
+      "summary": "Checks if NPC is still loaded in minecraft",
       "preventsChainCalling": false,
       "return": "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
     },
@@ -16,14 +21,14 @@
       "argNames": [
         "skinName"
       ],
-      "summary": "Sets name of skin for this NPC. Texture for skin located in following ResourceLocation: `storyanvil_cogwheel:textures/entity/npc/<skinName>.png`",
+      "summary": "Changes NPC's skin name to a provided one. Skin texture is taken from resource location `storyanvil_cogwheel:textures/entity/npc/<skin name>`",
       "preventsChainCalling": false,
       "return": "null"
     },
     "getSkin": {
       "argTypes": [],
       "argNames": [],
-      "summary": "Returns name of skin this NPC is using",
+      "summary": "Returns NPC's skin name",
       "preventsChainCalling": false,
       "return": "com.storyanvil.cogwheel.infrastructure.cog.CogString"
     },
@@ -34,14 +39,14 @@
       "argNames": [
         "name"
       ],
-      "summary": "Changes name of this NPC to provided value",
+      "summary": "Changes NPC's name to provided one.",
       "preventsChainCalling": false,
       "return": "null"
     },
     "getName": {
       "argTypes": [],
       "argNames": [],
-      "summary": "Returns NPC's name",
+      "summary": "Returns NPC's name.",
       "preventsChainCalling": false,
       "return": "com.storyanvil.cogwheel.infrastructure.cog.CogString"
     },
@@ -52,14 +57,14 @@
       "argNames": [
         "modelName"
       ],
-      "summary": "Changes name of model used by this NPC. Model is located in following ResourceLocation: `storyanvil_cogwheel:geo/<modelName>.geo.json`",
+      "summary": "Changes NPC's model name to a provided one. Model is taken from resource location `storyanvil_cogwheel:geo/<model name>.geo.json`",
       "preventsChainCalling": false,
       "return": "null"
     },
     "getModel": {
       "argTypes": [],
-      "argNames": [],
-      "summary": "Returns name of model used by this NPC.",
+      "rgNames": [],
+      "summary": "Returns NPC's model name.",
       "preventsChainCalling": false,
       "return": "com.storyanvil.cogwheel.infrastructure.cog.CogString"
     },
@@ -68,9 +73,9 @@
         "com.storyanvil.cogwheel.infrastructure.cog.CogString"
       ],
       "argNames": [
-        "text"
+        "message"
       ],
-      "summary": "Makes NPC chat provided text using StoryAction",
+      "summary": "Makes NPC (via StoryAction) send specified message in chat.",
       "preventsChainCalling": false,
       "return": "com.storyanvil.cogwheel.infrastructure.storyact.StoryAction"
     },
@@ -85,20 +90,18 @@
         "y",
         "z"
       ],
-      "summary": "Makes npc pathfind to provided coordinates using StoryAction",
+      "summary": "Makes NPC (via StoryAction) find path to provided coordinates and then follow it.",
       "preventsChainCalling": false,
       "return": "com.storyanvil.cogwheel.infrastructure.storyact.StoryAction"
     },
     "waitForLabelAction": {
       "argTypes": [
-        "com.storyanvil.cogwheel.infrastructure.cog.CogString",
-        "com.storyanvil.cogwheel.infrastructure.cog.CogInteger"
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
       ],
       "argNames": [
-        "label",
-        "amount"
+        "label"
       ],
-      "summary": "Makes NPC wait util provided amount of StoryActions with provided label execute. `amount` argument is optional, if not provided only one StoryAction will be needed.",
+      "summary": "Makes NPC (via StoryAction) wait util other StoryAction with specified label finish execution.",
       "preventsChainCalling": false,
       "return": "com.storyanvil.cogwheel.infrastructure.storyact.StoryAction"
     },
@@ -111,7 +114,7 @@
         "animationName",
         "ticks"
       ],
-      "summary": "Makes this NPC play animation with provided name for provided amount of ticks using StoryAction.",
+      "summary": "Makes NPC (via StoryAction) play animation with provided name for provided amount of ticks.",
       "preventsChainCalling": false,
       "return": "com.storyanvil.cogwheel.infrastructure.storyact.StoryAction"
     },
@@ -124,25 +127,23 @@
         "text",
         "photo"
       ],
-      "summary": "Makes NPC trigger UI dialog with provided text and photo. `photo` argument is optional, if not provided no photo will be used. Texture for photo located in following ResourceLocation: `storyanvil_cogwheel:textures/dialog/<photo>.png`",
+      "summary": "[NOT RECOMMENDED. USE .SAD FILES INSTEAD] Makes NPC (via StoryAction) show UI dialog with specified text and photo(optional). Second argument is optional",
       "preventsChainCalling": false,
-      "seeAlso": "page:storyanvil_dialogs",
       "return": "com.storyanvil.cogwheel.infrastructure.storyact.StoryAction"
     },
     "dialogChoiceAction": {
       "argTypes": [
         "com.storyanvil.cogwheel.infrastructure.cog.CogString",
-        "com.storyanvil.cogwheel.infrastructure.cog.CogString...",
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString",
         "com.storyanvil.cogwheel.infrastructure.cog.CogString"
       ],
       "argNames": [
         "text",
-        "answers",
+        "responses...",
         "photo"
       ],
-      "summary": "Makes NPC trigger UI question dialog with provided text, photo and answers. First argument is text that NPC will say. Last argument is NPC's photo (use `empty` as photo if you do not want to display a photo). All other CogStrings are answers player can choose from. Returns index of selected answer (starting from zero)",
-      "preventsChainCalling": true,
-      "seeAlso": "page:storyanvil_dialogs",
+      "summary": "[NOT RECOMMENDED. USE .SAD FILES INSTEAD] Makes NPC (via StoryAction) show UI question for players. Can have any amount of arguments.",
+      "preventsChainCalling": false,
       "return": "com.storyanvil.cogwheel.infrastructure.cog.CogInteger"
     }
   }

@@ -19,16 +19,19 @@ import com.google.gson.JsonPrimitive;
 import com.storyanvil.cogwheel.api.Api;
 import net.minecraft.nbt.*;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
@@ -288,5 +291,20 @@ public class StoryUtils {
     }
     public static JsonArray arrayWith(int e) {
         return arrayWith(new JsonPrimitive(e));
+    }
+
+    public static ServerWorld getServerWorldFrom(MinecraftServer server, Identifier id) {
+        for (ServerWorld world : server.getWorlds()) {
+            if (world.getRegistryKey().getValue().equals(id)) {
+                return world;
+            }
+        }
+        return null;
+    }
+
+    public static <T> ArrayList<T> arrayListWith(T t) {
+        ArrayList<T> list = new ArrayList<>(1);
+        list.add(t);
+        return list;
     }
 }

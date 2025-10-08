@@ -71,12 +71,15 @@ public class CogwheelHooksImpl {
     }
 
     public static <T extends StoryPacket<T>> void sendPacket(StoryPacket<T> packet, ServerPlayerEntity plr) {
+        if (packet == null) return;
         PacketDistributor.sendToPlayer(plr, new StoryNeoParcel<T>(packet.getAsData()));
     }
     public static <T extends StoryPacket<T>> void sendPacketToServer(StoryPacket<T> packet) {
+        if (packet == null) return;
         PacketDistributor.sendToServer(new StoryNeoParcel<T>(packet.getAsData()));
     }
     public static <T extends StoryPacket<T>> void sendPacketToEveryone(StoryPacket<T> packet) {
+        if (packet == null) return;
         PacketDistributor.sendToAllPlayers(new StoryNeoParcel<T>(packet.getAsData()));
     }
 

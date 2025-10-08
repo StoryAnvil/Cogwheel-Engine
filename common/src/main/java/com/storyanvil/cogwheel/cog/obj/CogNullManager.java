@@ -15,24 +15,15 @@ package com.storyanvil.cogwheel.cog.obj;
 import com.storyanvil.cogwheel.infrastructure.ArgumentData;
 import com.storyanvil.cogwheel.infrastructure.err.CogScriptException;
 import com.storyanvil.cogwheel.infrastructure.props.CGPM;
+import com.storyanvil.cogwheel.infrastructure.props.JWCGPM;
 import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
-import com.storyanvil.cogwheel.util.EasyPropManager;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.Nullable;
+import com.storyanvil.cogwheel.infrastructure.util.CogUtils;
+import org.jetbrains.annotations.NotNull;
 
-public class CogNullManager implements CGPM {
-    private static final EasyPropManager MANAGER = new EasyPropManager("nil", CogNullManager::registerProps);
-
-    private static void registerProps(EasyPropManager manager) {
-    }
-
-    @Contract(pure = true)
-    public CogNullManager() {
-    }
-
+public class CogNullManager extends JWCGPM<CogNullManager> {
     @Override
-    public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
-        return MANAGER.get(name).handle(name, args, script, this);
+    public boolean isNull() {
+        return true;
     }
 
     @Override
@@ -42,6 +33,11 @@ public class CogNullManager implements CGPM {
 
     @Override
     public String convertToString() {
-        return "NULL";
+        return "null";
+    }
+
+    @Override
+    public @NotNull CGPM isNull(@NotNull ArgumentData data, @NotNull DispatchedScript script) throws CogScriptException {
+        return CogUtils.NULL;
     }
 }

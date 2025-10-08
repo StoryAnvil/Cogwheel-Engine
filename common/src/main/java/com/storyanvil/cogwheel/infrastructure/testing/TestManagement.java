@@ -18,7 +18,6 @@ import com.google.gson.stream.JsonWriter;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
-import com.storyanvil.cogwheel.api.Api;
 import com.storyanvil.cogwheel.config.CogwheelClientConfig;
 import com.storyanvil.cogwheel.infrastructure.CogScriptDispatcher;
 import com.storyanvil.cogwheel.infrastructure.cog.CogTestCallback;
@@ -31,7 +30,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -64,7 +62,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
     }
     private static void sendTestingMessage(Text msg) {
         try {
-            for (ServerPlayerEntity plr : CogwheelHooks.getOverworldServer().getServer().getPlayerManager().getPlayerList()) {
+            for (ServerPlayerEntity plr : CogwheelHooks.getServerSideOverworld().getServer().getPlayerManager().getPlayerList()) {
                 plr.sendMessage(msg);
             }
         } catch (NullPointerException ignored) {}
@@ -445,16 +443,6 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             timings.add(new Bi<>(Math.toIntExact(l - started), name));
             started = l;
         }
-
-//        public JsonArray toJSON() {
-//            JsonArray array = new JsonArray();
-//            int last = 0;
-//            for (Bi<Integer, String> report : timings) {
-//                array.add("@%sms - %s (this step took %sms)".formatted(report.getA(), report.getB(), report.getA() - last));
-//                last = report.getA();
-//            }
-//            return array;
-//        }
     }
     public static enum Status {
         IN_PROGRESS(Formatting.GOLD), TEST_FAILED(Formatting.RED), MANAGER_FAILED(Formatting.RED), OK(Formatting.GREEN), SKIPPED(Formatting.DARK_GRAY);
@@ -481,6 +469,7 @@ public class TestManagement { //TODO: Perform testing in normal minecraft enviro
             DispatchedScript script = CogScriptDispatcher.dispatchUnsafe(environment.getScript(manifest.getAsJsonPrimitive("scriptName").getAsString()), new ScriptStorage()
                     .append("TEST", callback),  environment, false);
             if (script == null) throw new AssertionError("No script were found!");
+            script.setScriptName("test$" + manifest.getAsJsonPrimitive("scriptName").getAsString());
             CogwheelExecutor.schedule(() -> {
                 script.setOnEnd(threadLock::countDown);
                 script.setErrorHandler(scriptException -> {

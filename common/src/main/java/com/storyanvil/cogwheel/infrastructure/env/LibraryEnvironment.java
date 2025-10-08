@@ -49,16 +49,6 @@ public class LibraryEnvironment extends CogScriptEnvironment {
     }
 
     @Override
-    public void dispatchScript(String name) {
-        CogScriptDispatcher.dispatch("cog-libs/.cog/" + this.name + "/" + name, this);
-    }
-
-    @Override
-    public void dispatchScript(String name, ScriptStorage storage) {
-        CogScriptDispatcher.dispatch("cog-libs/.cog/" + this.name + "/" + name, storage, this);
-    }
-
-    @Override
     public String getScript(String name) {
         return "cog-libs/.cog/" + this.name + "/" + name;
     }

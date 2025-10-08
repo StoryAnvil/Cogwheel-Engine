@@ -19,6 +19,8 @@ import com.storyanvil.cogwheel.infrastructure.script.DialogScript;
 import com.storyanvil.cogwheel.infrastructure.storyact.TickingStoryActionBase;
 import com.storyanvil.cogwheel.network.mc.AnimationBound;
 import com.storyanvil.cogwheel.network.mc.DialogBound;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 
 public class DialogStoryAction extends TickingStoryActionBase<AbstractNPC<?>> {
     private final DialogBound bound;
@@ -34,15 +36,26 @@ public class DialogStoryAction extends TickingStoryActionBase<AbstractNPC<?>> {
 
     @Override
     public void proceed(AbstractNPC<?> myself) {
-        CogwheelHooks.sendPacketToEveryone(bound);
-        if (CogwheelConfig.isNpcTalkingAnimationEnabled())
-            CogwheelHooks.sendPacketToEveryone(new AnimationBound(myself.npc$getAnimatorID(), "animation.npc.talk"));
+        AnimationBound bound2 = null;
+        if (CogwheelConfig.isNpcTalkingAnimationEnabled()) {
+            bound2 = new AnimationBound(myself.npc$getAnimatorID(), "animation.npc.talk");
+        }
+        for (ServerPlayerEntity plr : ((ServerWorld) myself.npc$getEntity().getWorld()).getPlayers()) {
+            CogwheelHooks.sendPacket(plr, bound);
+            CogwheelHooks.sendPacket(plr, bound2);
+        }
     }
 
     @Override
     public void onEnding(AbstractNPC<?> myself) {
-        CogwheelHooks.sendPacketToEveryone(new DialogBound());
-        if (CogwheelConfig.isNpcTalkingAnimationEnabled())
-            CogwheelHooks.sendPacketToEveryone(new AnimationBound(myself.npc$getAnimatorID(), "null"));
+        DialogBound bound1 = new DialogBound();
+        AnimationBound bound2 = null;
+        if (CogwheelConfig.isNpcTalkingAnimationEnabled()) {
+            bound2 = new AnimationBound(myself.npc$getAnimatorID(), "null");
+        }
+        for (ServerPlayerEntity plr : ((ServerWorld) myself.npc$getEntity().getWorld()).getPlayers()) {
+            CogwheelHooks.sendPacket(plr, bound1);
+            CogwheelHooks.sendPacket(plr, bound2);
+        }
     }
 }

@@ -14,7 +14,7 @@ package com.storyanvil.cogwheel.neoforge;
 
 import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.CogwheelHooks;
-import com.storyanvil.cogwheel.EventBus;
+import com.storyanvil.cogwheel.client.CutSceneManagement;
 import com.storyanvil.cogwheel.data.StoryCodec;
 import com.storyanvil.cogwheel.data.StoryPacket;
 import com.storyanvil.cogwheel.neoforge.data.StoryNeoPacket;
@@ -23,9 +23,9 @@ import com.storyanvil.cogwheel.network.devui.DevEarlySyncPacket;
 import com.storyanvil.cogwheel.network.devui.editor.DevEditorSession;
 import com.storyanvil.cogwheel.network.mc.AnimationDataBound;
 import com.storyanvil.cogwheel.util.Bi;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -40,8 +40,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.util.Locale;
 import java.util.function.Consumer;
-
-import static com.storyanvil.cogwheel.EventBus.*;
+import java.util.stream.Collectors;
 
 @EventBusSubscriber(modid = CogwheelEngine.MODID)
 public class NeoForgeEventBus {
@@ -73,17 +72,17 @@ public class NeoForgeEventBus {
         //noinspection DataFlowIssue,OptionalGetWithoutIsPresent
         if (!event.getLevel().getDimensionEntry().getKey().get().getValue().equals(Identifier.of("minecraft", "overworld"))) return;
         if (event.getLevel().isClient()) {
-            synchronized (clientQueue) {
+            synchronized (CutSceneManagement.clientQueue) {
                 try {
-                    for (int i = 0; i < clientQueue.size(); i++) {
-                        Bi<Consumer<ClientWorld>, Integer> e = clientQueue.get(i);
+                    for (int i = 0; i < CutSceneManagement.clientQueue.size(); i++) {
+                        Bi<Consumer<ClientWorld>, Integer> e = CutSceneManagement.clientQueue.get(i);
                         if (e.getB() < 2) {
                             try {
                                 e.getA().accept((ClientWorld) event.getLevel());
                             } catch (Exception ex) {
                                 CogwheelEngine.LOGGER.error("Client queue error:", ex);
                             }
-                            clientQueue.remove(i);
+                            CutSceneManagement.clientQueue.remove(i);
                             i--;
                         } else {
                             e.setB(e.getB() - 1);
@@ -95,47 +94,16 @@ public class NeoForgeEventBus {
                 return;
             }
         }
-        synchronized (queue) {
-            try {
-                for (int i = 0; i < queue.size(); i++) {
-                    Bi<Consumer<ServerWorld>, Integer> e = queue.get(i);
-                    if (e.getB() < 2) {
-                        try {
-                            e.getA().accept((ServerWorld) event.getLevel());
-                        } catch (Exception ex) {
-                            CogwheelEngine.LOGGER.error("Server queue error:", ex);
-                        }
-                        queue.remove(i);
-                        i--;
-                    } else {
-                        e.setB(e.getB() - 1);
-                    }
-                }
-            } catch (Exception e) {
-                CogwheelEngine.LOGGER.debug("Queue bound error", e);
-            }
-            try {
-                EventBus.getStoryLevel().tick((ServerWorld) event.getLevel());
-            } catch (Exception e) {
-                CogwheelEngine.LOGGER.error("StoryLevel tick error", e);
-            }
-        }
     }
 
     @SubscribeEvent
     public static void boundEvent(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayerEntity player) {
-            StringBuilder sb = new StringBuilder();
-            boolean a = true;
-            for (Identifier loc : serverSideAnimations) {
-                if (a) {
-                    a = false;
-                } else {
-                    sb.append("|");
-                }
-                sb.append(loc.toString());
-            }
-            CogwheelHooks.sendPacket(new AnimationDataBound(sb.toString()), player);
+            AnimationDataBound bound = new AnimationDataBound(
+                    CogwheelExecutor.getDefaultEnvironment().serverSideAnimations.stream()
+                            .map(Identifier::toString)
+                            .collect(Collectors.joining("|")));
+            CogwheelHooks.sendPacket(bound, player);
             DevEarlySyncPacket.syncFor(player, true);
             DevEditorSession.boundColorFor(player);
         }
@@ -149,11 +117,11 @@ public class NeoForgeEventBus {
 
     @SubscribeEvent
     public static void onServerStarting(ServerStartingEvent event) {
-        CogwheelHooks.serverStart();
+        CogwheelHooks.serverStart(event.getServer());
     }
 
     @SubscribeEvent
     public static void onServerStopping(ServerStoppingEvent event) {
-        CogwheelHooks.serverStop();
+        CogwheelHooks.serverStop(event.getServer());
     }
 }

@@ -12,11 +12,12 @@
 
 package com.storyanvil.cogwheel.cog.action;
 
-import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.infrastructure.storyact.StoryAction;
-import com.storyanvil.cogwheel.util.LabelCloseable;
+import com.storyanvil.cogwheel.util.CogwheelExecutor;
 
-public class WaitForLabelAction extends StoryAction<Object> implements LabelCloseable {
+import java.util.function.BiConsumer;
+
+public class WaitForLabelAction extends StoryAction<Object> implements BiConsumer<String, StoryAction<?>> {
     private String label;
     private int amount;
 
@@ -34,7 +35,7 @@ public class WaitForLabelAction extends StoryAction<Object> implements LabelClos
 
     @Override
     public void proceed(Object myself) {
-        EventBus.register(label, this);
+        CogwheelExecutor.getDefaultEnvironment().registerLabelListener(label, this);
     }
 
     @Override
@@ -43,7 +44,7 @@ public class WaitForLabelAction extends StoryAction<Object> implements LabelClos
     }
 
     @Override
-    public void close(String label, StoryAction<?> host) {
+    public void accept(String s, StoryAction<?> storyAction) {
         amount--;
         if (amount <= 0) this.label = null;
     }

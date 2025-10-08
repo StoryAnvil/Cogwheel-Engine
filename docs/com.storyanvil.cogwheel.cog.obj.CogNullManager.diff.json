@@ -1,0 +1,9 @@
+{
+  "parents": [
+    "com.storyanvil.cogwheel.infrastructure.props.JWCGPM",
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
+  "type": "OBJECT",
+  "summary": "Represents emptiness.",
+  "methods": {}
+}

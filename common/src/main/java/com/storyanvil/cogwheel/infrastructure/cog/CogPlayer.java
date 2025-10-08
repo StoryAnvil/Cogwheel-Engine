@@ -32,18 +32,15 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.Objects;
 
-public class CogPlayer extends CogEntity implements CGPM {
+public class CogPlayer implements CGPM {
     private static final EasyPropManager MANAGER = new EasyPropManager("player", CogPlayer::registerProps);
 
     private static void registerProps(@NotNull EasyPropManager manager) {
         manager.reg("sendMessage", (name, args, script, o) -> {
             CogPlayer p = (CogPlayer) o;
             if (p.player.refersTo(null)) throw new RuntimeException("Player got unloaded");
-            p.player.get().sendMessage(Text.literal(args.getString(0)));
+            p.player.get().sendMessage(Text.literal(args.getConvertedString(0)));
             return null;
-        });
-        manager.reg("toEntity", (name, args, script, o) -> {
-            return new CogEntity(((CogPlayer) o).player.get());
         });
         manager.reg("takeItem", (name, args, script, o) -> {
             CogPlayer pll = (CogPlayer) o;
@@ -86,7 +83,7 @@ public class CogPlayer extends CogEntity implements CGPM {
 
     @Api.Experimental(since = "2.0.0")
     public CogPlayer(@NotNull WeakReference<ServerPlayerEntity> player) {
-        super(player.get());
+        super();
         this.player = player;
     }
 
@@ -99,9 +96,6 @@ public class CogPlayer extends CogEntity implements CGPM {
     @Override
     public @Nullable CGPM getProperty(String name, ArgumentData args, DispatchedScript script) throws CogScriptException {
         PropertyHandler h = MANAGER.get(name);
-        if (h == null) {
-            return super.getProperty(name, args, script);
-        }
         return h.handle(name, args, script, this);
     }
 

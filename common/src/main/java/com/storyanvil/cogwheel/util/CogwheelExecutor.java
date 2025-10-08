@@ -13,16 +13,14 @@
 package com.storyanvil.cogwheel.util;
 
 import com.storyanvil.cogwheel.CogwheelHooks;
-import com.storyanvil.cogwheel.EventBus;
 import com.storyanvil.cogwheel.api.Api;
+import com.storyanvil.cogwheel.client.CutSceneManagement;
 import com.storyanvil.cogwheel.config.CogwheelConfig;
 import com.storyanvil.cogwheel.infrastructure.env.DefaultEnvironment;
 import com.storyanvil.cogwheel.infrastructure.env.LibraryEnvironment;
-import com.storyanvil.cogwheel.infrastructure.env.WorldEnvironment;
 import com.storyanvil.cogwheel.infrastructure.script.StreamExecutionScript;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.server.world.ServerWorld;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +38,7 @@ import java.util.function.Consumer;
 public class CogwheelExecutor {
     @ApiStatus.Internal
     public static final Logger log = LoggerFactory.getLogger("STORYANVIL/COGWHEEL/EXECUTOR");
-    @ApiStatus.Internal
     protected static final ThreadGroup executorGroup = new ThreadGroup("Cogwheel-executors");
-    @ApiStatus.Internal
     protected static final ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(2, new DefaultThreadFactory("cogwheel-executor", false, Thread.NORM_PRIORITY, executorGroup));
 
     @ApiStatus.Internal
@@ -66,53 +62,25 @@ public class CogwheelExecutor {
         poolExecutor.schedule(task, ms, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * Schedules task to be executed as soon as possible on Minecraft's Server thread on nearest server-side level tick
-     */
-    @Api.Stable(since = "2.0.0")
-    public static void scheduleTickEvent(Consumer<ServerWorld> task) {
-        synchronized (EventBus.queue) {
-            EventBus.queue.add(new Bi<>(task, 0));
-        }
-    }
-    /**
-     * Schedules task to be executed after provided amount of ticks on Minecraft's Server thread on nearest server-side level tick
-     */
-    @Api.Stable(since = "2.0.0")
-    public static void scheduleTickEvent(Consumer<ServerWorld> task, int ticks) {
-        synchronized (EventBus.queue) {
-            EventBus.queue.add(new Bi<>(task, ticks));
-        }
-    }
+
     /**
      * Schedules task to be executed as soon as possible on Minecraft's Render thread on nearest client-side level tick
      */
     @Api.Stable(since = "2.0.0")
     public static void scheduleTickEventClientSide(Consumer<ClientWorld> task) {
-        synchronized (EventBus.clientQueue) {
-            EventBus.clientQueue.add(new Bi<>(task, 0));
-        }
-    }
-    /**
-     * Schedules task to be executed after provided amount of ticks on Minecraft's Render thread on nearest client-side level tick
-     */
-    @Api.Stable(since = "2.0.0")
-    public static void scheduleTickEventClientSide(Consumer<ClientWorld> task, int ticks) {
-        synchronized (EventBus.clientQueue) {
-            EventBus.clientQueue.add(new Bi<>(task, ticks));
+        synchronized (CutSceneManagement.clientQueue) {
+            CutSceneManagement.clientQueue.add(new Bi<>(task, 0));
         }
     }
 
     private static DefaultEnvironment defaultEnvironment;
     private static HashMap<String, LibraryEnvironment> libraryEnvironments;
-    private static WorldEnvironment worldEnvironment;
     private static StreamExecutionScript chatConsole;
 
     @SuppressWarnings("LoggingSimilarMessage")
     public static void serverStart() {
         log.info("Creating CogScript default environments...");
         defaultEnvironment = new DefaultEnvironment();
-        worldEnvironment = new WorldEnvironment();
         if (libraryEnvironments != null) {
             libraryEnvironments.clear();
         }
@@ -156,7 +124,6 @@ public class CogwheelExecutor {
 
         log.info("Environments will be notified of initialization");
         defaultEnvironment.dispatchScript("init.sa");
-        worldEnvironment.dispatchScript("init.sa");
         for (LibraryEnvironment environment : libraryEnvironments.values()) {
             if (!environment.init(new File(unpackedLibraries, environment.getUniqueIdentifier()))) {
                 libraryEnvironments.remove(environment.getUniqueIdentifier());
@@ -199,8 +166,6 @@ public class CogwheelExecutor {
         log.info("Disposing all CogScript environments...");
         defaultEnvironment.dispose();
         defaultEnvironment = null;
-        worldEnvironment.dispose();
-        worldEnvironment = null;
         for (LibraryEnvironment environment : libraryEnvironments.values()) {
             environment.dispose();
         }
@@ -210,11 +175,6 @@ public class CogwheelExecutor {
     @Api.Stable(since = "2.0.0")
     public static DefaultEnvironment getDefaultEnvironment() {
         return defaultEnvironment;
-    }
-
-    @Api.Stable(since = "2.1.0")
-    public static WorldEnvironment getWorldEnvironment() {
-        return worldEnvironment;
     }
 
     @Api.Stable(since = "2.0.0")

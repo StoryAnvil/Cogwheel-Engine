@@ -12,6 +12,9 @@
 
 package com.storyanvil.cogwheel.infrastructure.storyact;
 
+import com.storyanvil.cogwheel.infrastructure.props.JWCGPM_Class;
+
+@JWCGPM_Class(includeInDocs = false)
 public abstract class InstantStoryActionBase<T> extends StoryAction<T> {
     public InstantStoryActionBase() {
         super();

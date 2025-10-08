@@ -1,5 +1,10 @@
 {
+  "parents": [
+    "com.storyanvil.cogwheel.infrastructure.storyact.StoryAction",
+    "com.storyanvil.cogwheel.infrastructure.props.JWCGPM",
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
   "type": "OBJECT",
-  "summary": "StoryAction that makes NPC pathfind to specified coords",
+  "summary": "Makes NPC pathfind to specified coordinates",
   "methods": {}
 }

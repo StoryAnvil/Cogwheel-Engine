@@ -10,8 +10,14 @@
  * You should have received a copy of the GNU Lesser General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.storyanvil.cogwheel.infrastructure.cog;
+package com.storyanvil.cogwheel.infrastructure.props;
 
-public interface JavaType<T> {
-    T javaify();
+import java.lang.annotation.*;
+
+/**
+ * Optional annotation used to mark classes that can be used as {@link JWCGPM} (or {@link ImplJWCGPM})
+ */
+@Documented @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE})
+public @interface JWCGPM_Class {
+    boolean includeInDocs() default true;
 }

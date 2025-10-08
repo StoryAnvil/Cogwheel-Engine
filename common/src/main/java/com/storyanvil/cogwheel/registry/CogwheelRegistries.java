@@ -12,6 +12,7 @@
 
 package com.storyanvil.cogwheel.registry;
 
+import com.storyanvil.cogwheel.infrastructure.util.CogUtils;
 import com.storyanvil.cogwheel.util.CogwheelExecutor;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.api.Api;
@@ -35,6 +36,7 @@ import net.minecraft.util.Rarity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -43,7 +45,6 @@ import java.util.function.Supplier;
 import static com.storyanvil.cogwheel.CogwheelEngine.MODID;
 
 public class CogwheelRegistries {
-    private static final List<Bi<String, Function<DispatchedScript, CGPM>>> defaultVariables = new ArrayList<>();
     private static final ArrayList<Bi<ScriptLineHandler, Boolean>> lineHandlers = new ArrayList<>();
     /**
      * Registries ScriptLineHandler
@@ -61,27 +62,9 @@ public class CogwheelRegistries {
     }
 
     @Api.Internal @ApiStatus.Internal @Api.MixinsNotAllowed(where = "NOWHERE")
-    protected static void registerInternal(@NotNull ScriptLineHandler factory) {
+    private static void registerInternal(@NotNull ScriptLineHandler factory) {
         synchronized (lineHandlers) {
             lineHandlers.add(new Bi<>(Objects.requireNonNull(factory), true));
-        }
-    }
-    /**
-     * Registries Default Variable
-     * @apiNote Name must not be "StoryAnvil" or "CogWheel"
-     */
-    @Api.Stable(since = "2.0.0") @Api.MixinsNotAllowed(where = "NOWHERE")
-    public static void register(@NotNull String name, @NotNull Function<DispatchedScript, CGPM> f) {
-        synchronized (defaultVariables) {
-            if (name.equalsIgnoreCase("storyanvil") || name.equalsIgnoreCase("cogwheel")) throw new IllegalArgumentException("Name not permitted");
-            defaultVariables.add(new Bi<>(name, f));
-        }
-    }
-
-    @Api.Internal @ApiStatus.Internal @Api.MixinsNotAllowed(where = "NOWHERE")
-    protected static void registerInternal(@NotNull String name, @NotNull Function<DispatchedScript, CGPM> f) {
-        synchronized (defaultVariables) {
-            defaultVariables.add(new Bi<>(name, f));
         }
     }
 
@@ -100,46 +83,6 @@ public class CogwheelRegistries {
 
     @Api.Internal @ApiStatus.Internal @Api.MixinsNotAllowed(where = "NOWHERE")
     public static void registerDefaultObjects() {
-        registerInternal(new ScriptLineHandler() {
-            @Override
-            public byte handle(@NotNull ScriptLine scriptLine, @NotNull String line, @NotNull DispatchedScript script) throws Exception {
-                if (!line.startsWith("*")) return ScriptLineHandler.ignore;
-                String library;
-                boolean reload = false;
-                if (line.startsWith("*import ")) {
-                    library = line.substring(8);
-                } else if (line.startsWith("*reimport ")) {
-                    library = line.substring(10);
-                    reload = true;
-                } else if (line.startsWith("*return ")) {
-                    String expression = line.substring(8);
-                    CGPM exp = expressionHandler(expression, script, false).getB();
-                    script.put("$", exp);
-                    script.haltExecution();
-                    return ScriptLineHandler.continueReading;
-                } else throw new CogExpressionFailure("STAR Expression is invalid");
-                Identifier loc;
-                try {
-                    loc = Identifier.tryParse(library + ".sam");
-                } catch (Throwable t) {throw new CogExpressionFailure("STAR Expression is invalid", t);}
-                CogScriptEnvironment environment = CogScriptEnvironment.getEnvironment(loc);
-                Identifier modLoc = CogwheelExecutor.getDefaultEnvironment().getModuleLoc(environment, loc.getPath());
-                CogModule module = CogwheelExecutor.getDefaultEnvironment().getModule(modLoc);
-                if (!reload) reload = module == null;
-                if (reload) {
-                    module = CogModule.build(environment, loc.getPath());
-                    CogwheelExecutor.getDefaultEnvironment().putModule(modLoc, module);
-                }
-                String actualName = loc.getPath().substring(0, loc.getPath().length() - 4);
-                script.put(actualName, module);
-                return ScriptLineHandler.continueReading;
-            }
-
-            @Override
-            public @NotNull Identifier getIdentifier() {
-                return Identifier.of(MODID, "star");
-            }
-        });
         registerInternal(new ScriptLineHandler() {
             @Override
             public byte handle(@NotNull ScriptLine scriptLine, @NotNull String line, @NotNull DispatchedScript script) throws Exception {
@@ -190,17 +133,11 @@ public class CogwheelRegistries {
             public byte handle(@NotNull ScriptLine scriptLine, @NotNull String _line, @NotNull DispatchedScript script) throws CogScriptException {
                 return expressionHandler(_line, script, true).getA();
             }
-
             @Override
             public @NotNull Identifier getIdentifier() {
                 return Identifier.of(MODID, "expression_handler");
             }
         });
-
-        registerInternal("Cogwheel", script -> CogMaster.getInstance());
-        registerInternal("MANIFEST", script -> CogManifest.getInstance());
-        registerInternal("true", script -> CogBool.TRUE);
-        registerInternal("false", script -> CogBool.FALSE);
     }
 
     private static void skipCurrentLevel(@NotNull DispatchedScript script) {
@@ -217,13 +154,7 @@ public class CogwheelRegistries {
         }
     }
 
-    public static void putDefaults(ScriptStorage storage, DispatchedScript script) {
-        for (Bi<String, Function<DispatchedScript, CGPM>> pair : defaultVariables) {
-            storage.put(pair.getA(), pair.getB().apply(script));
-        }
-    }
     @Contract("_, _, _ -> new")
-    @SuppressWarnings("ExtractMethodRecommender")
     public static @NotNull Bi<Byte, CGPM> expressionHandler(String line, DispatchedScript script, boolean allowBlocking) throws CogScriptException {
         // Return: DoubleValue<ScriptLineHandler.*(), ExpressionReturn>
         line = line.trim();
@@ -250,62 +181,49 @@ public class CogwheelRegistries {
             variable = null;
         }
 
-        String ccc = line.substring(currentStart).stripLeading();
-        if (ccc.length() > 1) {
-            String member = ccc;
-            Bi<Byte, CGPM> r = null;
-            if (member.startsWith("\"") && member.endsWith("\"")) {
-                r = new Bi<>(ScriptLineHandler.continueReading, new CogString(member.substring(1, member.length() - 1)));
-            } else if (member.startsWith("^")) {
-                int endIndex = member.length() - 1;
-                char end = member.charAt(endIndex);
-                switch (end) {
-                    case 'L' -> {
-                        r = new Bi<>(ScriptLineHandler.continueReading, new CogLong(member.substring(1, endIndex)));
-                        break;
-                    }
-                    case 'D' -> {
-                        r = new Bi<>(ScriptLineHandler.continueReading, new CogDouble(member.substring(1, endIndex)));
-                        break;
-                    }
-                    default -> {
-                        r = new Bi<>(ScriptLineHandler.continueReading, new CogInteger(member.substring(1)));
-                        break;
-                    }
-                }
-            }
-            if (r != null) {
-                if (variable != null) {
-                    script.put(variable.toString(), r.getB());
-                }
-                return r;
-            }
-        }
+//        String ccc = line.substring(currentStart).stripLeading();
+//        if (ccc.length() > 1) {
+//            Bi<Byte, CGPM> r = null;
+//            if (ccc.startsWith("\"") && ccc.endsWith("\"")) {
+//                r = new Bi<>(ScriptLineHandler.continueReading, new CogString(ccc.substring(1, ccc.length() - 1)));
+//            } else
+//            if (r != null) {
+//                if (variable != null) {
+//                    script.put(variable.toString(), r.getB());
+//                }
+//                return r;
+//            }
+//        }
 
         // Chain call search
-        StringBuilder currentName = new StringBuilder(); // TODO: Replace StringBuilder with one substring call for better optimization
         int depth = 0;
         ArrayList<String> chainCalls = new ArrayList<>();
+        boolean quotes = false;
+        int regionStart = currentStart;
         for (int i = currentStart; i < line.length(); i++) {
             char c = line.charAt(i);
+            if (quotes) {
+                if (c == '"') {
+                    quotes = false;
+                }
+                continue;
+            }
             if (c == '.' && depth == 0) {
-                chainCalls.add(currentName.toString());
-                currentName = new StringBuilder();
+                chainCalls.add(line.substring(regionStart, i));
+                regionStart = i + 1;
             } else if (c == '(') {
                 depth++;
-                currentName.append(c);
             } else if (c == ')') {
                 depth--;
                 if (depth < 0) {
                     throw script.wrap(new CogExpressionFailure("Closing bracket mismatch!"));
                 }
-                currentName.append(c);
-            } else {
-                currentName.append(c);
+            } else if (c == '"') {
+                quotes = true;
             }
         }
         if (depth == 0) {
-            chainCalls.add(currentName.toString());
+            chainCalls.add(line.substring(regionStart));
         } else {
             throw script.wrap(new CogExpressionFailure("Tail closing bracket mismatch!"));
         }
@@ -313,15 +231,7 @@ public class CogwheelRegistries {
         if (chainCalls.getFirst().endsWith(")")) {
             throw script.wrap(new CogExpressionFailure("Expression does not have first step!"));
         }
-//        if (chainCalls.size() == 1) {
-//            CogwheelEngine.EARLY.error("AAA!!! {} < {}", chainCalls, line);
-//            cm = script.get(chainCalls.getFirst());
-//            if (variable != null) {
-//                script.put(variable.toString(), cm);
-//            }
-//            return new Bi<>(ScriptLineHandler.continueReading(), cm);
-//        }
-        @NotNull CGPM manager = CGPM.noNull(script.get(chainCalls.getFirst().stripLeading()));
+        @NotNull CGPM manager = expressionHelper$rootGetter(script, chainCalls.getFirst().stripLeading());
         for (int i = 1 /* do not take first step */; i < chainCalls.size(); i++) {
             String step = chainCalls.get(i);
             if (!step.endsWith(")")) {
@@ -347,22 +257,29 @@ public class CogwheelRegistries {
         }
         return new Bi<>(ScriptLineHandler.continueReading, manager);
     }
-    public static int indexOfKeyword(@NotNull String line, @NotNull String keyword) {
-        boolean inQuotes = false;
-        StringBuilder currentWord = new StringBuilder();
-        for (int i = 0; i < line.length(); i++) {
-            char c = line.charAt(i);
-            if (c == '"') {
-                inQuotes = !inQuotes;
-            } else if (c == ' ') {
-                if (currentWord.toString().equals(keyword)) {
-                    return i - currentWord.length();
+    private static CGPM expressionHelper$rootGetter(DispatchedScript script, String name) {
+        int l = name.length();
+        if (l > 1) {
+            char prefix = name.charAt(0);
+            char lastChar = name.charAt(l - 1);
+            if (Character.isDigit(prefix)) {
+                switch (lastChar) {
+                    case 'L' -> {
+                        return CogUtils.makeCogLong(Long.parseLong(name.substring(0, l - 1)));
+                    }
+                    case 'D' -> {
+                        return CogUtils.makeCogDouble(Double.parseDouble(name.substring(0, l - 1)));
+                    }
+                    default -> {
+                        return CogUtils.makeCogInt(Integer.parseInt(name));
+                    }
                 }
-                currentWord = new StringBuilder();
             } else {
-                currentWord.append(c);
+                if (prefix == '"' && lastChar == '"') {
+                    return CogUtils.makeCogString(name.substring(1, l - 1));
+                }
             }
         }
-        return -1;
+        return script.get(name);
     }
 }

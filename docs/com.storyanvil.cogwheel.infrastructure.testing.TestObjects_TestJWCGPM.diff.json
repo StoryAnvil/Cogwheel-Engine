@@ -1,5 +1,9 @@
 {
+  "parents": [
+    "com.storyanvil.cogwheel.infrastructure.props.JWCGPM",
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
   "type": "OBJECT",
-  "summary": "Object used for performance tests. Not accessible in normal scripts",
+  "summary": "Object used for performance testing",
   "methods": {}
 }

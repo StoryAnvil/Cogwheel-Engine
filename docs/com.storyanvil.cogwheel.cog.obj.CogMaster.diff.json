@@ -1,5 +1,207 @@
 {
+  "parents": [
+    "com.storyanvil.cogwheel.infrastructure.props.JWCGPM",
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
   "type": "OBJECT",
-  "summary": "Object that houses methods for getting other Cogwheel Engine's objects",
-  "methods": {}
+  "summary": "Main Cogwheel Engines class. Usually stored in default variable named `Cogwheel`",
+  "methods": {
+    "log": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.props.CGPM"
+      ],
+      "argNames": [
+        "msg"
+      ],
+      "summary": "Logs message in minecraft logs",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "debugLog": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.props.CGPM"
+      ],
+      "argNames": [
+        "msg"
+      ],
+      "summary": "If devEnvironment is enabled in `config-main.json`, logs message in minecraft logs. Otherwise does nothing.",
+      "preventsChainCalling": false,
+      "return": "any"
+    },
+    "isDevEnv": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Checks if devEnvironment is enabled in `config-main.json`",
+      "preventsChainCalling": false,
+      "return": "any"
+    },
+    "getOverworld": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Returns CogWorld for overworld dimension.",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.cog.obj.CogWorld"
+    },
+    "getWorld": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.cog.obj.CogIdentifier"
+      ],
+      "argNames": [
+        "dimensionResourceLocation"
+      ],
+      "summary": "Returns CogWorld for dimension with specified resource location.",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.cog.obj.CogWorld"
+    },
+    "clearVar": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "name"
+      ],
+      "summary": "Deletes variable with provided name.",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "sleep": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogInteger"
+      ],
+      "argNames": [
+        "ms"
+      ],
+      "summary": "Makes script wait specified amount of milliseconds (1000ms = 1 sec) before continuing execution.",
+      "preventsChainCalling": true,
+      "return": "null"
+    },
+    "dispatchScriptGlobally": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.cog.obj.CogIdentifier"
+      ],
+      "argNames": [
+        "scriptName"
+      ],
+      "summary": "Dispatches script. Works like `/@storyanvil dispatch-script` chat command (resource location's namespace is used to determine script's environment).",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "dispatchScriptLocally": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "scriptName"
+      ],
+      "summary": "Dispatches script from this environment.",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "waitForStoryAction": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "label"
+      ],
+      "summary": "Makes script wait before StoryAction with specified label executes.",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "addAnimationSource": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.cog.obj.CogIdentifier"
+      ],
+      "argNames": [
+        "animationSource"
+      ],
+      "summary": "Adds animation source. See [wiki](https://storyanvil.github.io/wiki/wiki.html?p=wiki/projects/cogwheel/animations) for more info",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "removeAnimationSource": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.cog.obj.CogIdentifier"
+      ],
+      "argNames": [
+        "animationSource"
+      ],
+      "summary": "Removes animation source. See [wiki](https://storyanvil.github.io/wiki/wiki.html?p=wiki/projects/cogwheel/animations) for more info",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "clearAnimationSources": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Removes all animation sources. See [wiki](https://storyanvil.github.io/wiki/wiki.html?p=wiki/projects/cogwheel/animations) for more info",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "currentTimeMS": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Returns the difference, measured in milliseconds, between the current time and midnight, January 1, 1970 UTC.",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogLong"
+    },
+    "dumpVariables": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Prints all script's variables in minecraft logs. Should only be used for debugging.",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "choose": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogBool",
+        "com.storyanvil.cogwheel.infrastructure.props.CGPM",
+        "com.storyanvil.cogwheel.infrastructure.props.CGPM"
+      ],
+      "argNames": [
+        "check",
+        "arg1",
+        "arg2"
+      ],
+      "summary": "Returns `arg1` if `check` is `true`. Otherwise, returns `arg2`",
+      "preventsChainCalling": false,
+      "return": "any"
+    },
+    "map": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogInteger",
+        "com.storyanvil.cogwheel.infrastructure.props.CGPM"
+      ],
+      "argNames": [
+        "index",
+        "args..."
+      ],
+      "summary": "Can have any amount of arguments, but first one must be a `CogInteger`. Returns argument at `index` position starting from zero.",
+      "preventsChainCalling": false,
+      "return": "any"
+    },
+    "executeCommand": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "cmd"
+      ],
+      "summary": "Executes specified chat command. Leading `/` is not needed.",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "randomInt": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogInteger",
+        "com.storyanvil.cogwheel.infrastructure.cog.CogInteger"
+      ],
+      "argNames": [
+        "min",
+        "max"
+      ],
+      "summary": "Returns random integer between specified min (inclusive) and max (exclusive).",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogInteger"
+    }
+  }
 }

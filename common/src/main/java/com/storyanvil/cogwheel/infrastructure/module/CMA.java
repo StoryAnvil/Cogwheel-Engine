@@ -30,12 +30,12 @@ public class CMA implements CGPM {
     private static void registerProps(EasyPropManager manager) {
         manager.reg("put", (name, args, script, o) -> {
             CMA cma = (CMA) o;
-            cma.storage.put(args.getString(0), args.get(1));
+            cma.storage.put(args.getConvertedString(0), args.get(1));
             return null;
         });
         manager.reg("get", (name, args, script, o) -> {
             CMA cma = (CMA) o;
-            return cma.storage.get(args.getString(0));
+            return cma.storage.get(args.getConvertedString(0));
         });
     }
 

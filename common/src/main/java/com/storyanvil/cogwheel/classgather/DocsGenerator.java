@@ -17,10 +17,13 @@ import com.google.gson.JsonObject;
 import com.storyanvil.cogwheel.CogwheelEngine;
 import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.config.CogwheelClientConfig;
+import com.storyanvil.cogwheel.infrastructure.ArgumentData;
+import com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM;
 import com.storyanvil.cogwheel.infrastructure.props.JWCGPM;
+import com.storyanvil.cogwheel.infrastructure.props.JWCGPM_Class;
 import com.storyanvil.cogwheel.infrastructure.props.JWCGPM_Method;
+import com.storyanvil.cogwheel.infrastructure.script.DispatchedScript;
 import com.storyanvil.cogwheel.util.CogwheelExecutor;
-import com.storyanvil.cogwheel.util.StoryUtils;
 import io.github.classgraph.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
@@ -30,10 +33,17 @@ import net.minecraft.util.Formatting;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Stream;
 
+@JWCGPM_Class(includeInDocs = false)
 public class DocsGenerator {
     private static void sendMessage(Text msg) {
         CogwheelEngine.LOGGER.info("DocsGenerator: {}", msg.getString());
@@ -41,7 +51,7 @@ public class DocsGenerator {
             MutableText append = Text.literal("[CogwheelEngine]").formatted(Formatting.GRAY)
                     .append(Text.literal(" ").formatted(Formatting.RESET, Formatting.WHITE))
                     .append(msg);
-            for (ServerPlayerEntity plr : CogwheelHooks.getOverworldServer().getServer().getPlayerManager().getPlayerList()) {
+            for (ServerPlayerEntity plr : CogwheelHooks.getServerSideOverworld().getServer().getPlayerManager().getPlayerList()) {
                 plr.sendMessage(append);
             }
         } catch (NullPointerException ignored) {
@@ -66,6 +76,7 @@ public class DocsGenerator {
                 .acceptPackages("com.storyanvil.cogwheel")
                 .scan()) {
             ArrayList<String> invalidFiles = new ArrayList<>();
+            HashSet<String> validFiles = new HashSet<>();
             sendMessage(Text.literal("JWCGPMs collected!"));
             File docsDirectory = new File(CogwheelClientConfig.getDocsDirectory());
             if (!docsDirectory.exists()) {
@@ -74,19 +85,60 @@ public class DocsGenerator {
                     return;
                 }
             }
-            ClassInfoList jwcgpms = scanResult.getSubclasses(JWCGPM.class);
+            ClassInfoList jwcgpms = scanResult.getSubclasses(ImplJWCGPM.class).union(
+                    scanResult.getClassesWithAnnotation(JWCGPM_Class.class),
+                    scanResult.getSubclasses(JWCGPM.class)
+            );
+            HashMap<String, JWCGPM_Class> classData = new HashMap<>();
             for (ClassInfo classInfo : jwcgpms) {
-                sendMessage(Text.literal("Documenting " + classInfo.getName()));
-                Class<?> actualClass = Class.forName(classInfo.getName());
+                if (classInfo.hasAnnotation(JWCGPM_Class.class)) {
+                    AnnotationInfo annotationInfo = classInfo.getAnnotationInfo(JWCGPM_Class.class);
+                    JWCGPM_Class jwcgpmClass = (JWCGPM_Class) annotationInfo.loadClassAndInstantiate();
+                    classData.put(classInfo.getName(), jwcgpmClass);
+                }
+            }
+            JWCGPM_Class jwcgpmClassDefault = new JWCGPM_Class(){
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return JWCGPM_Class.class;
+                }
+
+                @Override
+                public boolean includeInDocs() {
+                    return true;
+                }
+            };
+            for (ClassInfo classInfo : jwcgpms) {
+                JWCGPM_Class jwcgpmClass = classData.getOrDefault(classInfo.getName(), jwcgpmClassDefault);
+                if (!jwcgpmClass.includeInDocs()) {
+                    sendMessage(Text.literal("Skipped " + classInfo.getName()));
+                    continue;
+                }
                 File jsonFile = new File(docsDirectory, classInfo.getName().replace('$', '_') + ".diff.json");
+                sendMessage(Text.literal("Documenting " + classInfo.getName()));
                 DiffJson docRoot = DiffJson.readFromFile(jsonFile);
+
+                JsonArray array = new JsonArray(1);
+                for (ClassInfo superClass : classInfo.getSuperclasses().union(classInfo.getInterfaces())) {
+                    if (jwcgpms.contains(superClass)) {
+                        JWCGPM_Class data = classData.getOrDefault(superClass.getName(), jwcgpmClassDefault);
+                        if (data.includeInDocs())
+                            array.add(superClass.getName());
+                    }
+                }
+                docRoot.checkValue("parents", array);
+
+                validFiles.add(jsonFile.getName());
                 docRoot.checkValueString("type", "OBJECT");
                 docRoot.checkString("summary", "... short description of this class ...");
                 DiffJson docMethods = docRoot.checkDiffJsonObj("methods", new JsonObject());
+                HashSet<String> methodsFound = new HashSet<>();
                 for (MethodInfo methodInfo : classInfo.getDeclaredMethodInfo()) {
                     if (methodInfo.hasAnnotation(JWCGPM_Method.class)) {
                         JWCGPM_Method jwcgpmMethod = (JWCGPM_Method) methodInfo.getAnnotationInfo(JWCGPM_Method.class).loadClassAndInstantiate();
+                        methodsFound.add(methodInfo.getName());
                         DiffJson docMethod = docMethods.checkDiffJsonObj(methodInfo.getName(), new JsonObject());
+
                         JsonArray argTypes = new JsonArray();
                         JsonArray argNames = new JsonArray();
                         int argN = 0;
@@ -105,6 +157,8 @@ public class DocsGenerator {
                         if (resultType instanceof ClassRefTypeSignature classRefReturn) {
                             if (classRefReturn.getFullyQualifiedClassName().equals("com.storyanvil.cogwheel.cog.obj.CogNullManager")) {
                                 docMethod.checkString("return", "null");
+                            } else if (classRefReturn.getFullyQualifiedClassName().equals("com.storyanvil.cogwheel.infrastructure.props.CGPM")) {
+                                docMethod.checkString("return", "any");
                             } else {
                                 docMethod.checkString("return", classRefReturn.getFullyQualifiedClassName());
                             }
@@ -113,12 +167,28 @@ public class DocsGenerator {
                         }
                     }
                 }
+                ArrayList<String> keys = new ArrayList<>();
+                for (String s : docMethods.keys())
+                    keys.add(s);
+                for (String docMethod : keys) {
+                    if (!methodsFound.contains(docMethod)) {
+                        docMethods.checkUnset(docMethod);
+                    }
+                }
                 try {
                     if (!docRoot.isStillValid())
-                        invalidFiles.add(jsonFile.getCanonicalPath());
+                        invalidFiles.add(jsonFile.getName() + " [was auto edited]");
                     docRoot.writeToFile(jsonFile);
                 } catch (IOException e) {
                     CogwheelEngine.LOGGER.error("Failed to write doc file {}", jsonFile, e);
+                }
+            }
+            File[] allPages = docsDirectory.listFiles();
+            if (allPages == null) allPages = new File[0];
+            for (File doc : allPages) {
+                String docName = doc.getName();
+                if (!validFiles.contains(docName)) {
+                    invalidFiles.add(docName + " [should not exist]");
                 }
             }
             sendMessage(Text.literal("Docs first phase finished!"));

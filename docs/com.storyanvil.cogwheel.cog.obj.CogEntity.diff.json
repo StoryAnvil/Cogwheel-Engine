@@ -1,11 +1,161 @@
 {
+  "parents": [
+    "com.storyanvil.cogwheel.infrastructure.props.JWCGPM",
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
   "type": "OBJECT",
-  "summary": "Represents minecraft entity",
+  "summary": "Represents Minecraft entity.",
   "methods": {
     "isValid": {
       "argTypes": [],
       "argNames": [],
-      "summary": "... short description of this property ...",
+      "summary": "Returns `true` if entity is loaded in minecraft",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
+    },
+    "getScoreboardName": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Returns entities name for scoreboard. For players, it is their username",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+    },
+    "getX": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Returns X coordinate of this entity",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogDouble"
+    },
+    "getY": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Returns Y coordinate of this entity",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogDouble"
+    },
+    "getZ": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Returns Z coordinate of this entity",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogDouble"
+    },
+    "hasTag": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "tag"
+      ],
+      "summary": "Checks if entity has specified [tag](https://minecraft.wiki/w/Commands/tag)",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
+    },
+    "addTag": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "tag"
+      ],
+      "summary": "Adds [tag](https://minecraft.wiki/w/Commands/tag) to entity. Returns `true` if entity did not have this tag before",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
+    },
+    "removeTag": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "tag"
+      ],
+      "summary": "Removes [tag](https://minecraft.wiki/w/Commands/tag) from entity. Returns `true` if entity had this tag before `removeTag` was called",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
+    },
+    "kill": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Kills this entity",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "putInt": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString",
+        "com.storyanvil.cogwheel.infrastructure.cog.CogInteger"
+      ],
+      "argNames": [
+        "key",
+        "value"
+      ],
+      "summary": "Saves specified value in this entities NBT in specified key. This data is persistent between world saves",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "putString": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString",
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "key",
+        "value"
+      ],
+      "summary": "Saves specified value in this entities NBT in specified key. This data is persistent between world saves",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "putBool": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString",
+        "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
+      ],
+      "argNames": [
+        "key",
+        "value"
+      ],
+      "summary": "Saves specified value in this entities NBT in specified key. This data is persistent between world saves",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "getInt": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString",
+        "com.storyanvil.cogwheel.infrastructure.cog.CogInteger"
+      ],
+      "argNames": [
+        "key",
+        "defaultValue"
+      ],
+      "summary": "Restores value stored in this entities NBT from specified key. If there isn't anything saved in specified key, returns specified defaultValue",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogInteger"
+    },
+    "getString": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString",
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "key",
+        "defaultValue"
+      ],
+      "summary": "Restores value stored in this entities NBT from specified key. If there isn't anything saved in specified key, returns specified defaultValue",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+    },
+    "getBoolean": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString",
+        "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
+      ],
+      "argNames": [
+        "key",
+        "defaultValue"
+      ],
+      "summary": "Restores value stored in this entities NBT from specified key. If there isn't anything saved in specified key, returns specified defaultValue",
       "preventsChainCalling": false,
       "return": "com.storyanvil.cogwheel.infrastructure.cog.CogBool"
     }

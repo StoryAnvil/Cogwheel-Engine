@@ -1,0 +1,59 @@
+{
+  "parents": [
+    "com.storyanvil.cogwheel.infrastructure.props.JWCGPM",
+    "com.storyanvil.cogwheel.infrastructure.props.ImplJWCGPM"
+  ],
+  "type": "OBJECT",
+  "summary": "Represents minecraft's [resource location](https://minecraft.wiki/w/Resource_location)",
+  "methods": {
+    "getNamespace": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Returns namespace of this resource location",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+    },
+    "getPath": {
+      "argTypes": [],
+      "argNames": [],
+      "summary": "Returns path of this resource location",
+      "preventsChainCalling": false,
+      "return": "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+    },
+    "setNamespace": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "namespace"
+      ],
+      "summary": "Changes namespace of this resource location to provided value",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "setPath": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "path"
+      ],
+      "summary": "Changes path of this resource location to provided value",
+      "preventsChainCalling": false,
+      "return": "null"
+    },
+    "setAll": {
+      "argTypes": [
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString",
+        "com.storyanvil.cogwheel.infrastructure.cog.CogString"
+      ],
+      "argNames": [
+        "namespace",
+        "path"
+      ],
+      "summary": "Changes both namespace and path to provided values",
+      "preventsChainCalling": false,
+      "return": "null"
+    }
+  }
+}

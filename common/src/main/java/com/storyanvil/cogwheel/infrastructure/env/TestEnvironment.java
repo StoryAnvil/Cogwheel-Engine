@@ -12,22 +12,9 @@
 
 package com.storyanvil.cogwheel.infrastructure.env;
 
-import com.storyanvil.cogwheel.infrastructure.CogScriptDispatcher;
-import com.storyanvil.cogwheel.util.ScriptStorage;
-
 public class TestEnvironment extends LibraryEnvironment {
     public TestEnvironment() {
         super("test_environment");
-    }
-
-    @Override
-    public void dispatchScript(String name) {
-        CogScriptDispatcher.dispatch("./cog/tests/" + name, this);
-    }
-
-    @Override
-    public void dispatchScript(String name, ScriptStorage storage) {
-        CogScriptDispatcher.dispatch("./cog/tests/" + name, storage, this);
     }
 
     @Override

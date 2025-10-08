@@ -36,14 +36,14 @@ public final class CogString implements CGPM, CogPrimalType {
         manager.reg("append", (name, args, script, o) -> {
             CogString str = (CogString) o;
             for (int i = 0; i < args.size(); i++) {
-                str.value += args.getString(i);
+                str.value += args.get(i).convertToString();
             }
             return str;
         });
         manager.reg("format", (name, args, script, o) -> {
             CogString str = (CogString) o;
             for (int i = 0; i < args.size(); i++) {
-                str.value = str.value.replaceFirst("\\{}", args.getString(i));
+                str.value = str.value.replaceFirst("\\{}", args.getConvertedString(i));
             }
             return str;
         });
@@ -69,12 +69,12 @@ public final class CogString implements CGPM, CogPrimalType {
         });
         manager.reg("replace", (name, args, script, o) -> {
             CogString str = (CogString) o;
-            str.value = str.value.replace(args.getString(0), args.getString(1));
+            str.value = str.value.replace(args.getConvertedString(0), args.getConvertedString(1));
             return str;
         });
         manager.reg("indexOf", (name, args, script, o) -> {
             CogString str = (CogString) o;
-            return new CogInteger(str.value.indexOf(args.getString(0)));
+            return new CogInteger(str.value.indexOf(args.getConvertedString(0)));
         });
         manager.reg("clone", (name, args, script, o) -> {
             CogString str = (CogString) o;

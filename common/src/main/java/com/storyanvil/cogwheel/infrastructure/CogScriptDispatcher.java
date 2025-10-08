@@ -87,10 +87,11 @@ public class CogScriptDispatcher {
             log.info("Dialog Script: {} dispatched", scriptName);
             return readAndDispatch(scriptName, storage, environment, script, CogScriptDispatcher::dialog, false, execute);
         } else {
-            if (mixinEntrypoint(script, storage, environment) == null)
+            DispatchedScript mixined = mixinEntrypoint(script, storage, environment);
+            if (mixined == null)
                 log.error("Script {} does not end with any known extension (known extensions are: \".sa\"). Dispatch ignored!", script);
+            return mixined;
         }
-        return null;
     }
 
     @SuppressWarnings("unused") // Unused arguments are for mixins

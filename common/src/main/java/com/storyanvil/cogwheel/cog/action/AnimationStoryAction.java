@@ -16,6 +16,8 @@ import com.storyanvil.cogwheel.CogwheelHooks;
 import com.storyanvil.cogwheel.entity.AbstractNPC;
 import com.storyanvil.cogwheel.infrastructure.storyact.StoryAction;
 import com.storyanvil.cogwheel.network.mc.AnimationBound;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import org.jetbrains.annotations.NotNull;
 
 public class AnimationStoryAction extends StoryAction<AbstractNPC<?>> {
@@ -29,14 +31,20 @@ public class AnimationStoryAction extends StoryAction<AbstractNPC<?>> {
 
     @Override
     public void proceed(@NotNull AbstractNPC<?> myself) {
-        CogwheelHooks.sendPacketToEveryone(new AnimationBound(myself.npc$getAnimatorID(), animation));
+        AnimationBound bound = new AnimationBound(myself.npc$getAnimatorID(), animation);
+        for (ServerPlayerEntity plr : ((ServerWorld) myself.npc$getEntity().getWorld()).getPlayers()) {
+            CogwheelHooks.sendPacket(plr, bound);
+        }
     }
 
     @Override
     public boolean freeToGo(AbstractNPC<?> myself) {
         ticks--;
         if (ticks <= 0) {
-            CogwheelHooks.sendPacketToEveryone(new AnimationBound(myself.npc$getAnimatorID(), "null"));
+            AnimationBound bound = new AnimationBound(myself.npc$getAnimatorID(), "null");
+            for (ServerPlayerEntity plr : ((ServerWorld) myself.npc$getEntity().getWorld()).getPlayers()) {
+                CogwheelHooks.sendPacket(plr, bound);
+            }
             return true;
         }
         return false;

@@ -90,8 +90,8 @@ public class CogTestCallback implements CGPM {
             CogTestCallback callback = (CogTestCallback) o;
             CGPM actual = args.get(0);
             Class<?> clazz = actual.getClass();
-            if (!clazz.getCanonicalName().equals(args.getString(1))) {
-                callback.testResult.failWith(new AssertionError(line(script) + "JAVACLASS ASSERTION FAILED! \"" + actual.convertToString() + "\"(" + clazz.getCanonicalName() + ") is not " + args.getString(1)));
+            if (!clazz.getCanonicalName().equals(args.getConvertedString(1))) {
+                callback.testResult.failWith(new AssertionError(line(script) + "JAVACLASS ASSERTION FAILED! \"" + actual.convertToString() + "\"(" + clazz.getCanonicalName() + ") is not " + args.getConvertedString(1)));
             }
             return null;
         });
